@@ -1,4 +1,5 @@
 #include "SymmetryTest.h"
+#include "SymmetryCombination.cpp"
 #include "TranslationSymmetry.cpp"
 #include <initializer_list>
 #include <iostream>
@@ -24,11 +25,14 @@ void SymmetryTest::runSymmetryTest()
 		output[i] = 0;
 	}
 	
-	TranslationSymmetry<int> ts;
-	ts(input, output, length);
-	for (int i = 0; i < length-1; i++) {
-		std::cout << output[i] << " == " << input[i+1] << " => "  << (output[i] == input[i+1] ? "[" + std::to_string(i) +"]" + "PASSED" : "[" + std::to_string(i) + "]" + "NOT PASSED") << std::endl;
+	TranslationSymmetry<int> *ts = new TranslationSymmetry<int>();
+	TranslationSymmetry<int> *ts2 = new TranslationSymmetry<int>();
+	Symmetry<int> *ts3 = (*ts) * ts2;
+	(*ts3)(input, output, length);
+	for (int i = 0; i < length-2; i++) {
+		std::cout << output[i] << " == " << input[i+2] << " => "  << (output[i] == input[i+2] ? "[" + std::to_string(i) +"]" + "PASSED" : "[" + std::to_string(i) + "]" + "NOT PASSED") << std::endl;
 	}
-	std::cout << output[length - 1] << " == " << input[0] << " => " << (output[length-1] == input[0] ? "[" + std::to_string(length-1) + "]" + "PASSED" : "[" + std::to_string(length -1) + "]" + "NOT PASSED") << std::endl;
+	std::cout << output[length - 1] << " == " << input[1] << " => " << (output[length-1] == input[1] ? "[" + std::to_string(length-1) + "]" + "PASSED" : "[" + std::to_string(length -1) + "]" + "NOT PASSED") << std::endl;
+	std::cout << output[length - 2] << " == " << input[0] << " => " << (output[length - 2] == input[0] ? "[" + std::to_string(length - 2) + "]" + "PASSED" : "[" + std::to_string(length - 2) + "]" + "NOT PASSED") << std::endl;
 
 }

@@ -1,15 +1,6 @@
 #include "TranslationSymmetry.h"
+#include "SymmetryCombination.h"
 
-
-template<class T>
-TranslationSymmetry<T>::TranslationSymmetry()
-{
-}
-
-template<class T>
-TranslationSymmetry<T>::~TranslationSymmetry()
-{
-}
 template<class T>
 int TranslationSymmetry<T>::operator()(T input[], T output[], size_t length)
 {
@@ -26,9 +17,12 @@ int TranslationSymmetry<T>::operator()(T input[], T output[], size_t length)
 	return 0;
 }
 
-/*template<class T>
-Symmetry<T> TranslationSymmetry<T>::operator*(Symmetry<T> l)
+template<class T>
+Symmetry<T> *TranslationSymmetry<T>::operator*(Symmetry<T> *l)
 {
-	return nullptr;
-}*/
+	SymmetryCombination<T> *newSymmetry = new SymmetryCombination<T>();
+	newSymmetry->putSymmetry(l);
+	newSymmetry->putSymmetry(this);
+	return (Symmetry<T> *)newSymmetry;
+}
 
