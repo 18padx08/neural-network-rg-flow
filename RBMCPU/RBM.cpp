@@ -1,5 +1,5 @@
 #include "RBM.h"
-#include <cmath>
+
 #include <time.h>
 #include <stdlib.h>
 #include <iostream>
@@ -9,9 +9,7 @@
 #include <random>
 std::default_random_engine generator;
 std::uniform_real_distribution<double> distribution(0.0, 1.0);
-double sigmoid(double arg) {
-	return 1.0 / (1 + std::exp(-arg));
-}
+
 double sample(double p) {
 	if (p < 0) return 0;
 	if (p > 1) return 1;
@@ -28,7 +26,7 @@ double uniform(double min, double max) {
 	return distribution(generator) * (max - min) + min;
 }
 
-RBM::RBM(int n_vis, int n_hid) 
+RBM::RBM(int n_vis, int n_hid, FunctionType activationFunction) : actFun(activationFunction)
 
 {
 	this->n_vis = n_vis;
@@ -50,6 +48,10 @@ RBM::RBM(int n_vis, int n_hid)
 	initWeights();
 }
 
+RBM::RBM(int n_vis, int n_hid) : RBM(n_vis, n_hid, FunctionType::SIGMOID)
+{
+}
+
 void RBM::sample_h_given_v(double * vis_src, double * hid_target, double *hid_sampled)
 {
 	double pre_sigmoid = 0;
@@ -63,7 +65,7 @@ void RBM::sample_h_given_v(double * vis_src, double * hid_target, double *hid_sa
 				pre_sigmoid += this->W[j][i] * vis_src[j];
 		}
 		pre_sigmoid += hid_b[i];
-		hid_target[i] = sigmoid(pre_sigmoid);
+		hid_target[i] = actFun(pre_sigmoid);
 		hid_sampled[i] = sample(hid_target[i]);
 	}
 }
@@ -81,7 +83,7 @@ void RBM::sample_v_given_h(double * hid_src, double * vis_target, double * vis_s
 			pre_sigmoid += this->W[i][j] * hid_src[j];
 		}
 		pre_sigmoid += hid_b[i];
-		vis_target[i] = sigmoid(pre_sigmoid);
+		vis_target[i] = actFun(pre_sigmoid);
 		vis_sampled[i] = sample(vis_target[i]);
 	}
 }
@@ -130,11 +132,11 @@ double RBM::contrastive_divergence(double * input, int cdK, int batchSize)
 	//update biases
 
 	for (int i = 0; i < num_vis; i++) {
-		this->vis_b[i] = this->lr * (vis0_sampled[i] - visN_sampled[i]);
+		this->vis_b[i] += this->lr * (vis0_sampled[i] - visN[i]);
 	}
 
 	for (int j = 0; j < num_hid; j++) {
-		this->hid_b[j] = this->lr * (hid0_sampled[j] - hidN[j]);
+		this->hid_b[j] += this->lr * (hid0_sampled[j] - hidN[j]);
 	}
 
 	auto ce = std::abs(crossEntropy(input) - crossEntropy(visN_sampled));
@@ -149,16 +151,26 @@ double RBM::contrastive_divergence(double * input, int cdK, int batchSize)
 	return ce;
 }
 
-void RBM::initMask()
+void RBM::initMask(bool **mask )
 {
-	if (isRandom) {
-
+	if (mask == nullptr) {
+		this->isRandom = true;
 	}
 	else {
+		this->isRandom = false;
+	}
+	if (isRandom) {
 		for (int i = 0; i < n_vis; i++) {
 			for (int j = 0; j < n_hid; j++) {
 				bool what = (bool)std::round(distribution(generator));
 				this->dropConnectMask[i][j] = what;
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < n_vis; i++) {
+			for (int j = 0; j < n_hid; j++) {
+				this->dropConnectMask[i][j] = mask[i][j];
 			}
 		}
 	}
@@ -208,21 +220,25 @@ void RBM::train(double ** input, int sample_size, int epoch)
 	double ce = 0;
 	double average = 0;
 	average = 0;
+	int counter = 1;
 	for (int ep = 0; ep < epoch; ep++) {
 		//ereas line
 		std::cout <<"\r" << "                                                                                                   ";
-		this->initMask();
-		
+		//only do this if we are random init
+		if(this->isRandom)
+			this->initMask();
+		average = 0;
+		counter = 1;
 		for (int i = 0; i < sample_size; i++)
 		{
 			average += contrastive_divergence(input[i], 1, sample_size) / sample_size;
 			if(i%10 == 0)
-				ce = average / ((i+1) + (ep + 1)*sample_size);
+				ce = average / counter;
 			std::cout << "\r" << "epoch [" << ep + 1 << " (" << std::round((float)ep / epoch * 100) << "%)] " << "CrossEntropy: " << ce << " " << std::round((float)i / sample_size * 100) << "% [" << printProg(i, sample_size);
-
-			//calculate cross entropy
-		
-			this->initMask();
+			counter++;
+			//if isRandom we need to update the dropconnect mask
+			if(this->isRandom) 
+				this->initMask();
 		}
 		std::cout << "\r" << "epoch [" << ep+1 << "] " << "CrossEntropy: " << ce << " " <<  100 << "% [" << printProg(sample_size, sample_size) << "]";
 	}
@@ -305,7 +321,6 @@ void RBM::saveToFile(std::string filename)
 		}
 		weights.flush();
 		weights.close();
-	
 }
 
 void RBM::saveVisualization()

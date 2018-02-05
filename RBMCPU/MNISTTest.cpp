@@ -14,12 +14,12 @@ void MNISTTest::loadWeightsRBMCPU() {
 	//should work
 	std::cout << "loading working weights";
 	RBM rbm(28 * 28, 28 * 28 / 2);
-	rbm.loadWeights("weights.csv");
+	rbm.loadWeights("weights_with_reg.csv");
 	std::cout << "  [PASSED]" <<std::endl;
 	//dimension too small
 	try {
 		RBM rbm(20 * 20, 28 * 28 / 2);
-		rbm.loadWeights("weights.csv");
+		rbm.loadWeights("weights_with_reg.csv");
 		std::cout << "No error thrown [FAILED]" << std::endl;
 	}
 	catch (std::exception ex) {
@@ -27,7 +27,7 @@ void MNISTTest::loadWeightsRBMCPU() {
 	}
 	try {
 		RBM rbm(30 * 30, 30 * 30 / 2);
-		rbm.loadWeights("weights.csv");
+		rbm.loadWeights("weights_with_reg.csv");
 		std::cout << "No error thrown [FAILED]" << std::endl;
 	}
 	catch (std::exception ex) {
@@ -40,25 +40,25 @@ void MNISTTest::loadWeightsRBMCPU() {
 void MNISTTest::intenseTest()
 {
 
-	RBM rbm(28 * 28, 28 * 28 / 2);
+	RBM rbm(28 * 28, 28 * 28 / 2, FunctionType::TANH);
 	rbm.initWeights();
 	ParamSet set;
-	set.lr = 0.001;
-	set.momentum = 0.6;
+	set.lr = 0.01;
+	set.momentum = 0.3;
 	set.regulization = (Regulization)( Regulization::L1);
 	rbm.setParameters(set);
 	long long starttime = time(NULL);
 	MNISTData data;
-	for (int i = 0; i < 1; i++) {
-		double **batch = data.getBatch(500);
-		rbm.train(batch, 500, 20);
+	for (int i = 0; i < 20; i++) {
+		double **batch = data.getBatch(100);
+		rbm.train(batch, 100, 10);
 		//save weights to file
 		std::cout << "saving files to weights_with_reg.csv" << std::endl;
 		rbm.saveToFile("weights_with_reg.csv");
 	}
 	std::cout << "training finished in " << time(NULL) - starttime << "s" << std::endl;
 	//save visualization
-	rbm.saveVisualization();
+	//rbm.saveVisualization();
 	double * sample = rbm.sample_from_net();
 	for (int i = 0; i < 28; i++) {
 		for (int j = 0; j < 28; j++) {

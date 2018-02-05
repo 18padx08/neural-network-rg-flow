@@ -28,6 +28,9 @@
     <Filter Include="SymmetryGenerator">
       <UniqueIdentifier>{3a9a314f-49df-4a04-bb44-99e5e931cc5d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RG">
+      <UniqueIdentifier>{8b5a4a96-8bbd-4806-a402-1f2156df466c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -63,6 +66,9 @@
     <ClInclude Include="SymmetryTest.h">
       <Filter>Tests</Filter>
     </ClInclude>
+    <ClInclude Include="RG.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -94,6 +100,9 @@
     </ClCompile>
     <ClCompile Include="SymmetryTest.cpp">
       <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="RG.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

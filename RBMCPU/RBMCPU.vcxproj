@@ -139,6 +139,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <OpenMPSupport>false</OpenMPSupport>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,6 +154,7 @@
     <ClInclude Include="MNISTData.h" />
     <ClInclude Include="MNISTTest.h" />
     <ClInclude Include="RBM.h" />
+    <ClInclude Include="RG.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Symmetry.h" />
     <ClInclude Include="SymmetryCombination.h" />
@@ -167,6 +169,7 @@
     <ClCompile Include="MNISTTest.cpp" />
     <ClCompile Include="RBM.cpp" />
     <ClCompile Include="RBMCPU.cpp" />
+    <ClCompile Include="RG.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
