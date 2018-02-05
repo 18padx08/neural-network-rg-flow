@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="rbm_helpers.cu">
+      <Filter>RBM</Filter>
+    </CudaCompile>
+    <CudaCompile Include="RBM.cu">
+      <Filter>RBM</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="RBM">
+      <UniqueIdentifier>{e596eb44-a627-468d-b35f-1711258ce0b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lattice">
+      <UniqueIdentifier>{c627a81e-03a4-4970-90d5-5347bad430d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MonteCarlo">
+      <UniqueIdentifier>{f4016b3d-024f-41fa-9be2-dd6986265eb9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="utils.cuh">
+      <Filter>RBM</Filter>
+    </ClInclude>
+    <ClInclude Include="RBM.cuh">
+      <Filter>RBM</Filter>
+    </ClInclude>
+    <ClInclude Include="rbm_helpers.cuh">
+      <Filter>RBM</Filter>
+    </ClInclude>
+    <ClInclude Include="LatticeObject.h">
+      <Filter>Lattice</Filter>
+    </ClInclude>
+    <ClInclude Include="Ising1D.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="LatticeObject.cpp">
+      <Filter>Lattice</Filter>
+    </ClCompile>
+    <ClCompile Include="Ising1D.cpp">
+      <Filter>MonteCarlo</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

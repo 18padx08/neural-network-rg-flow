@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="RBM">
+      <UniqueIdentifier>{f3a6fde9-c34e-41cc-83ea-42a607731f8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tests">
+      <UniqueIdentifier>{baa4dd57-81ea-4109-9594-04288ea1811a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lattice">
+      <UniqueIdentifier>{3d48b146-aa45-49a1-8967-af83c14a755f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MonteCarlo">
+      <UniqueIdentifier>{66c26b48-2265-4e3a-a7f9-db278dd60eea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SymmetryGenerator">
+      <UniqueIdentifier>{3a9a314f-49df-4a04-bb44-99e5e931cc5d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RBM.h">
+      <Filter>RBM</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CudaTest\LatticeObject.h">
+      <Filter>Lattice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CudaTest\Ising1D.h">
+      <Filter>MonteCarlo</Filter>
+    </ClInclude>
+    <ClInclude Include="MNISTTest.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="MNISTData.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="Symmetry.h">
+      <Filter>SymmetryGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="TranslationSymmetry.h">
+      <Filter>SymmetryGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="SymmetryCombination.h">
+      <Filter>SymmetryGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="SymmetryTest.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RBMCPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RBM.cpp">
+      <Filter>RBM</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CudaTest\LatticeObject.cpp">
+      <Filter>Lattice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CudaTest\Ising1D.cpp">
+      <Filter>MonteCarlo</Filter>
+    </ClCompile>
+    <ClCompile Include="MNISTTest.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="MNISTData.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="TranslationSymmetry.cpp">
+      <Filter>SymmetryGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="SymmetryCombination.cpp">
+      <Filter>SymmetryGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="SymmetryTest.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
