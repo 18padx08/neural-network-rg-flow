@@ -96,7 +96,7 @@ void RG::runRG()
 	ParamSet set;
 	set.lr = 0.005;
 	set.momentum = 0.2;
-	set.regulization = (Regulization) (Regulization::L1);
+	set.regulization = (Regularization) (Regularization::L1);
 	rbm.setParameters(set);
 	rbm.initMask(mask);
 	rbm.initWeights();

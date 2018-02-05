@@ -61,7 +61,7 @@ void RBM::sample_h_given_v(double * vis_src, double * hid_target, double *hid_sa
 
 	for (int i = 0; i < num_hid; i++) {
 		for (int j = 0; j < num_vis; j++) {
-			if(!(this->reg & Regulization::DROPCONNECT) || ((this->reg & Regulization::DROPCONNECT) && !this->dropConnectMask[j][i]))
+			if(!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && !this->dropConnectMask[j][i]))
 				pre_sigmoid += this->W[j][i] * vis_src[j];
 		}
 		pre_sigmoid += hid_b[i];
@@ -79,7 +79,7 @@ void RBM::sample_v_given_h(double * hid_src, double * vis_target, double * vis_s
 
 	for (int i = 0; i < num_vis; i++) {
 		for (int j = 0; j < num_hid; j++) {
-			if (!(this->reg & Regulization::DROPCONNECT) || ((this->reg & Regulization::DROPCONNECT) && !this->dropConnectMask[j][i]))
+			if (!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && !this->dropConnectMask[j][i]))
 			pre_sigmoid += this->W[i][j] * hid_src[j];
 		}
 		pre_sigmoid += hid_b[i];
@@ -118,7 +118,7 @@ double RBM::contrastive_divergence(double * input, int cdK, int batchSize)
 			//update new delta
 			this->dW[i][j] = this->lr * (vis0_sampled[i] * hid0[j] - visN_sampled[i] * hidN[j]) ;
 			//check for regularizer
-			if (this->reg & Regulization::L1) {
+			if (this->reg & Regularization::L1) {
 				//apply L1 regulizer
 				int sign = std::signbit(tmpW) ? -1 : 1;
 				this->dW[i][j] += this->lr*0.001 *sign;
@@ -260,7 +260,7 @@ double * RBM::sample_from_net()
 	std::cout << std::endl;
 	//stop any regullizer occuring at the propagation level
 	auto tmp = this->reg;
-	this->reg = Regulization::NONE;
+	this->reg = Regularization::NONE;
 	sample_v_given_h(hidN_sampled, visN, visN_sampled);
 	//recover state
 	this->reg = tmp;
@@ -281,7 +281,7 @@ double * RBM::reconstruct(double * input)
 	
 	//stop any regullizer occuring at the propagation level
 	auto tmp = this->reg;
-	this->reg = Regulization::NONE;
+	this->reg = Regularization::NONE;
 	//prepare first set
 	sample_h_given_v(vis0_sampled, hid0, hid0_sampled);
 	sample_v_given_h(hid0_sampled, visN, visN_sampled);

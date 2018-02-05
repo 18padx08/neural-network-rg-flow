@@ -43,15 +43,15 @@ void MNISTTest::intenseTest()
 	RBM rbm(28 * 28, 28 * 28 / 2, FunctionType::SIGMOID);
 	rbm.initWeights();
 	ParamSet set;
-	set.lr = 0.001;
+	set.lr = 0.005;
 	set.momentum = 0.2;
-	set.regulization = (Regulization)( Regulization::L1);
+	set.regulization = (Regularization)( Regularization::L1);
 	rbm.setParameters(set);
 	long long starttime = time(NULL);
 	MNISTData data;
-	for (int i = 0; i < 60; i++) {
-		double **batch = data.getBatch(1000);
-		rbm.train(batch, 1000, 10);
+	for (int i = 0; i < 5; i++) {
+		double **batch = data.getBatch(500);
+		rbm.train(batch, 500, 10);
 		//save weights to file
 		std::cout << "saving files to weights_with_reg.csv" << std::endl;
 		rbm.saveToFile("weights_with_reg.csv");
@@ -149,7 +149,7 @@ void MNISTTest::executeRBMCPU()
 	std::cout << "Starting training without regularizer" << std::endl;
 	rbm.initWeights();
 	ParamSet set;
-	set.regulization = Regulization::NONE;
+	set.regulization = Regularization::NONE;
 	set.lr = 0.01;
 	set.momentum = 0.3;
 	rbm.setParameters(set);

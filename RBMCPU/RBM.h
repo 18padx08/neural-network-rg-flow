@@ -1,7 +1,7 @@
 #include <string>
 #include <cmath>
 #pragma once
-enum Regulization {
+enum Regularization {
 	NONE = 0,
 	L1 = 1,
 	L2 = 1 << 1,
@@ -13,7 +13,7 @@ enum Regulization {
 struct ParamSet {
 	double lr;
 	double momentum;
-	Regulization regulization;
+	Regularization regulization;
 };
 enum FunctionType {
 	SIGMOID,
@@ -59,7 +59,7 @@ public:
 
 class RBM {
 private:
-	Regulization reg = Regulization::L1;
+	Regularization reg = Regularization::L1;
 	double **W;
 	bool **dropConnectMask;
 	double **dW;
