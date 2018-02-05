@@ -121,7 +121,7 @@ double RBM::contrastive_divergence(double * input, int cdK, int batchSize)
 			if (this->reg & Regulization::L1) {
 				//apply L1 regulizer
 				int sign = std::signbit(tmpW) ? -1 : 1;
-				this->dW[i][j] -= this->lr  *0.001* tmpW *sign;
+				this->dW[i][j] += this->lr*0.001 *sign;
 			}
 			//apply current change
 			this->W[i][j] += dW[i][j]/batchSize;

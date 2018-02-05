@@ -40,18 +40,18 @@ void MNISTTest::loadWeightsRBMCPU() {
 void MNISTTest::intenseTest()
 {
 
-	RBM rbm(28 * 28, 28 * 28 / 2, FunctionType::TANH);
+	RBM rbm(28 * 28, 28 * 28 / 2, FunctionType::SIGMOID);
 	rbm.initWeights();
 	ParamSet set;
-	set.lr = 0.01;
-	set.momentum = 0.3;
+	set.lr = 0.001;
+	set.momentum = 0.2;
 	set.regulization = (Regulization)( Regulization::L1);
 	rbm.setParameters(set);
 	long long starttime = time(NULL);
 	MNISTData data;
-	for (int i = 0; i < 20; i++) {
-		double **batch = data.getBatch(100);
-		rbm.train(batch, 100, 10);
+	for (int i = 0; i < 60; i++) {
+		double **batch = data.getBatch(1000);
+		rbm.train(batch, 1000, 10);
 		//save weights to file
 		std::cout << "saving files to weights_with_reg.csv" << std::endl;
 		rbm.saveToFile("weights_with_reg.csv");

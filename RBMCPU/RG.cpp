@@ -21,12 +21,12 @@ RG::~RG()
 //make a 20 spin chain and try to learn
 void RG::runRG()
 {
-	int sampleSize = 1500;
+	int sampleSize = 100;
 	double theoreticalEnergy = 0;
 	double **samples = (double **)malloc(sampleSize * sizeof(double*));
 	double **tmpSamples = (double **)malloc(sampleSize * sizeof(double*));
 	for (int i = 0; i < sampleSize; i++) {
-		Ising1D ising(20, 1, 1);
+		Ising1D ising(20, 1, 0.7);
 		int counter = 0;
 		double mE, tE, M;
 		do {
@@ -92,24 +92,24 @@ void RG::runRG()
 			lastRow += 2;
 		}
 	}
-	RBM rbm(20, 10);
+	RBM rbm(20, 10, FunctionType::SIGMOID);
 	ParamSet set;
-	set.lr = 0.01;
+	set.lr = 0.005;
 	set.momentum = 0.2;
-	set.regulization = (Regulization) (Regulization::DROPCONNECT | Regulization::L1);
+	set.regulization = (Regulization) (Regulization::L1);
 	rbm.setParameters(set);
-	rbm.initMask();
+	rbm.initMask(mask);
 	rbm.initWeights();
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	long timeStart = time(NULL);
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 10; i++) {
 		//permute once through the chain
 		for (int trans = 0; trans < 20; trans++) {
 			long loopStart = time(NULL);
 			for (int ba = 0; ba < sampleSize; ba++) {
 				(*t)(samples[ba], tmpSamples[ba], 20);
 			}
-			rbm.train(tmpSamples, sampleSize, 40);
+			rbm.train(tmpSamples, sampleSize, 20);
 			rbm.saveToFile("weights_ising.csv");
 			std::cout << std::endl;
 			long deltaT = time(NULL) - loopStart;
@@ -119,27 +119,70 @@ void RG::runRG()
 		}
 			}
 	long timeEnd = time(NULL);
-	double *sample;
-	sample = rbm.sample_from_net();
-
-	double magn = 0;
-	double energy = 0;
-	for (int i = 0; i < 20; i++) {
-		magn += sample[i];
-	}
-	magn /= 20.0;
-	for (int i = 0; i < 19; i++) {
-		energy += -1 * sample[i] * sample[i + 1];
-	}
-	energy += -1 * sample[19] * sample[0];
-	energy /= 20.0;
-
 	rbm.saveToFile("weights_ising.csv");
 	rbm.saveVisualization();
+	double totalMagn = 0;
+	double totalEnergy = 0;
+	for (int trials = 0; trials < 20; trials++) {
+		double *sample;
+		sample = rbm.sample_from_net();
+		double magn = 0;
+		double energy = 0;
+		for (int i = 0; i < 20; i++) {
+			std::cout << sample[i];
+			magn += sample[i] <= 0? -1 : 1;
+		}
+		std::cout << std::endl;
+		magn /= 20.0;
+		for (int i = 0; i < 19; i++) {
+			energy += -1 * (sample[i] <= 0? -1 :1) * (sample[i + 1] <= 0? -1 : 1);
+		}
+		energy += -1 * (sample[19] <= 0 ? -1 : 1) * (sample[0] <= 0? -1 : 1);
+		energy /= 20.0;
+		totalEnergy += energy;
+		totalMagn += magn;
+		std::cout << energy << "  " << magn << std::endl;
+	}
+	totalMagn /= 20;
+	totalEnergy /= 20;
+
 
 	std::cout << "Trained for " << timeEnd - timeStart << "s" << std::endl;
 	std::cout << std::endl << "--Theoretical--" << std::endl;
 	std::cout << "Energy: " << theoreticalEnergy << "| Magnetization: " << 0 << std::endl;
 	std::cout << "--Network prediction--" << std::endl;
-	std::cout << "Energy: " << energy << " | Magnetization: " << magn << std::endl;
+	std::cout << "Energy: " << totalEnergy << " | Magnetization: " << totalMagn << std::endl;
+
+	std::cout << "----- Load theoretical weights -----" << std::endl;
+	RBM rbm2(20, 10);
+	rbm2.loadWeights("theoretical_test.csv");
+	totalMagn = 0;
+	totalEnergy = 0;
+	for (int trials = 0; trials < 20; trials++) {
+		double *sample;
+		sample = rbm2.sample_from_net();
+		double magn = 0;
+		double energy = 0;
+		for (int i = 0; i < 20; i++) {
+			std::cout << sample[i];
+			magn += sample[i] <= 0 ? -1 : 1;
+		}
+		std::cout << std::endl;
+		magn /= 20.0;
+		for (int i = 0; i < 19; i++) {
+			energy += -1 * (sample[i] <= 0 ? -1 : 1) * (sample[i + 1] <= 0 ? -1 : 1);
+		}
+		energy += -1 * (sample[19] <= 0 ? -1 : 1) * (sample[0] <= 0 ? -1 : 1);
+		energy /= 20.0;
+		totalEnergy += energy;
+		totalMagn += magn;
+		std::cout << energy << "  " << magn << std::endl;
+	}
+	totalMagn /= 20;
+	totalEnergy /= 20;
+
+	std::cout << std::endl << "--Theoretical--" << std::endl;
+	std::cout << "Energy: " << theoreticalEnergy << "| Magnetization: " << 0 << std::endl;
+	std::cout << "--Network prediction--" << std::endl;
+	std::cout << "Energy: " << totalEnergy << " | Magnetization: " << totalMagn << std::endl;
 }
