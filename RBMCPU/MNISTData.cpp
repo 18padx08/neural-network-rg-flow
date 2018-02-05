@@ -81,10 +81,10 @@ double ** MNISTData::getBatch(int batchSize)
 		//only take the ones which are a 3 or 6
 		int random = rand() % this->samples;
 		unsigned char c = this->labels[random];
-		while ((int)c != 3 ) {
+	
 			random = rand() % this->samples;
 			c = this->labels[random];
-		}
+		
 		int offset = 0;
 		for (int offset = 0; offset < this->width*this->height; offset ++) {
 			unsigned char c = this->images[random][offset];

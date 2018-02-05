@@ -43,18 +43,18 @@ void MNISTTest::intenseTest()
 	RBM rbm(28 * 28, 28 * 28 / 2, FunctionType::SIGMOID);
 	rbm.initWeights();
 	ParamSet set;
-	set.lr = 0.005;
+	set.lr = 0.01;
 	set.momentum = 0.2;
 	set.regulization = (Regularization)( Regularization::L1);
 	rbm.setParameters(set);
 	long long starttime = time(NULL);
 	MNISTData data;
-	for (int i = 0; i < 5; i++) {
-		double **batch = data.getBatch(500);
-		rbm.train(batch, 500, 10);
+	for (int i = 0; i < 5000; i++) {
+		double **batch = data.getBatch(10);
+		rbm.train(batch, 10, 20);
 		//save weights to file
-		std::cout << "saving files to weights_with_reg.csv" << std::endl;
-		rbm.saveToFile("weights_with_reg.csv");
+		std::cout << "saving files to weights_with_reg_all_numbers.csv" << std::endl;
+		rbm.saveToFile("weights_with_reg_all_numbers.csv");
 	}
 	std::cout << "training finished in " << time(NULL) - starttime << "s" << std::endl;
 	//save visualization
