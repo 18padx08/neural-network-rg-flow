@@ -97,12 +97,13 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 {
 	double *tmpHidUpdate = (double*)malloc(sizeof(double)*this->n_hid);
 	double *tmpVisUpdate = (double*)malloc(sizeof(double)*this->n_vis);
+	
 	double ce = 0;
 	//init 
 	int num_vis = (int)n_vis;
 	int num_hid = (int)n_hid;
 
-#pragma omp parallel for
+
 	for (int sampleNum = 0; sampleNum < batchSize; sampleNum++) {
 		double *vis0_sampled = input[sampleNum];
 		//allocate memory
@@ -295,7 +296,7 @@ void RBM::train(double ** input, int sample_size, int epoch)
 		//we need to average over all 
 		average += contrastive_divergence(input, 1, sample_size);
 		milliseconds now = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
-		std::cout << "\r" << "epoch [" << ep + 1 << " (" << std::round((float)ep / epoch * 100) << "%)] " << (now - loopStart).count()/60 << "s passed (" << ((now - loopStart) / (ep +1)).count() << "ms / loop)"  << "CrossEntropy: " << ce  << " [" << printProg(ep, epoch);
+		std::cout << "\r" << "epoch [" << ep + 1 << " (" << std::round((float)ep / epoch * 100) << "%)] " << (now - loopStart).count()/60 << "s passed (" << ((now - loopStart) / (ep +1)).count() << "ms / loop)"  << "CrossEntropy: " << average / counter  << " [" << printProg(ep, epoch);
 		counter++;
 		//if isRandom we need to update the dropconnect mask
 		if(this->isRandom) 
