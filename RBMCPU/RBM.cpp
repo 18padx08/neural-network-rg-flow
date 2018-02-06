@@ -7,7 +7,7 @@
 #include <string>
 #include <algorithm>
 #include <random>
-std::default_random_engine generator;
+std::default_random_engine generator(time(NULL));
 std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
 double sample(double p) {
@@ -61,7 +61,7 @@ void RBM::sample_h_given_v(double * vis_src, double * hid_target, double *hid_sa
 
 	for (int i = 0; i < num_hid; i++) {
 		for (int j = 0; j < num_vis; j++) {
-			if(!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && !this->dropConnectMask[j][i]))
+			if(!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[j][i]))
 				pre_sigmoid += this->W[j][i] * vis_src[j];
 		}
 		pre_sigmoid += hid_b[i];
@@ -79,7 +79,7 @@ void RBM::sample_v_given_h(double * hid_src, double * vis_target, double * vis_s
 
 	for (int i = 0; i < num_vis; i++) {
 		for (int j = 0; j < num_hid; j++) {
-			if (!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && !this->dropConnectMask[j][i]))
+			if (!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]))
 			pre_sigmoid += this->W[i][j] * hid_src[j];
 		}
 		pre_sigmoid += hid_b[i];
@@ -109,39 +109,43 @@ double RBM::contrastive_divergence(double * input, int cdK, int batchSize)
 	int num_vis = (int)n_vis;
 	int num_hid = (int)n_hid;
 	//update weights
-
+	//only update if we dont do any dropconnect
+	
 	for (int i = 0; i < num_vis; i++) {
 		for (int j = 0; j < num_hid; j++) {
-			double tmpW = this->W[i][j];
-			//let the change flow
-			this->W[i][j] += dW[i][j]*this->momentum;
-			//update new delta
-			this->dW[i][j] = this->lr * (vis0_sampled[i] * hid0[j] - visN_sampled[i] * hidN[j]) ;
-			//check for regularizer
-			if (this->reg & Regularization::L1) {
-				//apply L1 regulizer
-				int sign = std::signbit(tmpW) ? -1 : 1;
-				this->dW[i][j] += this->lr*0.001 *sign;
+			if (!(this->reg & Regularization::DROPCONNECT) ||(this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]) {
+				double tmpW = this->W[i][j];
+				//let the change flow
+				this->W[i][j] += dW[i][j] * this->momentum;
+				//update new delta
+				this->dW[i][j] = this->lr * (vis0_sampled[i] * hid0[j] - visN_sampled[i] * hidN[j]);
+				//check for regularizer
+				if (this->reg & Regularization::L1) {
+					//apply L1 regulizer
+					int sign = std::signbit(tmpW) ? -1 : 1;
+					this->dW[i][j] += this->lr*0.001 *sign;
+				}
+				//apply current change
+				//normalize with respect to batchsize, to flatten response
+				this->W[i][j] += dW[i][j] / batchSize;
 			}
-			//apply current change
-			this->W[i][j] += dW[i][j]/batchSize;
-			
 		}
 	}
 
-	//update biases
+	//update biases only use bias if not dropconnect
+	if (!(Regularization::DROPCONNECT & this->reg)) {
+		for (int i = 0; i < num_vis; i++) {
+			this->vis_b[i] += this->lr * (vis0_sampled[i] - visN[i]);
+		}
 
-	for (int i = 0; i < num_vis; i++) {
-		this->vis_b[i] += this->lr * (vis0_sampled[i] - visN[i]);
+		for (int j = 0; j < num_hid; j++) {
+			this->hid_b[j] += this->lr * (hid0_sampled[j] - hidN[j]);
+		}
 	}
-
-	for (int j = 0; j < num_hid; j++) {
-		this->hid_b[j] += this->lr * (hid0_sampled[j] - hidN[j]);
-	}
-
+	//calculate cross entropy
 	auto ce = std::abs(crossEntropy(input) - crossEntropy(visN_sampled));
 
-	
+	//cleanup
 	delete(hid0_sampled);
 	delete(hid0);
 	delete(visN);
@@ -162,7 +166,7 @@ void RBM::initMask(bool **mask )
 	if (isRandom) {
 		for (int i = 0; i < n_vis; i++) {
 			for (int j = 0; j < n_hid; j++) {
-				bool what = (bool)std::round(distribution(generator));
+				bool what = (bool)sample(distribution(generator));
 				this->dropConnectMask[i][j] = what;
 			}
 		}
@@ -182,7 +186,12 @@ void RBM::initWeights()
 {
 	for (int i = 0; i < n_vis; i++) {
 		for (int j = 0; j < n_hid; j++) {
-			this->W[i][j] = uniform(-1,1);
+			if (!this->isRandom && this->reg & Regularization::DROPCONNECT && this->dropConnectMask[i][j]) {
+				this->W[i][j] = uniform(-1, 1);
+			}
+			else {
+				this->W[i][j] = 0;
+			}
 			this->dW[i][j] = 0;
 			if (i == 0) {
 				this->hid_b[j] = 0;
@@ -248,7 +257,7 @@ double * RBM::sample_from_net()
 {
 	double *visN = (double*)malloc(sizeof(double)*this->n_vis);
 	double *hidN = (double*)malloc(sizeof(double)*this->n_hid);
-	double *visN_sampled = new double[(sizeof(double)*this->n_vis)];
+	double *visN_sampled = new double[this->n_vis];
 	double *hidN_sampled = (double*)malloc(sizeof(double)*this->n_hid);
 
 	for (int i = 0; i < n_hid; i++) {
@@ -256,7 +265,8 @@ double * RBM::sample_from_net()
 		hidN_sampled[i] = sample(hidN[i]);
 		std::cout << hidN_sampled[i];
 	}
-	hidN_sampled[0] = 1;
+	//hidN_sampled[3] = 1;
+	//hidN_sampled[5] = 1;
 	std::cout << std::endl;
 	//stop any regullizer occuring at the propagation level
 	auto tmp = this->reg;
@@ -276,7 +286,7 @@ double * RBM::reconstruct(double * input)
 	double *vis0_sampled = input;
 	double *hid0_sampled = (double*)malloc(sizeof(double)*this->n_hid);
 	double *hid0 = (double*)malloc(sizeof(double)*this->n_hid);
-	double *visN = (double*)malloc(sizeof(double)*this->n_vis);
+	double *visN = new double[this->n_vis];
 	double *visN_sampled = (double*)malloc(sizeof(double)*this->n_vis);
 	
 	//stop any regullizer occuring at the propagation level
@@ -286,7 +296,7 @@ double * RBM::reconstruct(double * input)
 	sample_h_given_v(vis0_sampled, hid0, hid0_sampled);
 	sample_v_given_h(hid0_sampled, visN, visN_sampled);
 	this->reg = tmp;
-	delete(vis0_sampled);
+	//delete(vis0_sampled);
 	delete(hid0_sampled);
 	delete(hid0);
 	delete(visN);
@@ -321,6 +331,23 @@ void RBM::saveToFile(std::string filename)
 		}
 		weights.flush();
 		weights.close();
+
+		std::ofstream hidden_bias;
+		hidden_bias.open("hb" + filename);
+		for (int i = 0; i < n_hid; i++) {
+			hidden_bias << this->hid_b[i] << ",";
+		}
+		hidden_bias.flush();
+		hidden_bias.close();
+
+		std::ofstream visible_bias;
+		visible_bias.open("vb" + filename);
+		for (int i = 0; i < n_hid; i++) {
+			visible_bias << this->hid_b[i] << ",";
+		}
+		visible_bias.flush();
+		visible_bias.close();
+
 }
 
 void RBM::saveVisualization()
@@ -377,5 +404,50 @@ bool RBM::loadWeights(std::string filename)
 	}
 	if (i < this->n_vis) {
 		throw std::exception("Weight-Matrix does not match dimension of NN");
+	}
+	//load biases
+	std::ifstream visible_bias;
+	visible_bias.open("vb" + filename);
+	std::string theL = "";
+	std::getline(visible_bias, theL);
+	i = 0;
+	size_t pos;
+	while ((pos = theL.find(deli)) != std::string::npos) {
+		std::string vb = theL.substr(0, pos);
+		if (vb.length() > 0) {
+			double wij = std::stod(vb);
+			if (i < this->n_vis) {
+				this->vis_b[i] = wij;
+			}
+			else {
+				throw std::exception("Bias-Matrix does not match dimension of NN");
+			}
+		}
+		else {
+			std::cout << "last element?" << std::endl;
+		}
+		theL.erase(0, pos + deli.length());
+		i++;
+	}
+	std::ifstream hidden_bias;
+	hidden_bias.open("vb" + filename);
+	std::getline(hidden_bias, theL);
+	i = 0;
+	while ((pos = theL.find(deli)) != std::string::npos) {
+		std::string vb = theL.substr(0, pos);
+		if (vb.length() > 0) {
+			double wij = std::stod(vb);
+			if (i < this->n_vis) {
+				this->vis_b[i] = wij;
+			}
+			else {
+				throw std::exception("Bias-Matrix does not match dimension of NN");
+			}
+		}
+		else {
+			std::cout << "last element?" << std::endl;
+		}
+		theL.erase(0, pos + deli.length());
+		i++;
 	}
 }
