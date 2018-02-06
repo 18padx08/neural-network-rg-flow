@@ -104,7 +104,7 @@ void RG::runRG()
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	long timeStart = time(NULL);
 	//permute once through the chain
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < 5; i++) {
 		for (int trans = 0; trans < 20; trans++) {
 			long loopStart = time(NULL);
 			for (int ba = 0; ba < sampleSize; ba++) {
