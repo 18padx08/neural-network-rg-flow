@@ -63,6 +63,7 @@ private:
 	double **W;
 	bool **dropConnectMask;
 	double **dW;
+	double **tmpdW;
 	double *vis_b;
 	double *hid_b;
 	double lr = 0.01;
@@ -71,7 +72,7 @@ private:
 	double momentum=0.3;
 	void sample_h_given_v(double *vis_src, double *hid_target, double *hid_target_sample);
 	void sample_v_given_h(double *hid_src, double *vis_target, double *vis_target_sample);
-	double contrastive_divergence(double *input, int cdK, int batchSize);
+	double contrastive_divergence(double **input, int cdK, int batchSize);
 	ActivationFunction actFun;
 	double crossEntropy(double *input);
 	bool isRandom = true;

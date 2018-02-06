@@ -7,6 +7,9 @@
 #include <string>
 #include <algorithm>
 #include <random>
+#include <chrono>
+
+using namespace std::chrono;
 std::default_random_engine generator(time(NULL));
 std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
@@ -38,10 +41,12 @@ RBM::RBM(int n_vis, int n_hid, FunctionType activationFunction) : actFun(activat
 	this->W = (double **)malloc(n_vis * sizeof(double *));
 	this->dropConnectMask = (bool **)malloc(n_vis * sizeof(bool *));
 	this->dW = (double **)malloc(n_vis * sizeof(double *));
+	this->tmpdW = (double **)malloc(n_vis * sizeof(double *));
 	for (int i = 0; i < n_vis; i++) {
 		this->W[i] = (double*)malloc(sizeof(double) * n_hid);
 		this->dropConnectMask[i] = (bool*)malloc(sizeof(bool) * n_hid);
 		this->dW[i] = (double*)malloc(sizeof(double) * n_hid);
+		this->tmpdW[i] = (double*)malloc(sizeof(double) * n_hid);
 	}
 	
 	//srand(time(NULL));
@@ -88,70 +93,119 @@ void RBM::sample_v_given_h(double * hid_src, double * vis_target, double * vis_s
 	}
 }
 
-double RBM::contrastive_divergence(double * input, int cdK, int batchSize)
+double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 {
-	double *vis0_sampled = input;
-	double *hid0_sampled = (double*)malloc(sizeof(double)*this->n_hid);
-	double *hid0 = (double*)malloc(sizeof(double)*this->n_hid);
-	double *visN = (double*)malloc(sizeof(double)*this->n_vis);
-	double *hidN = (double*)malloc(sizeof(double)*this->n_hid);
-	double *visN_sampled = (double*)malloc(sizeof(double)*this->n_vis);
-	double *hidN_sampled = (double*)malloc(sizeof(double)*this->n_hid);
-
-	//prepare first set
-	sample_h_given_v(vis0_sampled, hid0, hid0_sampled);
-
-	//calculate the "model" distribution
-	for (int k = 0; k < cdK; k++) {
-		sample_v_given_h(hid0_sampled, visN, visN_sampled);
-		sample_h_given_v(visN_sampled, hidN, hidN_sampled);
-	}
+	double *tmpHidUpdate = (double*)malloc(sizeof(double)*this->n_hid);
+	double *tmpVisUpdate = (double*)malloc(sizeof(double)*this->n_vis);
+	double ce = 0;
+	//init 
 	int num_vis = (int)n_vis;
 	int num_hid = (int)n_hid;
-	//update weights
-	//only update if we dont do any dropconnect
-	
-	for (int i = 0; i < num_vis; i++) {
-		for (int j = 0; j < num_hid; j++) {
-			if (!(this->reg & Regularization::DROPCONNECT) ||(this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]) {
+
+#pragma omp parallel for
+	for (int sampleNum = 0; sampleNum < batchSize; sampleNum++) {
+		double *vis0_sampled = input[sampleNum];
+		//allocate memory
+		double *hid0_sampled = (double*)malloc(sizeof(double)*this->n_hid);
+		double *hid0 = (double*)malloc(sizeof(double)*this->n_hid);
+		double *visN = (double*)malloc(sizeof(double)*this->n_vis);
+		double *hidN = (double*)malloc(sizeof(double)*this->n_hid);
+		double *visN_sampled = (double*)malloc(sizeof(double)*this->n_vis);
+		double *hidN_sampled = (double*)malloc(sizeof(double)*this->n_hid);
+		
+
+		for (int i = 0; i < num_vis; i++) {
+			tmpVisUpdate[i] = 0;
+		}
+
+		for (int i = 0; i < num_hid; i++) {
+			tmpHidUpdate[i] = 0;
+		}
+
+		//prepare first set
+		sample_h_given_v(vis0_sampled, hid0, hid0_sampled);
+
+		//calculate the "model" distribution
+		for (int k = 0; k < cdK; k++) {
+			sample_v_given_h(hid0_sampled, visN, visN_sampled);
+			sample_h_given_v(visN_sampled, hidN, hidN_sampled);
+		}
+		
+		//update weights
+		//only update if we dont do any dropconnect
+		//accumulate the gradients
+
+		for (int i = 0; i < num_vis; i++) {
+			for (int j = 0; j < num_hid; j++) {
+				if (!(this->reg & Regularization::DROPCONNECT) || (this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]) {
+					double tmpW = this->W[i][j];
+					//update new delta
+					this->tmpdW[i][j] += this->lr * (vis0_sampled[i] * hid0[j] - visN_sampled[i] * hidN[j]);
+					//check for regularizer
+					if (this->reg & Regularization::L1) {
+						//apply L1 regulizer
+						int sign = std::signbit(tmpW) ? -1 : 1;
+						this->tmpdW[i][j] += this->lr*0.001 *sign;
+					}
+				}
+			}
+		}
+
+		//update biases only use bias if not dropconnect
+		if (!(Regularization::DROPCONNECT & this->reg)) {
+			for (int i = 0; i < num_vis; i++) {
+				tmpVisUpdate[i] += this->lr * (vis0_sampled[i] - visN[i]);
+			}
+
+			for (int j = 0; j < num_hid; j++) {
+				tmpHidUpdate[j] += this->lr * (hid0_sampled[j] - hidN[j]);
+			}
+		}
+		//calculate cross entropy
+		double before = crossEntropy(vis0_sampled);
+		double after = crossEntropy(visN_sampled);
+		ce += std::abs( after - before );
+
+		delete(hid0_sampled);
+		delete(hid0);
+		delete(visN);
+		delete(hidN);
+		delete(visN_sampled);
+		delete(hidN_sampled);
+	}
+
+	//apply the average of the gradients
+#pragma omp parallel for
+	for (int i = 0; i < this->n_vis; i++) {
+		for (int j = 0; j < this->n_hid; j++) {
+			if (!(this->reg & Regularization::DROPCONNECT) || (this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]) {
 				double tmpW = this->W[i][j];
+				this->tmpdW[i][j] /= batchSize;
 				//let the change flow
 				this->W[i][j] += dW[i][j] * this->momentum;
 				//update new delta
-				this->dW[i][j] = this->lr * (vis0_sampled[i] * hid0[j] - visN_sampled[i] * hidN[j]);
-				//check for regularizer
-				if (this->reg & Regularization::L1) {
-					//apply L1 regulizer
-					int sign = std::signbit(tmpW) ? -1 : 1;
-					this->dW[i][j] += this->lr*0.001 *sign;
-				}
 				//apply current change
 				//normalize with respect to batchsize, to flatten response
-				this->W[i][j] += dW[i][j] / batchSize;
+				this->W[i][j] += tmpdW[i][j];
+				dW[i][j] = tmpdW[i][j];
 			}
 		}
 	}
 
 	//update biases only use bias if not dropconnect
 	if (!(Regularization::DROPCONNECT & this->reg)) {
-		for (int i = 0; i < num_vis; i++) {
-			this->vis_b[i] += this->lr * (vis0_sampled[i] - visN[i]);
+		for (int i = 0; i < n_vis; i++) {
+			this->vis_b[i] += tmpVisUpdate[i] / batchSize;
 		}
 
-		for (int j = 0; j < num_hid; j++) {
-			this->hid_b[j] += this->lr * (hid0_sampled[j] - hidN[j]);
+		for (int j = 0; j < n_hid; j++) {
+			this->hid_b[j] += tmpHidUpdate[j]/batchSize;
 		}
 	}
-	//calculate cross entropy
-	auto ce = std::abs(crossEntropy(input) - crossEntropy(visN_sampled));
 
+	ce /= batchSize;
 	//cleanup
-	delete(hid0_sampled);
-	delete(hid0);
-	delete(visN);
-	delete(hidN);
-	delete(visN_sampled);
-	delete(hidN_sampled);
+	
 	return ce;
 }
 
@@ -230,26 +284,23 @@ void RBM::train(double ** input, int sample_size, int epoch)
 	double average = 0;
 	average = 0;
 	int counter = 1;
+	milliseconds loopStart  = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 	for (int ep = 0; ep < epoch; ep++) {
+		
 		//ereas line
-		std::cout <<"\r" << "                                                                                                   ";
+		//std::cout <<"\r" << "                                                                                                   ";
 		//only do this if we are random init
 		if(this->isRandom)
 			this->initMask();
-		average = 0;
-		counter = 1;
-		for (int i = 0; i < sample_size; i++)
-		{
-			average += contrastive_divergence(input[i], 1, sample_size) / sample_size;
-			if(i%10 == 0)
-				ce = average / counter;
-			std::cout << "\r" << "epoch [" << ep + 1 << " (" << std::round((float)ep / epoch * 100) << "%)] " << "CrossEntropy: " << ce << " " << std::round((float)i / sample_size * 100) << "% [" << printProg(i, sample_size);
-			counter++;
-			//if isRandom we need to update the dropconnect mask
-			if(this->isRandom) 
-				this->initMask();
-		}
-		std::cout << "\r" << "epoch [" << ep+1 << "] " << "CrossEntropy: " << ce << " " <<  100 << "% [" << printProg(sample_size, sample_size) << "]";
+		//we need to average over all 
+		average += contrastive_divergence(input, 1, sample_size);
+		milliseconds now = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+		std::cout << "\r" << "epoch [" << ep + 1 << " (" << std::round((float)ep / epoch * 100) << "%)] " << (now - loopStart).count()/60 << "s passed (" << ((now - loopStart) / (ep +1)).count() << "ms / loop)"  << "CrossEntropy: " << ce  << " [" << printProg(ep, epoch);
+		counter++;
+		//if isRandom we need to update the dropconnect mask
+		if(this->isRandom) 
+			this->initMask();
+		//std::cout << "\r" << "epoch [" << ep+1 << "] " << "CrossEntropy: " << ce << " " <<  100 << "% [" << printProg(sample_size, sample_size) << "]";
 	}
 }
 

@@ -6,6 +6,9 @@
 #include <time.h>
 using namespace std;
 
+std::default_random_engine gen(time(NULL));
+std::uniform_int_distribution<> dis;
+
 int32_t swapBytes(char *bytes) {
 	int32_t numSamples = 0;
 	numSamples |= (*bytes & 0xFF) << 24;
@@ -28,7 +31,7 @@ MNISTData::MNISTData()
 	//read magicnumber and sample size of labels
 	labels.read(magicNumber, sizeof(int32_t));
 	labels.read(num_samples, sizeof(int32_t));
-
+	
 	//read magicnumber size and number of samples from images
 	char *sampleSize = new char[sizeof(int32_t)];
 	char *rows = new char[sizeof(int32_t)];
@@ -37,10 +40,11 @@ MNISTData::MNISTData()
 	images.read(sampleSize, sizeof(int32_t));
 	images.read(rows, sizeof(int32_t));
 	images.read(columns, sizeof(int32_t));
-
+	
 	int32_t ss = swapBytes(sampleSize);
 	int32_t r = swapBytes(rows);
 	int32_t co = swapBytes(columns);
+	dis = std::uniform_int_distribution<>(0, ss - 1);
 	//convert endianess
 	int32_t magic = swapBytes(magicNumber);
 	int32_t numsamp = swapBytes(num_samples);
@@ -79,12 +83,13 @@ double ** MNISTData::getBatch(int batchSize)
 	for (int i = 0; i < batchSize; i++) {
 		sampleBatch[i] =  (double*)malloc(sizeof(double)*this->width * this->height);
 		//only take the ones which are a 3 or 6
-		int random = rand() % this->samples;
+		int random = dis(gen);
 		unsigned char c = this->labels[random];
-	
-			random = rand() % this->samples;
+
+		while ((int)c != 3) {
+			random = dis(gen);
 			c = this->labels[random];
-		
+		}
 		int offset = 0;
 		for (int offset = 0; offset < this->width*this->height; offset ++) {
 			unsigned char c = this->images[random][offset];
