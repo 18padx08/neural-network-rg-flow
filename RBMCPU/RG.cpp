@@ -21,7 +21,7 @@ RG::~RG()
 //make a 20 spin chain and try to learn
 void RG::runRG()
 {
-	int sampleSize = 10000;
+	int sampleSize = 100;
 	double theoreticalEnergy = 0;
 	double **samples = (double **)malloc(sampleSize * sizeof(double*));
 	double **tmpSamples = (double **)malloc(sampleSize * sizeof(double*));
@@ -93,24 +93,24 @@ void RG::runRG()
 		}
 	}
 	RBM rbm(20, 10, FunctionType::SIGMOID);
-	//rbm.loadWeights("weights_ising.csv");
+	rbm.loadWeights("weights_ising.csv");
 	ParamSet set;
 	set.lr = 0.01;
-	set.momentum = 0.6;
-	set.regulization = (Regularization)(Regularization::DROPCONNECT);
+	set.momentum = 0.3;
+	set.regulization = (Regularization)( Regularization::DROPCONNECT);
 	rbm.setParameters(set);
 	rbm.initMask(mask);
 	rbm.initWeights();
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	long timeStart = time(NULL);
 	//permute once through the chain
-	for (int i = 0; i < 5; i++) {
-		for (int trans = 0; trans < 20; trans++) {
+	for (int i = 0; i < 2; i++) {
+		for (int trans = 0; trans < 5; trans++) {
 			long loopStart = time(NULL);
 			for (int ba = 0; ba < sampleSize; ba++) {
 				(*t)(samples[ba], tmpSamples[ba], 20);
 			}
-			rbm.train(tmpSamples, sampleSize, 20);
+			rbm.train(tmpSamples, sampleSize, 50);
 			rbm.saveToFile("weights_ising.csv");
 			std::cout << std::endl;
 			long deltaT = time(NULL) - loopStart;
@@ -127,7 +127,7 @@ void RG::runRG()
 	double totalEnergy = 0;
 	for (int trials = 0; trials < 100; trials++) {
 		double *sample;
-		sample = rbm.reconstruct(samples[0]);
+		sample = rbm.sample_from_net();
 		double magn = 0;
 		double energy = 0;
 		std::cout << " --------- " <<std::endl;

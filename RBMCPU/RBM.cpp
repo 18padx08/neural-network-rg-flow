@@ -175,7 +175,7 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 	}
 
 	//apply the average of the gradients
-#pragma omp parallel for
+
 	for (int i = 0; i < num_vis; i++) {
 		for (int j = 0; j < num_hid; j++) {
 			if (!(this->reg & Regularization::DROPCONNECT) || (this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]) {

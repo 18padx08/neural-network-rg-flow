@@ -69,6 +69,9 @@
     <ClInclude Include="RG.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Z2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -102,6 +105,9 @@
       <Filter>Tests</Filter>
     </ClCompile>
     <ClCompile Include="RG.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Z2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

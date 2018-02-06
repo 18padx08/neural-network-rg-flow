@@ -41,27 +41,27 @@ void MNISTTest::intenseTest()
 {
 
 	RBM rbm(28 * 28, 28 * 28 / 2, FunctionType::SIGMOID);
-	rbm.initMask();
-	rbm.initWeights();
+	//rbm.initMask();
+	//rbm.initWeights();
 	ParamSet set;
-	set.lr = 0.01;
-	set.momentum = 0.6;
-	set.regulization = (Regularization)( Regularization::DROPCONNECT);
+	set.lr = 0.02;
+	set.momentum = 0.3;
+	set.regulization = (Regularization)( Regularization::L1);
 	
 	//rbm.setParameters(set);
 	long long starttime = time(NULL);
 	MNISTData data;
-	for (int i = 0; i < 10; i++) {
+	/*for (int i = 0; i < 5; i++) {
 		double **batch = data.getBatch(50);
-		rbm.train(batch, 50, 30);
+		rbm.train(batch, 50, 20);
 		//save weights to file
 		std::cout << "saving files to weights_with_reg_all_numbers.csv" << std::endl;
 		rbm.saveToFile("weights_with_reg_all_numbers.csv");
-	}
-	//rbm.loadWeights("weights_with_reg_all_numbers.csv");
+	}*/
+	rbm.loadWeights("weights_with_reg_all_numbers.csv");
 	std::cout << "training finished in " << time(NULL) - starttime << "s" << std::endl;
 	//save visualization
-	rbm.saveVisualization();
+	//rbm.saveVisualization();
 	double * sample = rbm.sample_from_net();
 	for (int i = 0; i < 28; i++) {
 		for (int j = 0; j < 28; j++) {
