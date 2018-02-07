@@ -413,7 +413,7 @@ void RBM::saveToFile(std::string filename)
 
 		std::ofstream visible_bias;
 		visible_bias.open("vb" + filename);
-		for (int i = 0; i < n_hid; i++) {
+		for (int i = 0; i < n_vis; i++) {
 			visible_bias << this->hid_b[i] << ",";
 		}
 		visible_bias.flush();
