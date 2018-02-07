@@ -158,6 +158,9 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 						int sign = std::signbit(tmpW) ? -1 : 1;
 						this->tmpdW[i][j] += this->lr*0.001 *sign;
 					}
+					if (this->reg & Regularization::L2) {
+						this->tmpdW[i][j] += this->lr*this->weight_decay * tmpW;
+					}
 				}
 			}
 		}
@@ -359,8 +362,10 @@ double * RBM::reconstruct(double * input)
 	auto tmp = this->reg;
 	this->reg = Regularization::NONE;
 	//prepare first set
-	sample_h_given_v(vis0_sampled, hid0, hid0_sampled);
-	sample_v_given_h(hid0_sampled, visN, visN_sampled);
+	for (int i = 0; i < 10; i++) {
+		sample_h_given_v(vis0_sampled, hid0, hid0_sampled);
+		sample_v_given_h(hid0_sampled, visN, visN_sampled);
+	}
 	this->reg = tmp;
 	//delete(vis0_sampled);
 	delete(hid0_sampled);

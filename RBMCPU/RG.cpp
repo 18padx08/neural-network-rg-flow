@@ -23,11 +23,13 @@ RG::~RG()
 void RG::runRG()
 {
 	int sampleSize = 100;
+	double J = 0.7;
 	double theoreticalEnergy = 0;
 	double **samples = (double **)malloc(sampleSize * sizeof(double*));
 	double **tmpSamples = (double **)malloc(sampleSize * sizeof(double*));
+	double firstEnergy = 0;
 	for (int i = 0; i < sampleSize; i++) {
-		Ising1D ising(20, 1, 1.0);
+		Ising1D ising(20, 1, J);
 		int counter = 0;
 		double mE, tE, M;
 		do {
@@ -37,8 +39,9 @@ void RG::runRG()
 			tE = ising.getTheoreticalMeanEnergy();
 			theoreticalEnergy = tE;
 			M = ising.getMagnetization();
+			if (i == 0) firstEnergy = mE;
 
-		} while (!(abs(tE - mE) < 0.1 * abs(tE) && abs(ising.getMagnetization()) < 0.01));
+		} while (!(abs(tE - mE) < 0.06 * abs(tE) && abs(ising.getMagnetization()) < 0.01));
 
 		if (i % 2 == 0) {
 			//printf("[STEP %d] Mean energy config: %f theoretical: %f delta: %f\n Mean magnetization: %f\n", i, ising.getMeanEnergy(), ising.getTheoreticalMeanEnergy(), ising.getMeanEnergy() - ising.getTheoreticalMeanEnergy(), ising.getMagnetization());
@@ -96,9 +99,9 @@ void RG::runRG()
 	RBM rbm(20, 10, FunctionType::SIGMOID);
 	rbm.loadWeights("weights_ising.csv");
 	ParamSet set;
-	set.lr = 0.1;
-	set.momentum = 0.3;
-	set.regulization = (Regularization)( Regularization::NONE);
+	set.lr = 0.01;
+	set.momentum = 0.5;
+	set.regulization = (Regularization)( Regularization::L1);
 	//rbm.setParameters(set);
 	//rbm.initMask();
 	//rbm.initWeights();
@@ -137,7 +140,7 @@ void RG::runRG()
 	
 	for (int trials = 0; trials < 100; trials++) {
 		double *sample;
-		sample = rbm.sample_from_net(100);
+		sample = rbm.sample_from_net(50);
 		double magn = 0;
 		double energy = 0;
 		std::cout << " --------- " <<std::endl;
@@ -153,9 +156,9 @@ void RG::runRG()
 		std::cout << std::endl;
 		magn /= 20;
 		for (int i = 0; i < 19; i++) {
-			energy += -1 * (sample[i] <= 0? -1 :1) * (sample[i + 1] <= 0? -1 : 1);
+			energy += -J * (sample[i] <= 0? -1 :1) * (sample[i + 1] <= 0? -1 : 1);
 		}
-		energy += -1 * (sample[99] <= 0 ? -1 : 1) * (sample[0] <= 0? -1 : 1);
+		energy += -J * (sample[99] <= 0 ? -1 : 1) * (sample[0] <= 0? -1 : 1);
 		energy /= 20;
 		totalEnergy += energy;
 		totalMagn += magn;
@@ -170,6 +173,7 @@ void RG::runRG()
 	std::cout << "Energy: " << theoreticalEnergy << "| Magnetization: " << 0 << std::endl;
 	std::cout << "--Network prediction--" << std::endl;
 	std::cout << "Energy: " << totalEnergy << " | Magnetization: " << totalMagn << std::endl;
+	std::cout << "Energy for first sample: " << firstEnergy << std::endl;
 
 	/*std::cout << "----- Load theoretical weights -----" << std::endl;
 	RBM rbm2(100, 10);
