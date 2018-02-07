@@ -154,6 +154,7 @@
   <ItemGroup>
     <ClInclude Include="..\CudaTest\Ising1D.h" />
     <ClInclude Include="..\CudaTest\LatticeObject.h" />
+    <ClInclude Include="AnalyticalTest.h" />
     <ClInclude Include="MNISTData.h" />
     <ClInclude Include="MNISTTest.h" />
     <ClInclude Include="RBM.h" />
@@ -169,6 +170,7 @@
   <ItemGroup>
     <ClCompile Include="..\CudaTest\Ising1D.cpp" />
     <ClCompile Include="..\CudaTest\LatticeObject.cpp" />
+    <ClCompile Include="AnalyticalTest.cpp" />
     <ClCompile Include="MNISTData.cpp" />
     <ClCompile Include="MNISTTest.cpp" />
     <ClCompile Include="RBM.cpp" />

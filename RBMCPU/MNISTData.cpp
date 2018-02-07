@@ -85,11 +85,7 @@ double ** MNISTData::getBatch(int batchSize)
 		//only take the ones which are a 3 or 6
 		int random = dis(gen);
 		unsigned char c = this->labels[random];
-
-		while ((int)c != 3) {
-			random = dis(gen);
-			c = this->labels[random];
-		}
+		std::cout << random;
 		int offset = 0;
 		for (int offset = 0; offset < this->width*this->height; offset ++) {
 			unsigned char c = this->images[random][offset];

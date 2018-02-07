@@ -44,16 +44,16 @@ void MNISTTest::intenseTest()
 	//rbm.initMask();
 	//rbm.initWeights();
 	ParamSet set;
-	set.lr = 0.02;
-	set.momentum = 0.3;
+	set.lr = 0.1;
+	set.momentum = 0.6;
 	set.regulization = (Regularization)( Regularization::L1);
 	
 	//rbm.setParameters(set);
 	long long starttime = time(NULL);
 	MNISTData data;
-	/*for (int i = 0; i < 5; i++) {
+	/*for (int i = 0; i < 20; i++) {
 		double **batch = data.getBatch(50);
-		rbm.train(batch, 50, 20);
+		rbm.train(batch, 50, 40);
 		//save weights to file
 		std::cout << "saving files to weights_with_reg_all_numbers.csv" << std::endl;
 		rbm.saveToFile("weights_with_reg_all_numbers.csv");
@@ -62,13 +62,16 @@ void MNISTTest::intenseTest()
 	std::cout << "training finished in " << time(NULL) - starttime << "s" << std::endl;
 	//save visualization
 	//rbm.saveVisualization();
-	double * sample = rbm.sample_from_net();
-	for (int i = 0; i < 28; i++) {
-		for (int j = 0; j < 28; j++) {
-			std::cout << sample[i * 28 + j];
+	double **batch = data.getBatch(20);
+	for (int sam = 0; sam < 20; sam++) {
+		double * sample = rbm.reconstruct(batch[sam]);
+		for (int i = 0; i < 28; i++) {
+			for (int j = 0; j < 28; j++) {
+				std::cout << sample[i * 28 + j];
+			}
+			std::cout << std::endl;
 		}
-		std::cout << std::endl;
-	}
+	}/*
 	sample = rbm.sample_from_net();
 	for (int i = 0; i < 28; i++) {
 		for (int j = 0; j < 28; j++) {
@@ -96,7 +99,7 @@ void MNISTTest::intenseTest()
 			std::cout << sample[i * 28 + j];
 		}
 		std::cout << std::endl;
-	}
+	}*/
 }
 void MNISTTest::executeRBMCPU()
 {

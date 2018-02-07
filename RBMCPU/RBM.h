@@ -82,7 +82,7 @@ public:
 	void initWeights();
 	void initMask(bool **mask = 0);
 	void train(double **input, int sample_size, int epoch);
-	double * sample_from_net();
+	double * sample_from_net(int gibbs_steps = 10);
 	double * reconstruct(double * input);
 	void setParameters(ParamSet set);
 	void printWeights();

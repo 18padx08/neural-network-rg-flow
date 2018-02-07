@@ -22,12 +22,12 @@ RG::~RG()
 //make a 100 spin chain and try to learn
 void RG::runRG()
 {
-	int sampleSize = 1;
+	int sampleSize = 100;
 	double theoreticalEnergy = 0;
 	double **samples = (double **)malloc(sampleSize * sizeof(double*));
 	double **tmpSamples = (double **)malloc(sampleSize * sizeof(double*));
 	for (int i = 0; i < sampleSize; i++) {
-		Ising1D ising(100, 1, 1.2);
+		Ising1D ising(20, 1, 1.0);
 		int counter = 0;
 		double mE, tE, M;
 		do {
@@ -43,8 +43,8 @@ void RG::runRG()
 		if (i % 2 == 0) {
 			//printf("[STEP %d] Mean energy config: %f theoretical: %f delta: %f\n Mean magnetization: %f\n", i, ising.getMeanEnergy(), ising.getTheoreticalMeanEnergy(), ising.getMeanEnergy() - ising.getTheoreticalMeanEnergy(), ising.getMagnetization());
 		}
-		samples[i] = (double *)malloc(100 * sizeof(double));
-		tmpSamples[i] = (double *)malloc(100 * sizeof(double));
+		samples[i] = (double *)malloc(20 * sizeof(double));
+		tmpSamples[i] = (double *)malloc(20 * sizeof(double));
 		std::vector<int> v = ising.getConfiguration();
 		for (int j = 0; j < v.size(); j++) {
 			samples[i][j] = v[j];
@@ -52,16 +52,16 @@ void RG::runRG()
 	}
 
 
-	bool **mask = (bool**)malloc(10 * 100 * sizeof(bool));
+	bool **mask = (bool**)malloc(10 * 20 * sizeof(bool));
 	int maskCounter = 0;
 	int lastRow = 2;
 	int lastCol = 0;
 	bool second = false;
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 20; i++) {
 		mask[i] = (bool*)malloc(10 * sizeof(bool));
 	}
 	mask[0][0] = true;
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 20; i++) {
 		for (int j = 0; j < 10; j++) {
 			if (i % 2 == 0)
 			{
@@ -93,33 +93,33 @@ void RG::runRG()
 			lastRow += 2;
 		}
 	}
-	RBM rbm(100, 50, FunctionType::SIGMOID);
-	//rbm.loadWeights("weights_ising.csv");
+	RBM rbm(20, 10, FunctionType::SIGMOID);
+	rbm.loadWeights("weights_ising.csv");
 	ParamSet set;
-	set.lr = 0.01;
+	set.lr = 0.1;
 	set.momentum = 0.3;
-	set.regulization = (Regularization)( Regularization::L1);
-	rbm.setParameters(set);
-	rbm.initMask(mask);
-	rbm.initWeights();
+	set.regulization = (Regularization)( Regularization::NONE);
+	//rbm.setParameters(set);
+	//rbm.initMask();
+	//rbm.initWeights();
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	Z2<double> *z2 = new Z2<double>();
 	long timeStart = time(NULL);
 	//permute once through the chain
-	for (int i = 0; i < 10; i++) {
-		/*if (i % 2 == 0) {
+	/*for (int i = 0; i < 2; i++) {
+		if (i % 2 == 0) {
 			//also apply z2
 			for (int ba = 0; ba < sampleSize; ba++) {
-				(*z2)(samples[ba], tmpSamples[ba], 100);
+				(*z2)(samples[ba], tmpSamples[ba], 20);
 			}
-		}*/
-		for (int trans = 0; trans < 1; trans++) {
+		}
+		for (int trans = 0; trans < 20; trans++) {
 			long loopStart = time(NULL);
-			/*for (int ba = 0; ba < sampleSize; ba++) {
-				(*t)(samples[ba], tmpSamples[ba], 100);
-			}*/
+			for (int ba = 0; ba < sampleSize; ba++) {
+				(*t)(samples[ba], tmpSamples[ba], 20);
+			}
 			
-			rbm.train(tmpSamples, sampleSize, 10);
+			rbm.train(tmpSamples, sampleSize, 500);
 			rbm.saveToFile("weights_ising.csv");
 			std::cout << std::endl;
 			long deltaT = time(NULL) - loopStart;
@@ -127,35 +127,36 @@ void RG::runRG()
 			long estimated = (20 - trans) * deltaT;
 			std::cout << "Time elapsed: " << total << "s of estimated " << estimated / 60 << "min " << estimated % 60 << "s" << std::endl;
 		}
-	}
+	}*/
 	
 	//rbm.saveToFile("weights_ising.csv");
 	long timeEnd = time(NULL);
-	//rbm.saveVisualization();
+	rbm.saveVisualization();
 	double totalMagn = 0;
 	double totalEnergy = 0;
+	
 	for (int trials = 0; trials < 100; trials++) {
 		double *sample;
-		sample = rbm.sample_from_net();
+		sample = rbm.sample_from_net(100);
 		double magn = 0;
 		double energy = 0;
 		std::cout << " --------- " <<std::endl;
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 20; i++) {
 			std::cout << samples[0][i];
 		}
 		std::cout << std::endl;
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 20; i++) {
 			
 			std::cout << sample[i];
 			magn += sample[i] <= 0? -1 : 1;
 		}
 		std::cout << std::endl;
-		magn /= 100.0;
+		magn /= 20;
 		for (int i = 0; i < 19; i++) {
 			energy += -1 * (sample[i] <= 0? -1 :1) * (sample[i + 1] <= 0? -1 : 1);
 		}
 		energy += -1 * (sample[99] <= 0 ? -1 : 1) * (sample[0] <= 0? -1 : 1);
-		energy /= 100.0;
+		energy /= 20;
 		totalEnergy += energy;
 		totalMagn += magn;
 		std::cout << energy << "  " << magn << std::endl;

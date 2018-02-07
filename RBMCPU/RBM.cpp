@@ -14,8 +14,8 @@ std::default_random_engine generator(time(NULL));
 std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
 double sample(double p) {
-	if (p < 0) return 0;
-	if (p > 1) return 1;
+	if (p <= 0) return 0;
+	if (p >= 1) return 1;
 
 	int c = 0;
 	double r;
@@ -60,11 +60,11 @@ RBM::RBM(int n_vis, int n_hid) : RBM(n_vis, n_hid, FunctionType::SIGMOID)
 void RBM::sample_h_given_v(double * vis_src, double * hid_target, double *hid_sampled)
 {
 	double pre_sigmoid = 0;
-	//we would implement dropout or dropconnect here
 	int num_hid = (int)n_hid;
 	int num_vis = (int)n_vis;
 
 	for (int i = 0; i < num_hid; i++) {
+		pre_sigmoid = 0;
 		for (int j = 0; j < num_vis; j++) {
 			if(!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[j][i]))
 				pre_sigmoid += this->W[j][i] * vis_src[j];
@@ -83,6 +83,7 @@ void RBM::sample_v_given_h(double * hid_src, double * vis_target, double * vis_s
 	int num_hid = (int)n_hid;
 
 	for (int i = 0; i < num_vis; i++) {
+		pre_sigmoid = 0;
 		for (int j = 0; j < num_hid; j++) {
 			if (!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]))
 			pre_sigmoid += this->W[i][j] * hid_src[j];
@@ -103,7 +104,7 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 	int num_vis = (int)n_vis;
 	int num_hid = (int)n_hid;
 
-
+#pragma omp parallel for
 	for (int sampleNum = 0; sampleNum < batchSize; sampleNum++) {
 		double *vis0_sampled = input[sampleNum];
 		//allocate memory
@@ -128,7 +129,12 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 
 		//calculate the "model" distribution
 		for (int k = 0; k < cdK; k++) {
-			sample_v_given_h(hid0_sampled, visN, visN_sampled);
+			if (k == 0) {
+				sample_v_given_h(hid0_sampled, visN, visN_sampled);
+			}
+			else {
+				sample_v_given_h(hidN_sampled, visN, visN_sampled);
+			}
 			sample_h_given_v(visN_sampled, hidN, hidN_sampled);
 		}
 		
@@ -141,7 +147,11 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 				if (!(this->reg & Regularization::DROPCONNECT) || (this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]) {
 					double tmpW = this->W[i][j];
 					//update new delta
-					this->tmpdW[i][j] += this->lr * (vis0_sampled[i] * hid0[j] - visN_sampled[i] * hidN[j]);
+					double delta = 0;
+					delta = this->lr * (vis0_sampled[i] * hid0[j] - visN_sampled[i] * hidN[j]);
+
+					this->tmpdW[i][j] += delta;
+
 					//check for regularizer
 					if (this->reg & Regularization::L1) {
 						//apply L1 regulizer
@@ -241,13 +251,14 @@ void RBM::initWeights()
 {
 	for (int i = 0; i < n_vis; i++) {
 		for (int j = 0; j < n_hid; j++) {
-			if (!this->isRandom && this->reg & Regularization::DROPCONNECT && this->dropConnectMask[i][j]) {
+			if (this->isRandom || (this->reg & Regularization::DROPCONNECT && this->dropConnectMask[i][j])) {
 				this->W[i][j] = uniform(-1, 1);
 			}
 			else {
 				this->W[i][j] = 0;
 			}
 			this->dW[i][j] = 0;
+			this->tmpdW[i][j] = 0;
 			if (i == 0) {
 				this->hid_b[j] = 0;
 			}
@@ -305,7 +316,7 @@ void RBM::train(double ** input, int sample_size, int epoch)
 	}
 }
 
-double * RBM::sample_from_net()
+double * RBM::sample_from_net(int gibbs_steps)
 {
 	double *visN = (double*)malloc(sizeof(double)*this->n_vis);
 	double *hidN = (double*)malloc(sizeof(double)*this->n_hid);
@@ -323,7 +334,10 @@ double * RBM::sample_from_net()
 	//stop any regullizer occuring at the propagation level
 	auto tmp = this->reg;
 	this->reg = Regularization::NONE;
-	sample_v_given_h(hidN_sampled, visN, visN_sampled);
+	for (int i = 0; i < gibbs_steps; i++) {
+		sample_v_given_h(hidN_sampled, visN, visN_sampled);
+		sample_h_given_v(visN, hidN, hidN_sampled);
+	}
 	//recover state
 	this->reg = tmp;
 	delete(hidN);
@@ -435,10 +449,11 @@ bool RBM::loadWeights(std::string filename)
 		//split the line
 		size_t pos = 0;
 		int j = 0;
+		double wij = 0;
 		while ((pos = theLine.find(deli)) != std::string::npos) {
 			std::string Wij = theLine.substr(0, pos);
 			if (Wij.length() > 0) {
-				double wij = std::stod(Wij);
+				wij = std::stod(Wij);
 				if (i < this->n_vis && j < this->n_hid) {
 					this->W[i][j] = wij;
 				}
@@ -451,6 +466,15 @@ bool RBM::loadWeights(std::string filename)
 			}
 			theLine.erase(0, pos + deli.length());
 			j++;
+		}
+		if (theLine.length() > 0 && theLine != deli) {
+			wij = std::stod(theLine);
+			if (i < this->n_vis && j < this->n_hid) {
+				this->W[i][j] = wij;
+			}
+			else {
+				throw std::exception("Weight-Matrix does not match dimension of NN");
+			}
 		}
 		i++;
 	}
@@ -479,6 +503,15 @@ bool RBM::loadWeights(std::string filename)
 			std::cout << "last element?" << std::endl;
 		}
 		theL.erase(0, pos + deli.length());
+		if (theL.length() > 0 && theL != deli) {
+			double wij = std::stod(theL);
+			if (i < this->n_vis) {
+				this->vis_b[i] = wij;
+			}
+			else {
+				throw std::exception("Bias-Matrix does not match dimension of NN");
+			}
+		}
 		i++;
 	}
 	std::ifstream hidden_bias;
@@ -500,6 +533,15 @@ bool RBM::loadWeights(std::string filename)
 			std::cout << "last element?" << std::endl;
 		}
 		theL.erase(0, pos + deli.length());
+		if (theL.length() > 0 && theL != deli) {
+			double wij = std::stod(theL);
+			if (i < this->n_vis) {
+				this->vis_b[i] = wij;
+			}
+			else {
+				throw std::exception("Bias-Matrix does not match dimension of NN");
+			}
+		}
 		i++;
 	}
 }
