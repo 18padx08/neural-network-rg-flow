@@ -148,7 +148,7 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 					double tmpW = this->W[i][j];
 					//update new delta
 					double delta = 0;
-					delta = this->lr * (vis0_sampled[i] * hid0[j] - visN_sampled[i] * hidN[j]);
+					delta = this->lr * (vis0_sampled[i] * hid0[j] - visN[i] * hidN[j]);
 
 					this->tmpdW[i][j] += delta;
 
@@ -156,10 +156,10 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 					if (this->reg & Regularization::L1) {
 						//apply L1 regulizer
 						int sign = std::signbit(tmpW) ? -1 : 1;
-						this->tmpdW[i][j] += this->lr*0.001 *sign;
+						this->tmpdW[i][j] -= this->lr*this->weight_decay *sign;
 					}
 					if (this->reg & Regularization::L2) {
-						this->tmpdW[i][j] += this->lr*this->weight_decay * tmpW;
+						this->tmpdW[i][j] -= this->lr*this->weight_decay * tmpW;
 					}
 				}
 			}
@@ -202,8 +202,14 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 				//apply current change
 				//normalize with respect to batchsize, to flatten response
 				this->W[i][j] += tmpdW[i][j];
+				/*if (std::abs(W[i][j]) < 0.0001) {
+					//flip the sign of the weight
+					int sign = std::signbit(tmpW) ? -1 : 1;
+					this->W[i][j] = -sign ;
+				}*/
 				
 				dW[i][j] = tmpdW[i][j];
+				
 			}
 		}
 	}
@@ -272,7 +278,7 @@ void RBM::initWeights()
 	for (int i = 0; i < n_vis; i++) {
 		for (int j = 0; j < n_hid; j++) {
 			if (this->isRandom || (this->reg & Regularization::DROPCONNECT && this->dropConnectMask[i][j])) {
-				this->W[i][j] = uniform(-1, 1);
+				this->W[i][j] =  uniform(-1, 1);
 			}
 			else {
 				this->W[i][j] = 0;

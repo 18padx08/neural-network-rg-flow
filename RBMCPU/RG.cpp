@@ -23,7 +23,7 @@ RG::~RG()
 void RG::runRG()
 {
 	int sampleSize = 100;
-	double J = 1.2;
+	double J = 1.0;
 	double theoreticalEnergy = 0;
 	double **samples = (double **)malloc(sampleSize * sizeof(double*));
 	double **tmpSamples = (double **)malloc(sampleSize * sizeof(double*));
@@ -100,8 +100,8 @@ void RG::runRG()
 	//rbm.loadWeights("weights_ising.csv");
 	ParamSet set;
 	set.lr = 0.01;
-	set.momentum = 0.5;
-	set.regulization = (Regularization)( Regularization::L1);
+	set.momentum = 0.3;
+	set.regulization = (Regularization)(  Regularization::L1);
 	rbm.setParameters(set);
 	//rbm.initMask();
 	rbm.initWeights();

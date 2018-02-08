@@ -51,9 +51,9 @@ void MNISTTest::intenseTest()
 	//rbm.setParameters(set);
 	long long starttime = time(NULL);
 	MNISTData data;
-	/*for (int i = 0; i < 20; i++) {
+	/*for (int i = 0; i < 1000; i++) {
 		double **batch = data.getBatch(50);
-		rbm.train(batch, 50, 40);
+		rbm.train(batch, 50, 10);
 		//save weights to file
 		std::cout << "saving files to weights_with_reg_all_numbers.csv" << std::endl;
 		rbm.saveToFile("weights_with_reg_all_numbers.csv");
@@ -61,7 +61,7 @@ void MNISTTest::intenseTest()
 	rbm.loadWeights("weights_with_reg_all_numbers.csv");
 	std::cout << "training finished in " << time(NULL) - starttime << "s" << std::endl;
 	//save visualization
-	//rbm.saveVisualization();
+	rbm.saveVisualization();
 	double **batch = data.getBatch(20);
 	for (int sam = 0; sam < 20; sam++) {
 		double * sample = rbm.reconstruct(batch[sam]);

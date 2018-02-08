@@ -6,12 +6,20 @@
 void AnalyticalTest::runTest()
 {
 	ParamSet set;
-	set.lr = 0.01;
-	set.momentum = 0.01;
-	set.regulization = (Regularization)(Regularization::L1) ;
+	set.lr = 0.1;
+	set.momentum = 0.3;
+	set.regulization = (Regularization)(Regularization::DROPCONNECT| Regularization::L1) ;
 	RBM rbm(2, 2, FunctionType::SIGMOID);
 	rbm.setParameters(set);
-	rbm.loadWeights("thanalyticaltest.csv");
+	bool **mask = (bool **)malloc(2*sizeof(bool*));
+	mask[0] = (bool *)malloc(2);
+	mask[0][0] = true;
+	mask[0][1] = false;
+	mask[1] = (bool*) malloc(2);
+	mask[1][0] = false;
+	mask[1][1] = true;
+	rbm.initMask(mask);
+	//rbm.loadWeights("thanalyticaltest.csv");
 	double v1[] = { 0,0 };
 	double v2[] = { 0,1 };
 	double v3[] = { 1,0 };
@@ -30,7 +38,7 @@ void AnalyticalTest::runTest()
 		if (i == 3)
 			samples[i] = v4;
 	}
-	rbm.train(samples, 4, 1000);
+	rbm.train(samples, 4, 5000);
 	rbm.saveToFile("analyticaltest.csv");
 	double *r1 = rbm.reconstruct(v1);
 	double *r2 = rbm.reconstruct(v2);
@@ -53,7 +61,7 @@ void AnalyticalTest::runTest()
 
 void AnalyticalTest::runAnalytical()
 {
-	RBM rbm(2, 2, FunctionType::RELU);
+	RBM rbm(2, 2, FunctionType::SIGMOID);
 	
 	double v1[] = { 0,0 };
 	double v2[] = { 0,1 };
