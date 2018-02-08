@@ -67,7 +67,7 @@ private:
 	double *vis_b;
 	double *hid_b;
 	double lr = 0.01;
-	double weight_decay = 0.0001;
+	double weight_decay = 0.0002;
 	double n_hid;
 	double n_vis;
 	double momentum=0.3;

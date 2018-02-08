@@ -19,15 +19,8 @@ RG::~RG()
 {
 }
 
-//make a 100 spin chain and try to learn
-void RG::runRG()
-{
-	int sampleSize = 100;
-	double J = 1.0;
-	double theoreticalEnergy = 0;
-	double **samples = (double **)malloc(sampleSize * sizeof(double*));
-	double **tmpSamples = (double **)malloc(sampleSize * sizeof(double*));
-	double firstEnergy = 0;
+void runIsing(double J, int sampleSize, double **samples, double **tmpSamples, double *theoreticalEnergy, double *firstEnergy, bool firstTime) {
+#pragma omp parallel for
 	for (int i = 0; i < sampleSize; i++) {
 		Ising1D ising(20, 1, J);
 		int counter = 0;
@@ -37,14 +30,18 @@ void RG::runRG()
 			counter++;
 			mE = ising.getMeanEnergy();
 			tE = ising.getTheoreticalMeanEnergy();
-			theoreticalEnergy = tE;
+			*theoreticalEnergy = tE;
 			M = ising.getMagnetization();
-			if (i == 0) firstEnergy = mE;
+
 
 		} while (!(abs(tE - mE) < 0.06 * abs(tE) && abs(ising.getMagnetization()) < 0.01));
-
+		if (i == 0) *firstEnergy = mE;
 		if (i % 2 == 0) {
 			//printf("[STEP %d] Mean energy config: %f theoretical: %f delta: %f\n Mean magnetization: %f\n", i, ising.getMeanEnergy(), ising.getTheoreticalMeanEnergy(), ising.getMeanEnergy() - ising.getTheoreticalMeanEnergy(), ising.getMagnetization());
+		}
+		if (!firstTime) {
+			delete(samples[i]);
+			delete(tmpSamples[i]);
 		}
 		samples[i] = (double *)malloc(20 * sizeof(double));
 		tmpSamples[i] = (double *)malloc(20 * sizeof(double));
@@ -53,6 +50,18 @@ void RG::runRG()
 			samples[i][j] = v[j];
 		}
 	}
+}
+
+//make a 100 spin chain and try to learn
+void RG::runRG()
+{
+	int sampleSize = 100;
+	double J = 1.0;
+	double theoreticalEnergy = 0;
+	double **samples = (double **)malloc(sampleSize * sizeof(double*));
+	double **tmpSamples = (double **)malloc(sampleSize * sizeof(double*));
+	double firstEnergy = 0;
+	runIsing(J, sampleSize, samples, tmpSamples, &theoreticalEnergy, &firstEnergy, true);
 
 
 	bool **mask = (bool**)malloc(10 * 20 * sizeof(bool));
@@ -99,37 +108,42 @@ void RG::runRG()
 	RBM rbm(20, 10, FunctionType::SIGMOID);
 	//rbm.loadWeights("weights_ising.csv");
 	ParamSet set;
-	set.lr = 0.01;
-	set.momentum = 0.3;
+	set.lr = 0.1;
+	set.momentum = 0.5;
 	set.regulization = (Regularization)(  Regularization::L1);
 	rbm.setParameters(set);
-	//rbm.initMask();
+	rbm.initMask(mask);
 	rbm.initWeights();
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	Z2<double> *z2 = new Z2<double>();
 	long timeStart = time(NULL);
 	//permute once through the chain
-	for (int i = 0; i < 2; i++) {
-		if (i % 2 == 0) {
-			//also apply z2
-			for (int ba = 0; ba < sampleSize; ba++) {
-				(*z2)(samples[ba], tmpSamples[ba], 20);
+	for (int iteration = 0; iteration < 10; iteration++) {
+		for (int i = 0; i < 2; i++) {
+			if (i % 2 == 0) {
+				//also apply z2
+#pragma omp parallel for
+				for (int ba = 0; ba < sampleSize; ba++) {
+					(*z2)(samples[ba], tmpSamples[ba], 20);
+				}
+			}
+			for (int trans = 0; trans < 20; trans++) {
+				long loopStart = time(NULL);
+#pragma omp parallel for
+				for (int ba = 0; ba < sampleSize; ba++) {
+					(*t)(samples[ba], tmpSamples[ba], 20);
+				}
+
+				rbm.train(tmpSamples, sampleSize, 200);
+				rbm.saveToFile("weights_ising.csv");
+				std::cout << std::endl;
+				long deltaT = time(NULL) - loopStart;
+				long total = time(NULL) - timeStart;
+				long estimated = (20 - trans) * deltaT;
+				std::cout << "Time elapsed: " << total << "s of estimated " << estimated / 60 << "min " << estimated % 60 << "s" << std::endl;
 			}
 		}
-		for (int trans = 0; trans < 20; trans++) {
-			long loopStart = time(NULL);
-			for (int ba = 0; ba < sampleSize; ba++) {
-				(*t)(samples[ba], tmpSamples[ba], 20);
-			}
-			
-			rbm.train(tmpSamples, sampleSize, 500);
-			rbm.saveToFile("weights_ising.csv");
-			std::cout << std::endl;
-			long deltaT = time(NULL) - loopStart;
-			long total = time(NULL) - timeStart;
-			long estimated = (20 - trans) * deltaT;
-			std::cout << "Time elapsed: " << total << "s of estimated " << estimated / 60 << "min " << estimated % 60 << "s" << std::endl;
-		}
+		runIsing(J, sampleSize, samples, tmpSamples, &theoreticalEnergy, &firstEnergy, false);
 	}
 	
 	//rbm.saveToFile("weights_ising.csv");
@@ -140,7 +154,7 @@ void RG::runRG()
 	
 	for (int trials = 0; trials < 100; trials++) {
 		double *sample;
-		sample = rbm.sample_from_net(50);
+		sample = rbm.sample_from_net(100);
 		double magn = 0;
 		double energy = 0;
 		std::cout << " --------- " <<std::endl;
@@ -158,7 +172,7 @@ void RG::runRG()
 		for (int i = 0; i < 19; i++) {
 			energy += -J * (sample[i] <= 0? -1 :1) * (sample[i + 1] <= 0? -1 : 1);
 		}
-		energy += -J * (sample[99] <= 0 ? -1 : 1) * (sample[0] <= 0? -1 : 1);
+		energy += -J * (sample[19] <= 0 ? -1 : 1) * (sample[0] <= 0? -1 : 1);
 		energy /= 20;
 		totalEnergy += energy;
 		totalMagn += magn;
