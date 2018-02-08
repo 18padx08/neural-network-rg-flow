@@ -110,9 +110,9 @@ void RG::runRG()
 	ParamSet set;
 	set.lr = 0.1;
 	set.momentum = 0.5;
-	set.regulization = (Regularization)(  Regularization::L1);
+	set.regulization = (Regularization)(Regularization::DROPCONNECT |  Regularization::L1);
 	rbm.setParameters(set);
-	rbm.initMask(mask);
+	rbm.initMask();
 	rbm.initWeights();
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	Z2<double> *z2 = new Z2<double>();
