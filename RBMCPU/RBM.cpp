@@ -190,6 +190,7 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 
 	//apply the average of the gradients
 
+#pragma omp parallel for
 	for (int i = 0; i < num_vis; i++) {
 		for (int j = 0; j < num_hid; j++) {
 			if (!(this->reg & Regularization::DROPCONNECT) || (this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]) {
@@ -201,7 +202,23 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 				//apply current change
 				//normalize with respect to batchsize, to flatten response
 				this->W[i][j] += tmpdW[i][j];
+				
 				dW[i][j] = tmpdW[i][j];
+			}
+		}
+	}
+
+	//rescale the weights
+	double *length = (double *) malloc(sizeof(double)*num_hid);
+#pragma omp parallel for
+	for (int i = 0; i < num_hid; i++) {
+		for (int j = 0; j < num_vis; j++) {
+			length[i] += std::pow(this->W[j][i],2);
+		}
+		length[i] = std::sqrt(length[i]);
+		if (length[i] > num_hid) {
+			for (int j = 0; j < num_vis; j++) {
+				this->W[j][i] /= length[i];
 			}
 		}
 	}

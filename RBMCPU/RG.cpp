@@ -23,7 +23,7 @@ RG::~RG()
 void RG::runRG()
 {
 	int sampleSize = 100;
-	double J = 0.7;
+	double J = 1.2;
 	double theoreticalEnergy = 0;
 	double **samples = (double **)malloc(sampleSize * sizeof(double*));
 	double **tmpSamples = (double **)malloc(sampleSize * sizeof(double*));
@@ -97,19 +97,19 @@ void RG::runRG()
 		}
 	}
 	RBM rbm(20, 10, FunctionType::SIGMOID);
-	rbm.loadWeights("weights_ising.csv");
+	//rbm.loadWeights("weights_ising.csv");
 	ParamSet set;
 	set.lr = 0.01;
 	set.momentum = 0.5;
 	set.regulization = (Regularization)( Regularization::L1);
-	//rbm.setParameters(set);
+	rbm.setParameters(set);
 	//rbm.initMask();
-	//rbm.initWeights();
+	rbm.initWeights();
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	Z2<double> *z2 = new Z2<double>();
 	long timeStart = time(NULL);
 	//permute once through the chain
-	/*for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++) {
 		if (i % 2 == 0) {
 			//also apply z2
 			for (int ba = 0; ba < sampleSize; ba++) {
@@ -130,7 +130,7 @@ void RG::runRG()
 			long estimated = (20 - trans) * deltaT;
 			std::cout << "Time elapsed: " << total << "s of estimated " << estimated / 60 << "min " << estimated % 60 << "s" << std::endl;
 		}
-	}*/
+	}
 	
 	//rbm.saveToFile("weights_ising.csv");
 	long timeEnd = time(NULL);
