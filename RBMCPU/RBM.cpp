@@ -403,6 +403,7 @@ void RBM::setParameters(ParamSet set)
 	this->lr = set.lr;
 	this->momentum = set.momentum;
 	this->reg = set.regulization;
+	this->weight_decay = set.weightDecay;
 }
 void RBM::printWeights() {
 	for (int i = 0; i < n_vis; i++) {

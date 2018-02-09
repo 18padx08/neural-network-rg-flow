@@ -11,8 +11,9 @@ enum Regularization {
 };
 
 struct ParamSet {
-	double lr;
-	double momentum;
+	double lr = 0.01;
+	double momentum = 0.5;
+	double weightDecay = 0.00001;
 	Regularization regulization;
 };
 enum FunctionType {
