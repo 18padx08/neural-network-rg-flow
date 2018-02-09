@@ -15,5 +15,6 @@ public:
 	void saveToFile(std::string filename);
 	void saveVisualization();
 	bool loadWeights(std::string filename);
+	bool initMask(bool **mask = 0);
 };
 

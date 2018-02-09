@@ -144,8 +144,11 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 
 		for (int i = 0; i < num_vis; i++) {
 			for (int j = 0; j < num_hid; j++) {
-				if (!(this->reg & Regularization::DROPCONNECT) || (this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]) {
+				if (!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j])) {
 					double tmpW = this->W[i][j];
+					bool tmp1 = !(this->reg & Regularization::DROPCONNECT);
+					bool tmp2 = ((this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]);
+					bool tmp3 = tmp1 || tmp2;
 					//update new delta
 					double delta = 0;
 					delta = this->lr * (vis0_sampled[i] * hid0[j] - visN[i] * hidN[j]);
@@ -202,12 +205,6 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 				//apply current change
 				//normalize with respect to batchsize, to flatten response
 				this->W[i][j] += tmpdW[i][j];
-				/*if (std::abs(W[i][j]) < 0.0001) {
-					//flip the sign of the weight
-					int sign = std::signbit(tmpW) ? -1 : 1;
-					this->W[i][j] = -sign ;
-				}*/
-				
 				dW[i][j] = tmpdW[i][j];
 				
 			}
@@ -215,6 +212,7 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 	}
 
 	//rescale the weights
+	
 	double *length = (double *) malloc(sizeof(double)*num_hid);
 #pragma omp parallel for
 	for (int i = 0; i < num_hid; i++) {
@@ -222,13 +220,13 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 			length[i] += std::pow(this->W[j][i],2);
 		}
 		length[i] = std::sqrt(length[i]);
-		if (length[i] > num_hid) {
+		if (length[i] > n_hid) {
 			for (int j = 0; j < num_vis; j++) {
 				this->W[j][i] /= length[i];
 			}
 		}
 	}
-
+	
 	//update biases only use bias if not dropconnect
 	if (!(Regularization::DROPCONNECT & this->reg)) {
 		for (int i = 0; i < n_vis; i++) {
@@ -333,7 +331,7 @@ void RBM::train(double ** input, int sample_size, int epoch)
 		//we need to average over all 
 		average += contrastive_divergence(input, 1, sample_size);
 		milliseconds now = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
-		std::cout << "\r" << "epoch [" << ep + 1 << " (" << std::round((float)ep / epoch * 100) << "%)] " << (now - loopStart).count()/60 << "s passed (" << ((now - loopStart) / (ep +1)).count() << "ms / loop)"  << "CrossEntropy: " << average / counter  << " [" << printProg(ep, epoch);
+		//std::cout << "\r" << "epoch [" << ep + 1 << " (" << std::round((float)ep / epoch * 100) << "%)] " << (now - loopStart).count()/60 << "s passed (" << ((now - loopStart) / (ep +1)).count() << "ms / loop)"  << "CrossEntropy: " << average / counter  << " [" << printProg(ep, epoch);
 		counter++;
 		//if isRandom we need to update the dropconnect mask
 		if(this->isRandom) 
@@ -420,7 +418,12 @@ void RBM::saveToFile(std::string filename)
 		weights.open(filename);
 		for (int i = 0; i < n_vis; i++) {
 			for (int j = 0; j < n_hid; j++) {
+				if (j == n_hid - 1) {
+					weights << this->W[i][j];
+					continue;
+				}
 				weights << this->W[i][j] << ",";
+
 			}
 			weights << std::endl;
 		}
@@ -430,6 +433,10 @@ void RBM::saveToFile(std::string filename)
 		std::ofstream hidden_bias;
 		hidden_bias.open("hb" + filename);
 		for (int i = 0; i < n_hid; i++) {
+			if (i == n_hid - 1) {
+				hidden_bias << this->hid_b[i];
+				continue;
+			}
 			hidden_bias << this->hid_b[i] << ",";
 		}
 		hidden_bias.flush();
@@ -438,6 +445,10 @@ void RBM::saveToFile(std::string filename)
 		std::ofstream visible_bias;
 		visible_bias.open("vb" + filename);
 		for (int i = 0; i < n_vis; i++) {
+			if (i == n_vis - 1) {
+				visible_bias << this->hid_b[i];
+				continue;
+			}
 			visible_bias << this->hid_b[i] << ",";
 		}
 		visible_bias.flush();

@@ -23,7 +23,7 @@ RG::~RG()
 void runIsing(double J, int sampleSize, double **samples, double **tmpSamples, double *theoreticalEnergy, double *firstEnergy, bool firstTime) {
 #pragma omp parallel for
 	for (int i = 0; i < sampleSize; i++) {
-		Ising1D ising(20, 1, J);
+		Ising1D ising(40, 1, J);
 		int counter = 0;
 		double mE, tE, M;
 		do {
@@ -44,11 +44,11 @@ void runIsing(double J, int sampleSize, double **samples, double **tmpSamples, d
 			delete(samples[i]);
 			delete(tmpSamples[i]);
 		}
-		samples[i] = (double *)malloc(20 * sizeof(double));
-		tmpSamples[i] = (double *)malloc(20 * sizeof(double));
+		samples[i] = (double *)malloc(40 * sizeof(double));
+		tmpSamples[i] = (double *)malloc(40 * sizeof(double));
 		std::vector<int> v = ising.getConfiguration();
 		for (int j = 0; j < v.size(); j++) {
-			samples[i][j] = v[j];
+				samples[i][j] = v[j];
 		}
 	}
 }
@@ -74,6 +74,7 @@ void RG::runRG()
 		mask[i] = (bool*)malloc(10 * sizeof(bool));
 	}
 	mask[0][0] = true;
+	mask[0][9] = true;
 	for (int i = 0; i < 20; i++) {
 		for (int j = 0; j < 10; j++) {
 			if (i % 2 == 0)
@@ -227,6 +228,28 @@ void RG::runRG()
 
 void RG::runDBN()
 {
+	bool **mask = (bool**)malloc(20 * 40 * sizeof(bool));
+	int maskCounter = 0;
+	int lastRow = 2;
+	int lastCol = 0;
+	bool second = false;
+	for (int i = 0; i < 40; i++) {
+		mask[i] = (bool*)malloc(20 * sizeof(bool));
+	}
+	mask[0][0] = true;
+	mask[0][9] = true;
+	for (int i = 0; i < 40; i++) {
+		for (int j = 0; j < 20; j++) {
+			if (i % 2 == 0) {
+				mask[i][j] = false;
+			}
+			else {
+				mask[i][j] = true;
+			}
+		}
+	}
+
+
 	int sampleSize = 100;
 	double J = 1.0;
 	double theoreticalEnergy = 0;
@@ -235,36 +258,40 @@ void RG::runDBN()
 	double firstEnergy = 0;
 	runIsing(J, sampleSize, samples, tmpSamples, &theoreticalEnergy, &firstEnergy, true);
 	ParamSet set;
-	set.lr = 0.05;
-	set.momentum = 0.3;
+	set.lr = 0.1;
+	set.momentum = 0.5;
 	set.regulization =(Regularization) (Regularization::L1);
-	set.weightDecay = 2e-2;
+	set.weightDecay = 1e-2;
 	//layer dimensions is #layer + 1
-	int layerDimensions[] = { 20, 10, 5, 2,1 };
+	int layerDimensions[] = { 40, 20, 10, 5,2 };
 	DBM dbm(4, layerDimensions, set, FunctionType::SIGMOID);
-
+	//dbm.loadWeights("weights_ising.csv");
+	dbm.initMask(mask);
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	Z2<double> *z2 = new Z2<double>();
 	long timeStart = time(NULL);
 	//permute once through the chain
-	for (int iteration = 0; iteration < 10; iteration++) {
+	for (int iteration = 0; iteration < 100; iteration++) {
 		for (int i = 0; i < 2; i++) {
 			if (i % 2 == 0) {
-				//also apply z2
-#pragma omp parallel for
-				for (int ba = 0; ba < sampleSize; ba++) {
-					(*z2)(samples[ba], tmpSamples[ba], 20);
-				}
 			}
-			for (int trans = 0; trans < 20; trans++) {
-				long loopStart = time(NULL);
+				//also apply z2
+				/*
 #pragma omp parallel for
 				for (int ba = 0; ba < sampleSize; ba++) {
-					(*t)(samples[ba], tmpSamples[ba], 20);
+					(*z2)(samples[ba], tmpSamples[ba], 40);
+				}
+			}*/
+			for (int trans = 0; trans < 1; trans++) {
+				long loopStart = time(NULL);
+				
+#pragma omp parallel for
+				for (int ba = 0; ba < sampleSize; ba++) {
+					(*t)(samples[ba], tmpSamples[ba], 40);
 				}
 
 				dbm.train(tmpSamples, sampleSize, 100);
-				dbm.saveToFile("weights_ising.csv");
+				dbm.saveToFile("weights_ising");
 				std::cout << std::endl;
 				long deltaT = time(NULL) - loopStart;
 				long total = time(NULL) - timeStart;
@@ -316,5 +343,5 @@ void RG::runDBN()
 	std::cout << "--Network prediction--" << std::endl;
 	std::cout << "Energy: " << totalEnergy << " | Magnetization: " << totalMagn << std::endl;
 	std::cout << "Energy for first sample: " << firstEnergy << std::endl;
-
+	system("python auswertung.py");
 }

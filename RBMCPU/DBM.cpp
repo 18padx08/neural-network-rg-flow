@@ -72,3 +72,13 @@ bool DBM::loadWeights(std::string filename)
 	}
 	return true;
 }
+
+bool DBM::initMask(bool ** mask)
+{
+	for (int i = 0; i < rbms.size(); i++) {
+		rbms[i].initMask(mask);
+		rbms[i].initWeights();
+	}
+
+	return true;
+}
