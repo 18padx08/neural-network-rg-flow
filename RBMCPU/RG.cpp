@@ -41,8 +41,8 @@ void runIsing(double J, int sampleSize, double **samples, double **tmpSamples, d
 			//printf("[STEP %d] Mean energy config: %f theoretical: %f delta: %f\n Mean magnetization: %f\n", i, ising.getMeanEnergy(), ising.getTheoreticalMeanEnergy(), ising.getMeanEnergy() - ising.getTheoreticalMeanEnergy(), ising.getMagnetization());
 		}
 		if (!firstTime) {
-			delete(samples[i]);
-			delete(tmpSamples[i]);
+			//delete(samples[i]);
+			//delete(tmpSamples[i]);
 		}
 		samples[i] = (double *)malloc(40 * sizeof(double));
 		tmpSamples[i] = (double *)malloc(40 * sizeof(double));
@@ -260,28 +260,26 @@ void RG::runDBN()
 	ParamSet set;
 	set.lr = 0.1;
 	set.momentum = 0.5;
-	set.regulization =(Regularization) (Regularization::L1);
-	set.weightDecay = 1e-2;
+	set.regulization =(Regularization) (Regularization::L1 | Regularization::L2);
+	set.weightDecay = 2e-4;
 	//layer dimensions is #layer + 1
 	int layerDimensions[] = { 40, 20, 10, 5,2 };
 	DBM dbm(4, layerDimensions, set, FunctionType::SIGMOID);
 	//dbm.loadWeights("weights_ising.csv");
-	dbm.initMask(mask);
+	//dbm.initMask(mask);
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	Z2<double> *z2 = new Z2<double>();
 	long timeStart = time(NULL);
 	//permute once through the chain
-	for (int iteration = 0; iteration < 100; iteration++) {
+	for (int iteration = 0; iteration < 1000; iteration++) {
 		for (int i = 0; i < 2; i++) {
-			if (i % 2 == 0) {
-			}
+			if (i % 2 == 0 &&false) {
 				//also apply z2
-				/*
 #pragma omp parallel for
 				for (int ba = 0; ba < sampleSize; ba++) {
 					(*z2)(samples[ba], tmpSamples[ba], 40);
 				}
-			}*/
+			}
 			for (int trans = 0; trans < 1; trans++) {
 				long loopStart = time(NULL);
 				
@@ -291,14 +289,17 @@ void RG::runDBN()
 				}
 
 				dbm.train(tmpSamples, sampleSize, 100);
-				dbm.saveToFile("weights_ising");
+				dbm.saveToFile("weights_ising_l1+l2");
 				std::cout << std::endl;
 				long deltaT = time(NULL) - loopStart;
 				long total = time(NULL) - timeStart;
 				long estimated = (20 - trans) * deltaT;
 				std::cout << "Time elapsed: " << total << "s of estimated " << estimated / 60 << "min " << estimated % 60 << "s" << std::endl;
 			}
+			delete(tmpSamples[i]);
+			delete(samples[i]);
 		}
+		
 		runIsing(J, sampleSize, samples, tmpSamples, &theoreticalEnergy, &firstEnergy, false);
 	}
 

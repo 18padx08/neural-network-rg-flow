@@ -3,7 +3,12 @@ import matplotlib.pyplot as plt
 
 data1 = np.genfromtxt("weights_ising_layer_0.csv",delimiter=",")
 maxes = []
+meandivider = 0
+for i in range(0,len(data1)):
+    meandivider += np.max(np.abs(data1[i]))
+meandivider /= len(data1)
 max1 = np.max(np.abs(data1))
+print(meandivider)
 divider = max1
 maxes += [max1/divider]
 data1 = data1 / divider
@@ -12,6 +17,10 @@ plt.colorbar()
 plt.show()
 data2 = np.genfromtxt("weights_ising_layer_1.csv",delimiter=",")
 data2 = data2/divider
+rece = np.matmul(data1,data2)
+plt.imshow(rece, cmap="hot")
+plt.colorbar()
+plt.show()
 maxes += [np.max(np.abs(data2))]
 #plt.imshow(data2, cmap="hot")
 #plt.colorbar()
