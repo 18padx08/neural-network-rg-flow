@@ -1,5 +1,6 @@
 #include "RG.h"
 #include "RBM.h"
+#include "DBM.h"
 #include <stdio.h>
 #include "../CudaTest/Ising1D.h"
 #include "SymmetryCombination.cpp"
@@ -222,4 +223,98 @@ void RG::runRG()
 	std::cout << "Energy: " << theoreticalEnergy << "| Magnetization: " << 0 << std::endl;
 	std::cout << "--Network prediction--" << std::endl;
 	std::cout << "Energy: " << totalEnergy << " | Magnetization: " << totalMagn << std::endl;*/
+}
+
+void RG::runDBN()
+{
+	int sampleSize = 100;
+	double J = 1.0;
+	double theoreticalEnergy = 0;
+	double **samples = (double **)malloc(sampleSize * sizeof(double*));
+	double **tmpSamples = (double **)malloc(sampleSize * sizeof(double*));
+	double firstEnergy = 0;
+	runIsing(J, sampleSize, samples, tmpSamples, &theoreticalEnergy, &firstEnergy, true);
+	ParamSet set;
+	set.lr = 0.05;
+	set.momentum = 0.3;
+	set.regulization =(Regularization) (Regularization::L1);
+	set.weightDecay = 2e-2;
+	//layer dimensions is #layer + 1
+	int layerDimensions[] = { 20, 10, 5, 2,1 };
+	DBM dbm(4, layerDimensions, set, FunctionType::SIGMOID);
+
+	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
+	Z2<double> *z2 = new Z2<double>();
+	long timeStart = time(NULL);
+	//permute once through the chain
+	for (int iteration = 0; iteration < 10; iteration++) {
+		for (int i = 0; i < 2; i++) {
+			if (i % 2 == 0) {
+				//also apply z2
+#pragma omp parallel for
+				for (int ba = 0; ba < sampleSize; ba++) {
+					(*z2)(samples[ba], tmpSamples[ba], 20);
+				}
+			}
+			for (int trans = 0; trans < 20; trans++) {
+				long loopStart = time(NULL);
+#pragma omp parallel for
+				for (int ba = 0; ba < sampleSize; ba++) {
+					(*t)(samples[ba], tmpSamples[ba], 20);
+				}
+
+				dbm.train(tmpSamples, sampleSize, 100);
+				dbm.saveToFile("weights_ising.csv");
+				std::cout << std::endl;
+				long deltaT = time(NULL) - loopStart;
+				long total = time(NULL) - timeStart;
+				long estimated = (20 - trans) * deltaT;
+				std::cout << "Time elapsed: " << total << "s of estimated " << estimated / 60 << "min " << estimated % 60 << "s" << std::endl;
+			}
+		}
+		runIsing(J, sampleSize, samples, tmpSamples, &theoreticalEnergy, &firstEnergy, false);
+	}
+
+	//rbm.saveToFile("weights_ising.csv");
+	long timeEnd = time(NULL);
+	double totalMagn = 0;
+	double totalEnergy = 0;
+
+	for (int trials = 0; trials < 100; trials++) {
+		double *sample;
+		sample = dbm.sample_from_net(100);
+		double magn = 0;
+		double energy = 0;
+		std::cout << " --------- " << std::endl;
+		for (int i = 0; i < 20; i++) {
+			std::cout << samples[0][i];
+		}
+		std::cout << std::endl;
+		for (int i = 0; i < 20; i++) {
+
+			std::cout << sample[i];
+			magn += sample[i] <= 0 ? -1 : 1;
+		}
+		std::cout << std::endl;
+		magn /= 20;
+		for (int i = 0; i < 19; i++) {
+			energy += -J * (sample[i] <= 0 ? -1 : 1) * (sample[i + 1] <= 0 ? -1 : 1);
+		}
+		energy += -J * (sample[19] <= 0 ? -1 : 1) * (sample[0] <= 0 ? -1 : 1);
+		energy /= 20;
+		totalEnergy += energy;
+		totalMagn += magn;
+		std::cout << energy << "  " << magn << std::endl;
+	}
+	totalMagn /= 100;
+	totalEnergy /= 100;
+
+
+	std::cout << "Trained for " << timeEnd - timeStart << "s" << std::endl;
+	std::cout << std::endl << "--Theoretical--" << std::endl;
+	std::cout << "Energy: " << theoreticalEnergy << "| Magnetization: " << 0 << std::endl;
+	std::cout << "--Network prediction--" << std::endl;
+	std::cout << "Energy: " << totalEnergy << " | Magnetization: " << totalMagn << std::endl;
+	std::cout << "Energy for first sample: " << firstEnergy << std::endl;
+
 }

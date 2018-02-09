@@ -108,12 +108,12 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 	for (int sampleNum = 0; sampleNum < batchSize; sampleNum++) {
 		double *vis0_sampled = input[sampleNum];
 		//allocate memory
-		double *hid0_sampled = (double*)malloc(sizeof(double)*this->n_hid);
-		double *hid0 = (double*)malloc(sizeof(double)*this->n_hid);
-		double *visN = (double*)malloc(sizeof(double)*this->n_vis);
-		double *hidN = (double*)malloc(sizeof(double)*this->n_hid);
-		double *visN_sampled = (double*)malloc(sizeof(double)*this->n_vis);
-		double *hidN_sampled = (double*)malloc(sizeof(double)*this->n_hid);
+		double *hid0_sampled = (double*)malloc(sizeof(double)*num_hid);
+		double *hid0 = (double*)malloc(sizeof(double)*num_hid);
+		double *visN = (double*)malloc(sizeof(double)*num_vis);
+		double *hidN = (double*)malloc(sizeof(double)*num_hid);
+		double *visN_sampled = (double*)malloc(sizeof(double)*num_vis);
+		double *hidN_sampled = (double*)malloc(sizeof(double)*num_hid);
 		
 
 		for (int i = 0; i < num_vis; i++) {
@@ -573,4 +573,36 @@ bool RBM::loadWeights(std::string filename)
 		}
 		i++;
 	}
+}
+
+double ** RBM::propagate(double ** input, int sample_size)
+{
+	double **output = (double **)malloc(sample_size * sizeof(double*));
+
+	for (int i = 0; i < sample_size; i++) {
+		output[i] = (double *)malloc(this->n_hid * sizeof(double));
+		double *tmp = (double *)malloc(this->n_hid * sizeof(double));
+		sample_h_given_v(input[i], tmp, output[i]);
+		delete(tmp);
+	}
+	return output;
+}
+
+double * RBM::propup(double * hidden_activation, int gibbs_steps)
+{
+	double *output = (double *)malloc(sizeof(double)*n_vis);
+	double *tmp = (double *)malloc(sizeof(double)*n_vis);
+	double *tmp_hid = (double *)malloc(sizeof(double)*n_hid);
+	double *tmp_hid_sampled = (double *)malloc(sizeof(double)*n_hid);
+	
+	sample_v_given_h(hidden_activation, tmp, output);
+	for (int i = 1; i < gibbs_steps; i++) {
+		sample_h_given_v(output, tmp_hid, tmp_hid_sampled);
+		sample_v_given_h(tmp_hid_sampled, tmp, output);
+	}
+	delete(tmp);
+	delete(tmp_hid);
+	delete(tmp_hid_sampled);
+	delete(hidden_activation);
+	return output;
 }

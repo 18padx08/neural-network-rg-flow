@@ -5,5 +5,6 @@ public:
 	RG();
 	~RG();
 	void runRG();
+	void runDBN();
 };
 

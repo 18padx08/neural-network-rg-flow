@@ -91,5 +91,6 @@ public:
 	void saveToFile(std::string filename);
 	void saveVisualization();
 	bool loadWeights(std::string filename);
-
+	double **propagate(double **input, int sample_size);
+	double *propup(double *hidden_activation, int gibbs_steps = 10);
 };

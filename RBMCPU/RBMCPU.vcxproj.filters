@@ -31,6 +31,9 @@
     <Filter Include="RG">
       <UniqueIdentifier>{8b5a4a96-8bbd-4806-a402-1f2156df466c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DBM">
+      <UniqueIdentifier>{2530a207-5960-4cf5-bebc-f5fe152d9d0d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -66,14 +69,20 @@
     <ClInclude Include="SymmetryTest.h">
       <Filter>Tests</Filter>
     </ClInclude>
-    <ClInclude Include="RG.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Z2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="AnalyticalTest.h">
       <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="RG.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="DBMTest.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="DBM.h">
+      <Filter>DBM</Filter>
+    </ClInclude>
+    <ClInclude Include="Z2.h">
+      <Filter>SymmetryGenerator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -107,14 +116,20 @@
     <ClCompile Include="SymmetryTest.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
-    <ClCompile Include="RG.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Z2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="AnalyticalTest.cpp">
       <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="RG.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="DBM.cpp">
+      <Filter>DBM</Filter>
+    </ClCompile>
+    <ClCompile Include="DBMTest.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Z2.cpp">
+      <Filter>SymmetryGenerator</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
