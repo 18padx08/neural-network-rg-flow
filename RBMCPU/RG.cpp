@@ -261,20 +261,20 @@ void RG::runDBN()
 	double firstEnergy = 0;
 	runIsing(J, sampleSize, samples, tmpSamples, &theoreticalEnergy, &firstEnergy, true);
 	ParamSet set;
-	set.lr = 0.1;
-	set.momentum = 0.5;
-	set.regulization = (Regularization)(Regularization::L1 | Regularization::DROPCONNECT);
+	set.lr = 0.08;
+	set.momentum = 0.3;
+	set.regulization = (Regularization)(Regularization::L1);
 	set.weightDecay = 2e-3;
 	//layer dimensions is #layer + 1
 	int layerDimensions[] = { 40, 20, 10, 5,2 };
 	DBM dbm(4, layerDimensions, set, FunctionType::SIGMOID);
-	//dbm.loadWeights("weights_ising.csv");
-	dbm.initMask();
+	dbm.loadWeights("weights_ising.csv");
+	//dbm.initMask(mask);
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	Z2<double> *z2 = new Z2<double>();
 	long timeStart = time(NULL);
 	//permute once through the chain
-	for (int iteration = 0; iteration < 1000; iteration++) {
+	/*for (int iteration = 0; iteration < 2000; iteration++) {
 		for (int i = 0; i < 2; i++) {
 			if (i % 2 == 0 &&false) {
 				//also apply z2
@@ -302,7 +302,7 @@ void RG::runDBN()
 		}
 		
 		runIsing(J, sampleSize, samples, tmpSamples, &theoreticalEnergy, &firstEnergy, false);
-	}
+	}*/
 
 	//rbm.saveToFile("weights_ising.csv");
 	long timeEnd = time(NULL);
@@ -315,22 +315,22 @@ void RG::runDBN()
 		double magn = 0;
 		double energy = 0;
 		std::cout << " --------- " << std::endl;
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 40; i++) {
 			std::cout << samples[0][i];
 		}
 		std::cout << std::endl;
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 40; i++) {
 
 			std::cout << sample[i];
 			magn += sample[i] <= 0 ? -1 : 1;
 		}
 		std::cout << std::endl;
-		magn /= 20;
-		for (int i = 0; i < 19; i++) {
+		magn /= 40;
+		for (int i = 0; i < 39; i++) {
 			energy += -J * (sample[i] <= 0 ? -1 : 1) * (sample[i + 1] <= 0 ? -1 : 1);
 		}
-		energy += -J * (sample[19] <= 0 ? -1 : 1) * (sample[0] <= 0 ? -1 : 1);
-		energy /= 20;
+		energy += -J * (sample[39] <= 0 ? -1 : 1) * (sample[0] <= 0 ? -1 : 1);
+		energy /= 40;
 		totalEnergy += energy;
 		totalMagn += magn;
 		std::cout << energy << "  " << magn << std::endl;

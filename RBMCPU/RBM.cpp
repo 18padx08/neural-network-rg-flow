@@ -145,9 +145,6 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 			for (int j = 0; j < num_hid; j++) {
 				if (!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j])) {
 					double tmpW = this->W[i][j];
-					bool tmp1 = !(this->reg & Regularization::DROPCONNECT);
-					bool tmp2 = ((this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]);
-					bool tmp3 = tmp1 || tmp2;
 					//update new delta
 					double delta = 0;
 					delta = this->lr * (vis0_sampled[i] * hid0[j] - visN[i] * hidN[j]);
