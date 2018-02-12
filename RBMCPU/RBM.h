@@ -78,6 +78,8 @@ private:
 	ActivationFunction actFun;
 	double crossEntropy(double *input);
 	bool isRandom = true;
+	bool startAverage = false;
+	int averageCounter = 1;
 public:
 	RBM(int n_vis, int n_hid);
 	RBM(int n_vis, int n_hid, FunctionType activationFunction);
@@ -93,4 +95,7 @@ public:
 	bool loadWeights(std::string filename);
 	double **propagate(double **input, int sample_size);
 	double *propup(double *hidden_activation, int gibbs_steps = 10);
+	void startAveraging();
+	double calculatePartitionFunction();
+	double calculateProb(double *input);
 };

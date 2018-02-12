@@ -63,6 +63,7 @@ void DBM::saveToFile(std::string filename)
 
 void DBM::saveVisualization()
 {
+	rbms[0].saveVisualization();
 }
 
 bool DBM::loadWeights(std::string filename)
@@ -81,4 +82,12 @@ bool DBM::initMask(bool ** mask)
 	}
 
 	return true;
+}
+
+void DBM::startAveraging()
+{
+	for (int i = 0; i < rbms.size(); i++) {
+		rbms[i].startAveraging();
+	}
+
 }

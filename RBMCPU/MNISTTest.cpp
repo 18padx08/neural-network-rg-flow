@@ -1,6 +1,7 @@
 #include "MNISTTest.h"
 #include "MNISTData.h"
 #include "RBM.h"
+#include "DBM.h"
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
@@ -101,12 +102,39 @@ void MNISTTest::intenseTest()
 		std::cout << std::endl;
 	}*/
 }
+void MNISTTest::DBNTest()
+{
+	int dimensions[] = {28*28,28*28/2,28*28/4,28*28/8,28*28/16};
+	ParamSet set;
+	set.lr = 0.1;
+	set.momentum = 0.5;
+	set.regulization = Regularization::L1;
+	set.weightDecay = 2e-4;
+	DBM dbm(4,dimensions, set, FunctionType::SIGMOID);
+	MNISTData data;
+	for (int i = 0; i < 100; i++) {
+		double **batch = data.getBatch(50);
+		dbm.train(batch, 50, 10);
+		dbm.saveToFile("dbm_mnist");
+	}
+	dbm.saveVisualization();
+	for (int o = 0; o < 100; o++) {
+		double * sample = dbm.sample_from_net(100);
+		for (int i = 0; i < 28; i++) {
+			for (int j = 0; j < 28; j++) {
+				std::cout << sample[i * 28 + j];
+			}
+			std::cout << std::endl;
+		}
+		std::cout << std::endl << std::endl;
+	}
+}
 void MNISTTest::executeRBMCPU()
 {
 	RBM rbm(28*28, 28*28/2);
 	rbm.initWeights();
 	MNISTData data;
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 100; i++) {
 		double **batch = data.getBatch(50);
 		
 		rbm.train(batch, 50, 10);

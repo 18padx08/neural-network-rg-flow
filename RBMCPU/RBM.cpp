@@ -78,17 +78,18 @@ void RBM::sample_h_given_v(double * vis_src, double * hid_target, double *hid_sa
 void RBM::sample_v_given_h(double * hid_src, double * vis_target, double * vis_sampled)
 {
 	double pre_sigmoid = 0;
-	//we would implement dropout or dropconnect here
 	int num_vis = (int)n_vis;
 	int num_hid = (int)n_hid;
 
 	for (int i = 0; i < num_vis; i++) {
 		pre_sigmoid = 0;
 		for (int j = 0; j < num_hid; j++) {
-			if (!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j]))
-			pre_sigmoid += this->W[i][j] * hid_src[j];
+			if (!(this->reg & Regularization::DROPCONNECT) || ((this->reg & Regularization::DROPCONNECT) && this->dropConnectMask[i][j])) {
+				pre_sigmoid += this->W[i][j] * hid_src[j];
+				
+			}
 		}
-		pre_sigmoid += hid_b[i];
+		pre_sigmoid += vis_b[i];
 		vis_target[i] = actFun(pre_sigmoid);
 		vis_sampled[i] = sample(vis_target[i]);
 	}
@@ -104,6 +105,13 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 	int num_vis = (int)n_vis;
 	int num_hid = (int)n_hid;
 
+	for (int i = 0; i < num_vis; i++) {
+		tmpVisUpdate[i] = 0;
+	}
+
+	for (int i = 0; i < num_hid; i++) {
+		tmpHidUpdate[i] = 0;
+	}
 #pragma omp parallel for
 	for (int sampleNum = 0; sampleNum < batchSize; sampleNum++) {
 		double *vis0_sampled = input[sampleNum];
@@ -114,15 +122,6 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 		double *hidN = (double*)malloc(sizeof(double)*num_hid);
 		double *visN_sampled = (double*)malloc(sizeof(double)*num_vis);
 		double *hidN_sampled = (double*)malloc(sizeof(double)*num_hid);
-		
-
-		for (int i = 0; i < num_vis; i++) {
-			tmpVisUpdate[i] = 0;
-		}
-
-		for (int i = 0; i < num_hid; i++) {
-			tmpHidUpdate[i] = 0;
-		}
 
 		//prepare first set
 		sample_h_given_v(vis0_sampled, hid0, hid0_sampled);
@@ -200,11 +199,19 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 				double tmpW = this->W[i][j];
 				this->tmpdW[i][j] /= batchSize;
 				//let the change flow
-				this->W[i][j] += dW[i][j] * this->momentum;
+				//if average is activated, average the weights
+				double newWeight = this->W[i][j] + dW[i][j] * this->momentum + tmpdW[i][j];
+				if (this->startAverage) {
+					this->W[i][j] = this->W[i][j] - 1.0 / this->averageCounter*(this->W[i][j] - newWeight);
+					this->averageCounter++;
+				}
+				else {
+					this->W[i][j] = newWeight;
+				}
 				//update new delta
 				//apply current change
 				//normalize with respect to batchsize, to flatten response
-				this->W[i][j] += tmpdW[i][j];
+				
 				dW[i][j] = tmpdW[i][j];
 				
 			}
@@ -234,7 +241,7 @@ double RBM::contrastive_divergence(double ** input, int cdK, int batchSize)
 		}
 
 		for (int j = 0; j < n_hid; j++) {
-			this->hid_b[j] += tmpHidUpdate[j]/batchSize;
+			this->hid_b[j] += tmpHidUpdate[j] / batchSize ;
 		}
 	}
 
@@ -273,6 +280,7 @@ void RBM::initMask(bool **mask )
 //set biases to zero and apply uniform distribution to weights
 void RBM::initWeights()
 {
+	this->startAverage = false;
 	for (int i = 0; i < n_vis; i++) {
 		for (int j = 0; j < n_hid; j++) {
 			if (this->isRandom || (this->reg & Regularization::DROPCONNECT && this->dropConnectMask[i][j])) {
@@ -320,9 +328,13 @@ void RBM::train(double ** input, int sample_size, int epoch)
 	double average = 0;
 	average = 0;
 	int counter = 1;
+	this->startAverage = false;
 	milliseconds loopStart  = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 	for (int ep = 0; ep < epoch; ep++) {
 		
+		if (ep == 5) {
+			this->startAveraging();
+		}
 		//ereas line
 		//std::cout <<"\r" << "                                                                                                   ";
 		//only do this if we are random init
@@ -616,4 +628,56 @@ double * RBM::propup(double * hidden_activation, int gibbs_steps)
 	delete(tmp_hid_sampled);
 	delete(hidden_activation);
 	return output;
+}
+
+void RBM::startAveraging()
+{
+	if (!this->startAverage) {
+		this->averageCounter = 1;
+	}
+	this->startAverage = true;
+}
+
+double RBM::calculatePartitionFunction()
+{
+	double part = 0;
+	for (int i = 0; i < std::pow(2, n_vis); i++) {
+		for (int j = 0; j < std::pow(2, n_hid); j++) {
+			double tmp = 0;
+			for (int vis = 0; vis < n_vis; vis++) {
+				double vi = (i&(0b1<<vis)) >> vis;
+				for (int hid = 0; hid < n_hid; hid++) {
+					double hj = (j&(0b1 << hid)) >> hid;
+					tmp += this->W[vis][hid] * hj *vi  +hj * this->hid_b[hid];
+				}
+				tmp += vi * this->vis_b[vis];
+			}
+			double prePart = part;
+			part += std::exp(tmp);
+			if (prePart == part && std::exp(tmp) > 0) {
+				//std::cout << "lost some data " << prePart << " " << part << " " << std::exp(tmp) << std::endl;
+			}
+		}
+		
+	}
+	return part;
+}
+
+double RBM::calculateProb(double * input)
+{
+	auto Z = this->calculatePartitionFunction();
+	double unnorm_prob = 1;
+	for (int j = 0; j < n_vis; j++) {
+		unnorm_prob *= std::exp(this->vis_b[j] * input[j]);
+	}
+	for (int i = 0; i < n_hid; i++) {
+		double inner = 0;
+		inner += this->hid_b[i];
+		for (int in_j = 0; in_j < n_vis; in_j++) {
+			inner += this->W[in_j][i] * input[in_j];
+		}
+		unnorm_prob *= (1 + std::exp(inner));
+	}
+	
+	return unnorm_prob / Z;
 }

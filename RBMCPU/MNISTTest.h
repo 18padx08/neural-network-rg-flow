@@ -5,4 +5,5 @@ public:
 	void executeRBMCPU();
 	void loadWeightsRBMCPU();
 	void intenseTest();
+	void DBNTest();
 };

@@ -35,7 +35,7 @@ void runIsing(double J, int sampleSize, double **samples, double **tmpSamples, d
 			M = ising.getMagnetization();
 
 
-		} while (!(abs(tE - mE) < 0.06 * abs(tE) && abs(ising.getMagnetization()) < 0.01));
+		} while (!(abs(tE - mE) < 0.1 * abs(tE) && abs(ising.getMagnetization()) < 0.01));
 		if (i == 0) *firstEnergy = mE;
 		if (i % 2 == 0) {
 			//printf("[STEP %d] Mean energy config: %f theoretical: %f delta: %f\n Mean magnetization: %f\n", i, ising.getMeanEnergy(), ising.getTheoreticalMeanEnergy(), ising.getMeanEnergy() - ising.getTheoreticalMeanEnergy(), ising.getMagnetization());
@@ -50,7 +50,7 @@ void runIsing(double J, int sampleSize, double **samples, double **tmpSamples, d
 		for (int j = 0; j < v.size(); j++) {
 				samples[i][j] = v[j];
 		}
-		v.clear();
+	
 		
 		
 	}
@@ -263,13 +263,13 @@ void RG::runDBN()
 	ParamSet set;
 	set.lr = 0.1;
 	set.momentum = 0.5;
-	set.regulization =(Regularization) (Regularization::L1 | Regularization::L2);
-	set.weightDecay = 2e-4;
+	set.regulization = (Regularization)(Regularization::L1 | Regularization::DROPCONNECT);
+	set.weightDecay = 2e-3;
 	//layer dimensions is #layer + 1
 	int layerDimensions[] = { 40, 20, 10, 5,2 };
 	DBM dbm(4, layerDimensions, set, FunctionType::SIGMOID);
 	//dbm.loadWeights("weights_ising.csv");
-	//dbm.initMask(mask);
+	dbm.initMask();
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	Z2<double> *z2 = new Z2<double>();
 	long timeStart = time(NULL);
@@ -283,7 +283,7 @@ void RG::runDBN()
 					(*z2)(samples[ba], tmpSamples[ba], 40);
 				}
 			}
-			for (int trans = 0; trans < 1; trans++) {
+			for (int trans = 0; trans < 10; trans++) {
 				long loopStart = time(NULL);
 				
 #pragma omp parallel for
@@ -291,7 +291,7 @@ void RG::runDBN()
 					(*t)(samples[ba], tmpSamples[ba], 40);
 				}
 
-				dbm.train(tmpSamples, sampleSize, 10);
+				dbm.train(tmpSamples, sampleSize, 20);
 				dbm.saveToFile("weights_ising_l1+l2");
 				std::cout << std::endl;
 				long deltaT = time(NULL) - loopStart;

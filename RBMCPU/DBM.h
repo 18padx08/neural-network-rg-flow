@@ -16,5 +16,6 @@ public:
 	void saveVisualization();
 	bool loadWeights(std::string filename);
 	bool initMask(bool **mask = 0);
+	void startAveraging();
 };
 
