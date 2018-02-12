@@ -31,6 +31,7 @@ Ising1D::Ising1D(int size, double beta, double J) : lattice({size}),  beta(beta)
 
 Ising1D::~Ising1D()
 {
+	//this->lattice.~LatticeObject();
 }
 
 void Ising1D::monteCarloStep()

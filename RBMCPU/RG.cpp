@@ -41,8 +41,8 @@ void runIsing(double J, int sampleSize, double **samples, double **tmpSamples, d
 			//printf("[STEP %d] Mean energy config: %f theoretical: %f delta: %f\n Mean magnetization: %f\n", i, ising.getMeanEnergy(), ising.getTheoreticalMeanEnergy(), ising.getMeanEnergy() - ising.getTheoreticalMeanEnergy(), ising.getMagnetization());
 		}
 		if (!firstTime) {
-			//delete(samples[i]);
-			//delete(tmpSamples[i]);
+			free(samples[i]);
+			free(tmpSamples[i]);
 		}
 		samples[i] = (double *)malloc(40 * sizeof(double));
 		tmpSamples[i] = (double *)malloc(40 * sizeof(double));
@@ -50,6 +50,9 @@ void runIsing(double J, int sampleSize, double **samples, double **tmpSamples, d
 		for (int j = 0; j < v.size(); j++) {
 				samples[i][j] = v[j];
 		}
+		v.clear();
+		
+		
 	}
 }
 
@@ -130,14 +133,14 @@ void RG::runRG()
 					(*z2)(samples[ba], tmpSamples[ba], 20);
 				}
 			}
-			for (int trans = 0; trans < 20; trans++) {
+			for (int trans = 0; trans < 1; trans++) {
 				long loopStart = time(NULL);
 #pragma omp parallel for
 				for (int ba = 0; ba < sampleSize; ba++) {
 					(*t)(samples[ba], tmpSamples[ba], 20);
 				}
 
-				rbm.train(tmpSamples, sampleSize, 200);
+				rbm.train(tmpSamples, sampleSize, 10);
 				rbm.saveToFile("weights_ising.csv");
 				std::cout << std::endl;
 				long deltaT = time(NULL) - loopStart;
@@ -288,7 +291,7 @@ void RG::runDBN()
 					(*t)(samples[ba], tmpSamples[ba], 40);
 				}
 
-				dbm.train(tmpSamples, sampleSize, 100);
+				dbm.train(tmpSamples, sampleSize, 10);
 				dbm.saveToFile("weights_ising_l1+l2");
 				std::cout << std::endl;
 				long deltaT = time(NULL) - loopStart;
@@ -296,8 +299,6 @@ void RG::runDBN()
 				long estimated = (20 - trans) * deltaT;
 				std::cout << "Time elapsed: " << total << "s of estimated " << estimated / 60 << "min " << estimated % 60 << "s" << std::endl;
 			}
-			delete(tmpSamples[i]);
-			delete(samples[i]);
 		}
 		
 		runIsing(J, sampleSize, samples, tmpSamples, &theoreticalEnergy, &firstEnergy, false);

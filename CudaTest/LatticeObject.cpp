@@ -21,6 +21,7 @@ LatticeObject<T>::~LatticeObject()
 	if (this->lattice != nullptr) {
 		free(this->lattice);
 	}
+	this->dimensions.clear();
 }
 
 template<class T>
