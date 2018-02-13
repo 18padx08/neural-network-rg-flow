@@ -7,7 +7,7 @@ class DBM
 	ParamSet parameters;
 public:
 	DBM(int num_layer, int *layerDimensions, ParamSet parameters, FunctionType activationFunction);
-	void train(double **input, int sample_size, int epoch);
+	void train(double **input, int sample_size, int epoch, int theLayer = -1);
 	double * sample_from_net(int gibbs_steps = 10);
 	double * reconstruct(double * input);
 	void setParameters(ParamSet set);

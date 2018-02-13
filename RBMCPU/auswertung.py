@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-data1 = np.genfromtxt("weights_ising_l1+l2_layer_0.csv",delimiter=",")
+data1 = np.genfromtxt("weights_ising_layer_0.csv",delimiter=",")
 maxes = []
 meandivider = 0
 for i in range(0,len(data1)):
@@ -15,7 +15,7 @@ data1 = data1 / divider
 plt.imshow(np.abs(data1), cmap="hot")
 plt.colorbar()
 plt.show()
-data2 = np.genfromtxt("weights_ising_l1+l2_layer_1.csv",delimiter=",")
+data2 = np.genfromtxt("weights_ising_layer_1.csv",delimiter=",")
 data2 = data2/divider
 rece = np.matmul(data1,data2)
 plt.imshow(np.abs(rece), cmap="hot")
@@ -25,10 +25,10 @@ maxes += [np.max(np.abs(data2))]
 #plt.imshow(data2, cmap="hot")
 #plt.colorbar()
 #plt.show()
-data3 = np.genfromtxt("weights_ising_l1+l2_layer_2.csv",delimiter=",")
+data3 = np.genfromtxt("weights_ising_layer_2.csv",delimiter=",")
 data3 = data3 / divider
 maxes += [np.max(np.abs(data3))]
-data4 = np.genfromtxt("weights_ising_l1+l2_layer_3.csv",delimiter=",")
+data4 = np.genfromtxt("weights_ising_layer_3.csv",delimiter=",")
 data4 = data4 / divider
 maxes += [np.max(np.abs(data4))]
 #plt.imshow(data3, cmap="hot")

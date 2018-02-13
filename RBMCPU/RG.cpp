@@ -268,13 +268,14 @@ void RG::runDBN()
 	//layer dimensions is #layer + 1
 	int layerDimensions[] = { 40, 20, 10, 5,2 };
 	DBM dbm(4, layerDimensions, set, FunctionType::SIGMOID);
-	dbm.loadWeights("weights_ising.csv");
+	dbm.loadWeights("weights_ising_l1+l2");
 	//dbm.initMask(mask);
 	TranslationSymmetry<double> *t = new TranslationSymmetry<double>();
 	Z2<double> *z2 = new Z2<double>();
 	long timeStart = time(NULL);
 	//permute once through the chain
-	/*for (int iteration = 0; iteration < 2000; iteration++) {
+	int whichLayer = 0;
+	/*for (int iteration = 0; iteration < 100; iteration++) {
 		for (int i = 0; i < 2; i++) {
 			if (i % 2 == 0 &&false) {
 				//also apply z2
@@ -290,9 +291,10 @@ void RG::runDBN()
 				for (int ba = 0; ba < sampleSize; ba++) {
 					(*t)(samples[ba], tmpSamples[ba], 40);
 				}
-
+				
 				dbm.train(tmpSamples, sampleSize, 20);
-				dbm.saveToFile("weights_ising_l1+l2");
+				
+				dbm.saveToFile("weights_ising");
 				std::cout << std::endl;
 				long deltaT = time(NULL) - loopStart;
 				long total = time(NULL) - timeStart;
@@ -300,7 +302,10 @@ void RG::runDBN()
 				std::cout << "Time elapsed: " << total << "s of estimated " << estimated / 60 << "min " << estimated % 60 << "s" << std::endl;
 			}
 		}
-		
+		/*if (iteration % 400 == 0 && iteration > 0) {
+			std::cout << "Start training next layer" << std::endl;
+			whichLayer++;
+		}
 		runIsing(J, sampleSize, samples, tmpSamples, &theoreticalEnergy, &firstEnergy, false);
 	}*/
 

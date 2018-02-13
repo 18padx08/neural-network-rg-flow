@@ -598,7 +598,7 @@ bool RBM::loadWeights(std::string filename)
 double ** RBM::propagate(double ** input, int sample_size)
 {
 	double **output = (double **)malloc(sample_size * sizeof(double*));
-
+#pragma omp parallel for
 	for (int i = 0; i < sample_size; i++) {
 		output[i] = (double *)malloc(this->n_hid * sizeof(double));
 		double *tmp = (double *)malloc(this->n_hid * sizeof(double));
@@ -645,7 +645,10 @@ double RBM::calculatePartitionFunction()
 				double vi = (i&(0b1<<vis)) >> vis;
 				for (int hid = 0; hid < n_hid; hid++) {
 					double hj = (j&(0b1 << hid)) >> hid;
-					tmp += this->W[vis][hid] * hj *vi  +hj * this->hid_b[hid];
+					if (vis == 0) {
+						tmp += hj * this->hid_b[hid];
+					}
+					tmp += this->W[vis][hid] * hj *vi;
 				}
 				tmp += vi * this->vis_b[vis];
 			}

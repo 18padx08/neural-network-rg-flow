@@ -8,9 +8,9 @@
 void AnalyticalTest::runTest()
 {
 	ParamSet set;
-	set.lr = 0.1;
+	set.lr = 0.01;
 	set.momentum = 0.5;
-	set.regulization = (Regularization)(Regularization::L1) ;
+	set.regulization = (Regularization)( Regularization::L1) ;
 	RBM rbm(2, 2, FunctionType::SIGMOID);
 	rbm.setParameters(set);
 	bool **mask = (bool **)malloc(2*sizeof(bool*));
@@ -20,7 +20,7 @@ void AnalyticalTest::runTest()
 	mask[1] = (bool*) malloc(2);
 	mask[1][0] = false;
 	mask[1][1] = true;
-	//rbm.initMask();
+	rbm.initMask(mask);
 	//rbm.loadWeights("analyticaltest_w=-1.csv");
 	double v1[] = { 0,0 };
 	double v2[] = { 1,0 };
@@ -43,7 +43,7 @@ void AnalyticalTest::runTest()
 			samples[i] = v1;
 		}
 	}
-	rbm.train(samples, 4, 10000);
+	rbm.train(samples, 4, 1000);
 	rbm.saveToFile("analyticaltest_w=-1.csv");
 	double *r1 = rbm.reconstruct(v1);
 	double *r2 = rbm.reconstruct(v2);
@@ -68,7 +68,8 @@ void AnalyticalTest::runTest()
 	std::cout << rbm.calculateProb(v2) << std::endl;
 	std::cout << rbm.calculateProb(v3) << std::endl;
 	std::cout << rbm.calculateProb(v4) << std::endl;
-	std::cout << rbm.calculateProb(v1) + rbm.calculateProb(v2) + rbm.calculateProb(v3) + rbm.calculateProb(v4) << std::endl;
+
+	std::cout << rbm.calculateProb(v1)  + rbm.calculateProb(v2) + rbm.calculateProb(v3) + rbm.calculateProb(v4) << std::endl;
  }
 
 void AnalyticalTest::runAnalytical()

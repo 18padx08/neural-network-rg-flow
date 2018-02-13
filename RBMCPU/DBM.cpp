@@ -13,12 +13,15 @@ DBM::DBM(int num_layer, int *layerDimensions, ParamSet parameters, FunctionType 
 	}
 }
 
-void DBM::train(double ** input, int sample_size, int epoch)
+void DBM::train(double ** input, int sample_size, int epoch, int theLayer)
 {
 	//iteratively train networks
+	//if theLayer is set, only train specific layer
+	//layers start at 0
+	int whichLayer = theLayer < 0 ? rbms.size() : theLayer + 1;
 #pragma omp parallel for
-	for (int r = 0; r < rbms.size(); r++) {
-		if (r == 0) {
+	for (int r = 0; r < whichLayer; r++) {
+		if (r == 0 && (theLayer <= 0)) {
 			rbms[r].train(input, sample_size, epoch);
 			continue;
 		}
@@ -26,7 +29,9 @@ void DBM::train(double ** input, int sample_size, int epoch)
 		for (int prop = 0; prop < r; prop++) {
 			 tmpInput = rbms[prop].propagate(input, sample_size);
 		}
-		rbms[r].train(tmpInput, sample_size, epoch);		
+		if (r == theLayer || (theLayer < 0)) {
+			rbms[r].train(tmpInput, sample_size, epoch);
+		}
 		delete(tmpInput);
 	}
 }
