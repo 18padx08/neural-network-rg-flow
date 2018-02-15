@@ -10,6 +10,16 @@ template<class T>
 	return 0;
 }
 
+ template<class T>
+ vector<T> Z2<T>::operator()(vector<T>& input)
+ {
+	 vector<T> output(input.size());
+	 for (int i = 0; i < input.size(); i++) {
+		 output[i] = input[i] <= 0 ? 1 : 0;
+	 }
+	 return output;
+ }
+
 template<class T>
  Symmetry<T>* Z2<T>::operator*(Symmetry<T>* l)
 {

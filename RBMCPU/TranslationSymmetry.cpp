@@ -18,6 +18,22 @@ int TranslationSymmetry<T>::operator()(T input[], T output[], size_t length)
 }
 
 template<class T>
+vector<T> TranslationSymmetry<T>::operator()(vector<T>& input)
+{
+	vector<T> output(input.size());
+	for (int i = 0; i < input.size(); i++) {
+		if (i < length - translationStep) {
+			output[i] = input[i + translationStep];
+		}
+		else if (i >= length - translationStep) {
+			//calculate mod
+			output[i] = input[(i + translationStep) % length];
+		}
+	}
+	return output;
+}
+
+template<class T>
 Symmetry<T> *TranslationSymmetry<T>::operator*(Symmetry<T> *l)
 {
 	SymmetryCombination<T> *newSymmetry = new SymmetryCombination<T>();

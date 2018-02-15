@@ -6,6 +6,7 @@ class Z2 :
 {
 public:
 	int operator()(T input[], T output[], size_t length);
+	vector<T> operator()(vector<T> &input);
 	Symmetry<T> *operator*(Symmetry<T> *l);
 };
 

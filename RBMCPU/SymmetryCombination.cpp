@@ -25,6 +25,12 @@ template<class T>
 }
 
  template<class T>
+ vector<T> SymmetryCombination<T>::operator()(vector<T>& input)
+ {
+	 return vector<T>();
+ }
+
+ template<class T>
  void SymmetryCombination<T>::putSymmetry(Symmetry<T>* sym)
  {
 	 this->symList.push_back(sym);

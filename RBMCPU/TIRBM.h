@@ -24,6 +24,9 @@ private:
 	vector<double> ci;
 	vector<double> dci;
 
+	int n_hid;
+	int n_vis;
+	int n_sym;
 	//parameters used for learning
 	ParamSet parameters;
 	//Random number generator
@@ -35,19 +38,20 @@ private:
 	//sample from unifrom dist
 	double uniform(double min, double max);
 	//positive step
-	void sample_h_given_v(vector<double> &vis_src, vector<double> &hid_target, vector<double> &hid_target_sample);
+	void sample_h_given_v(vector<int> &vis_src, vector<vector<double>> &hid_target, vector<int> &hid_target_sample, vector<int> &max_pooled_s);
 	//negative step
-	void sample_v_given_h(vector<double> &hid_src, vector<double> &vis_target, vector<double> &vis_target_sample);
+	void sample_v_given_h(vector<int> &hid_src, vector<double> &vis_target, vector<int> &vis_target_sample, vector<int> &max_pooled_s);
 	//approximate the gradient for the log likelyhood
-	double contrastive_divergence(vector<vector<double>> &input, int cdK, int batchSize);
+	double contrastive_divergence(vector<vector<int>> &input, int cdK, int batchSize);
+	//choose the highest value from array
+	int max_pool(vector<double> hid_fixedj);
 	ActivationFunction actFun;
 
 public:
 	TIRBM(int n_vis, int n_hid) : TIRBM(n_vis, n_hid, FunctionType::SIGMOID) {};
 	TIRBM(int n_vis, int n_hid, FunctionType activationFunction);
 	~TIRBM();
-	//initialize the weights (ensure to set them to some value) (default double is 3e66)
-	void initWeights();
+	void setSymmetries(vector<Symmetry<int>> symmetries);
 	//set the parameters for the learning algorithm such as learning rate, momentum, activationFunction, regularization
 	void setParameters(ParamSet set);
 	//train for number of epochs with a test set
