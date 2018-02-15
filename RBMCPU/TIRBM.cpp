@@ -1,0 +1,81 @@
+#include "TIRBM.h"
+
+
+
+TIRBM::~TIRBM()
+{
+	//deallocate every used memory
+}
+
+void TIRBM::initWeights()
+{
+}
+
+void TIRBM::setParameters(ParamSet set)
+{
+}
+
+void TIRBM::train(double ** input, int sample_size, int epoch)
+{
+}
+
+double * TIRBM::sample_from_net(int gibbs_steps)
+{
+	return nullptr;
+}
+
+double * TIRBM::reconstruct(double * input, int gibbs_steps)
+{
+	return nullptr;
+}
+
+void TIRBM::saveToFile(std::string filename)
+{
+}
+
+void TIRBM::saveVisualization()
+{
+}
+
+bool TIRBM::loadWeights(std::string filename)
+{
+	return false;
+}
+
+void TIRBM::propagate_down(double ** input, double ** output, int sample_size)
+{
+}
+
+void TIRBM::propagate_up(double ** input, double ** output, int gibbs_steps)
+{
+}
+
+double TIRBM::bernoulli(double p)
+{
+	return 0.0;
+}
+
+double TIRBM::uniform(double min, double max)
+{
+	return 0.0;
+}
+
+void TIRBM::sample_h_given_v(double * vis_src, double * hid_target, double * hid_target_sample)
+{
+}
+
+void TIRBM::sample_v_given_h(double * hid_src, double * vis_target, double * vis_target_sample)
+{
+}
+
+double TIRBM::contrastive_divergence(double ** input, int cdK, int batchSize)
+{
+	return 0.0;
+}
+
+TIRBM::TIRBM(int n_vis, int n_hid, FunctionType activationFunction) : generator(time(NULL)), distribution(0.0,1.0), actFun(activationFunction)
+{
+	//allocate memory for all arrays
+	//we need one hidden unit bias per symmetry generator
+
+}
