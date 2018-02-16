@@ -85,7 +85,10 @@
       <Filter>SymmetryGenerator</Filter>
     </ClInclude>
     <ClInclude Include="TIRBM.h">
-      <Filter>Header Files</Filter>
+      <Filter>RBM</Filter>
+    </ClInclude>
+    <ClInclude Include="TIRBMTest.h">
+      <Filter>Tests</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -135,7 +138,10 @@
       <Filter>SymmetryGenerator</Filter>
     </ClCompile>
     <ClCompile Include="TIRBM.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>RBM</Filter>
+    </ClCompile>
+    <ClCompile Include="TIRBMTest.cpp">
+      <Filter>Tests</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

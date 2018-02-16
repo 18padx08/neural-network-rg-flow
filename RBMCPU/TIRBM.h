@@ -10,7 +10,7 @@ using namespace std;
 class TIRBM
 {
 private:
-	vector<Symmetry<double>> symmetries;
+	vector<Symmetry<double>*> symmetries;
 	//weights
 	vector<vector<double>> wij;
 	//last changes for the weights (e.g. used for momentum)
@@ -33,6 +33,7 @@ private:
 	std::default_random_engine generator;
 	std::uniform_real_distribution<double> distribution;
 
+	vector<double> getColumn(int column);
 	//sample from bernoulli dist
 	double bernoulli(double p);
 	//sample from unifrom dist
@@ -51,7 +52,7 @@ public:
 	TIRBM(int n_vis, int n_hid) : TIRBM(n_vis, n_hid, FunctionType::SIGMOID) {};
 	TIRBM(int n_vis, int n_hid, FunctionType activationFunction);
 	~TIRBM();
-	void setSymmetries(vector<Symmetry<int>> symmetries);
+	void setSymmetries(vector<Symmetry<double>*> &symmetries);
 	//set the parameters for the learning algorithm such as learning rate, momentum, activationFunction, regularization
 	void setParameters(ParamSet set);
 	//train for number of epochs with a test set

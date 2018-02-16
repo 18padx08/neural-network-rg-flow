@@ -23,7 +23,7 @@ RG::~RG()
 void runIsing(double J, int sampleSize, double **samples, double **tmpSamples, double *theoreticalEnergy, double *firstEnergy, bool firstTime) {
 #pragma omp parallel for
 	for (int i = 0; i < sampleSize; i++) {
-		Ising1D ising(40, 1, J);
+		Ising1D ising(20, 1, J);
 		int counter = 0;
 		double mE, tE, M;
 		do {
@@ -59,7 +59,7 @@ void runIsing(double J, int sampleSize, double **samples, double **tmpSamples, d
 //make a 100 spin chain and try to learn
 void RG::runRG()
 {
-	int sampleSize = 100;
+	int sampleSize = 10;
 	double J = 1.0;
 	double theoreticalEnergy = 0;
 	double **samples = (double **)malloc(sampleSize * sizeof(double*));

@@ -2,6 +2,17 @@
 #include "SymmetryCombination.h"
 
 template<class T>
+ TranslationSymmetry<T>::TranslationSymmetry() : TranslationSymmetry<T>(1)
+{
+}
+
+ template<class T>
+ TranslationSymmetry<T>::TranslationSymmetry(int translationStep) : translationStep(translationStep)
+ {
+	 this->translationStep = translationStep;
+ }
+
+template<class T>
 int TranslationSymmetry<T>::operator()(T input[], T output[], size_t length)
 {
 	//move every element one place
@@ -20,8 +31,9 @@ int TranslationSymmetry<T>::operator()(T input[], T output[], size_t length)
 template<class T>
 vector<T> TranslationSymmetry<T>::operator()(vector<T>& input)
 {
-	vector<T> output(input.size());
-	for (int i = 0; i < input.size(); i++) {
+	int length = input.size();
+	vector<T> output(length);
+	for (int i = 0; i < length; i++) {
 		if (i < length - translationStep) {
 			output[i] = input[i + translationStep];
 		}

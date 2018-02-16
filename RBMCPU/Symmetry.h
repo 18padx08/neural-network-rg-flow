@@ -6,8 +6,8 @@ class Symmetry
 {
 
 public:
-	 virtual int operator()(T input[], T output[], size_t length) = 0;
-	 virtual vector<T> operator()(vector<T> &input) = 0;
-	 virtual Symmetry<T> *operator*(Symmetry<T> *l) = 0;
+	virtual int operator()(T input[], T output[], size_t length) =0;
+	virtual vector<T> operator()(vector<T> &input) = 0;
+	virtual Symmetry<T> *operator*(Symmetry<T> *l)=0;
 };
 

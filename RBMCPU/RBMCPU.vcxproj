@@ -167,6 +167,7 @@
     <ClInclude Include="SymmetryTest.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TIRBM.h" />
+    <ClInclude Include="TIRBMTest.h" />
     <ClInclude Include="TranslationSymmetry.h" />
     <ClInclude Include="Z2.h" />
   </ItemGroup>
@@ -190,6 +191,7 @@
     <ClCompile Include="SymmetryCombination.cpp" />
     <ClCompile Include="SymmetryTest.cpp" />
     <ClCompile Include="TIRBM.cpp" />
+    <ClCompile Include="TIRBMTest.cpp" />
     <ClCompile Include="TranslationSymmetry.cpp" />
     <ClCompile Include="Z2.cpp" />
   </ItemGroup>
