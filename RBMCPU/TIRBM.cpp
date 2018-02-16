@@ -70,7 +70,7 @@ double TIRBM::uniform(double min, double max)
 	return 0.0;
 }
 
-void TIRBM::sample_h_given_v(vector<int>& vis_src, vector<vector<double>>& hid_target, vector<int>& hid_target_sample, vector<int>& max_pooled_s)
+void TIRBM::sample_h_given_v(vector<double>& vis_src, vector<vector<double>>& hid_target, vector<double>& hid_target_sample, vector<int>& max_pooled_s)
 {
 	double constantPart = 0;
 	vector<double> symPart(n_sym, 0);
@@ -101,8 +101,8 @@ void TIRBM::sample_h_given_v(vector<int>& vis_src, vector<vector<double>>& hid_t
 		hid_target_sample[i] = hid_target[i][max_pooled_s[i]];
 	}
 }
-//TODO implement symmetries as matrices
-void TIRBM::sample_v_given_h(vector<int>& hid_src, vector<double>& vis_target, vector<int>& vis_target_sample, vector<int> &max_pooled_s)
+
+void TIRBM::sample_v_given_h(vector<double>& hid_src, vector<double>& vis_target, vector<double>& vis_target_sample, vector<int> &max_pooled_s)
 {
 	double pre_sigmoid = 0;
 	int num_vis = (int)n_vis;
@@ -110,33 +110,30 @@ void TIRBM::sample_v_given_h(vector<int>& hid_src, vector<double>& vis_target, v
 
 	for (int i = 0; i < num_vis; i++) {
 		pre_sigmoid = 0;
-		for (int s = 0; s < n_sym; s++) {
 			for (int j = 0; j < num_hid; j++) {
-
-				pre_sigmoid += (symmetries[s](this->wij[i]))[j] * hid_src[j];
-
-
-				pre_sigmoid += bjs[i][s];
+				pre_sigmoid += (symmetries[max_pooled_s[j]](this->wij[i]))[j] * hid_src[j];
+				pre_sigmoid += bjs[i][max_pooled_s[j]];
 			}
-		}
-
 		vis_target[i] = actFun(pre_sigmoid);
 		vis_target_sample[i] = bernoulli(vis_target[i]);
 	}
 
 }
 
-double TIRBM::contrastive_divergence(vector<vector<int>>& input, int cdK, int batchSize)
+double TIRBM::contrastive_divergence(vector<vector<double>>& input, int cdK, int batchSize)
 {
+	vector<double> tmpVisUpdate(n_vis);
+	vector<vector<double>> tmpHidUpdate(n_hid, vector<double>(n_sym));
 #pragma parallel for
 	for (int numBatch = 0; numBatch < batchSize; numBatch++) {
 		vector<vector<double>> hid0(n_hid, vector<double>(n_sym));
-		vector<int> hid0_sampled(n_hid);
+		vector<double> hid0_sampled(n_hid);
 		vector<vector<double>> hidN(n_hid, vector<double>(n_sym));
-		vector<int> hidN_sampled(n_hid);
+		vector<double> hidN_sampled(n_hid);
 		vector<double> visN(n_vis);
-		vector<int> visN_sampled(n_vis);
+		vector<double> visN_sampled(n_vis);
 		vector<int> max_pooled_s(n_vis);
+		vector<int> max_pooled_sN(n_vis);
 		//do CDk
 		for (int i = 0; i < cdK; i++) {
 			if (i == 0) {
@@ -144,19 +141,75 @@ double TIRBM::contrastive_divergence(vector<vector<int>>& input, int cdK, int ba
 				sample_v_given_h(hid0_sampled, visN, visN_sampled, max_pooled_s);
 			}
 			else {
-				sample_h_given_v(visN_sampled, hidN, hidN_sampled, max_pooled_s);
-				sample_v_given_h(hid0_sampled, visN, visN_sampled, max_pooled_s);
+				sample_h_given_v(visN_sampled, hidN, hidN_sampled, max_pooled_sN);
+				sample_v_given_h(hid0_sampled, visN, visN_sampled, max_pooled_sN);
 			}
 		}
 		//calculate the gradients for each batch
+		for (int i = 0; i < n_vis; i++) {
+			for (int j = 0; j < n_hid; j++) {
+				double tmpW = this->wij[i][j];
+				//update new delta
+				double delta = 0;
+				delta = this->parameters.lr * (input[numBatch][i] * hid0[j][max_pooled_s[j]] - visN[i] * hidN[j][max_pooled_sN[j]]);
+
+				this->tmpDwij[i][j] += delta;
+
+				//check for regularizer
+				if (this->parameters.regulization & Regularization::L1) {
+					//apply L1 regulizer
+					int sign = std::signbit(tmpW) ? -1 : 1;
+					this->tmpDwij[i][j] -= this->parameters.lr *this->parameters.weightDecay *sign;
+				}
+				if (this->parameters.regulization & Regularization::L2) {
+					this->tmpDwij[i][j] -= this->parameters.lr *this->parameters.weightDecay * tmpW;
+				}
+			}
+		}
+
+		//update biases only use bias if not dropconnect
+			for (int i = 0; i < n_vis; i++) {
+				tmpVisUpdate[i] += this->parameters.lr * (input[numBatch][i] - visN[i]);
+			}
+
+			for (int j = 0; j < n_hid; j++) {
+				tmpHidUpdate[j][max_pooled_sN[j]] += this->parameters.lr * (hid0_sampled[j] - hidN[j][max_pooled_sN[j]]);
+			}
 	}
 	//apply the changes to the values
+#pragma omp parallel for
+	for (int i = 0; i < n_vis; i++) {
+		for (int j = 0; j < n_hid; j++) {
+			double tmpW = this->wij[i][j];
+			this->tmpDwij[i][j] /= batchSize;
+			//let the change flow
+			//if average is activated, average the weights
+			double newWeight = this->wij[i][j] + dWij[i][j] * this->parameters.momentum + tmpDwij[i][j];
+			this->wij[i][j] = newWeight;
+			//update new delta
+			//apply current change
+			//normalize with respect to batchsize, to flatten response
+
+			dWij[i][j] = tmpDwij[i][j];
+		}
+	}
+
+	for (int i = 0; i < n_vis; i++) {
+		ci[i] += tmpVisUpdate[i] / batchSize;
+	}
+
+	for (int j = 0; j < n_hid; j++) {
+		for (int s = 0; s < n_sym; s++) {
+			this->bjs[j][s] += tmpHidUpdate[j][s] / batchSize;
+		}
+	}
+
 	return 0.0;
 }
 
 int TIRBM::max_pool(vector<double> hid_fixedj)
 {
-	return *std::max_element(hid_fixedj.begin(), hid_fixedj.end());
+	return std::distance(hid_fixedj.begin(),std::max_element(hid_fixedj.begin(), hid_fixedj.end()));
 }
 
 
