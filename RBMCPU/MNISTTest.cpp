@@ -131,13 +131,13 @@ void MNISTTest::DBNTest()
 }
 void MNISTTest::executeRBMCPU()
 {
-	RBM rbm(28*28, 28*28/2);
+	RBM rbm(28*28, 500);
 	rbm.initWeights();
 	MNISTData data;
 	for (int i = 0; i < 100; i++) {
-		double **batch = data.getBatch(50);
+		double **batch = data.getBatch(10);
 		
-		rbm.train(batch, 50, 10);
+		rbm.train(batch, 10, 5);
 		//save weights to file
 		std::cout << "saving files to weights_with_reg.csv" << std::endl;
 		rbm.saveToFile("weights_with_reg.csv");

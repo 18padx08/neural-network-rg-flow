@@ -49,37 +49,40 @@ void TIRBMTest::runTest()
 {
 	
 	int sampleSize = 10;
-	double J = 0.7;
+	double J = 1;
 	double theoreticalEnergy = 0;
 	vector<vector<double>> samples(sampleSize, std::vector<double>(20));
 	double firstEnergy = 0;
 	runIsing(J, sampleSize, samples, &theoreticalEnergy, &firstEnergy, true);
-	TranslationSymmetry<double> t1(1);
-	TranslationSymmetry<double> t2(2);
-	TranslationSymmetry<double> t3(4);
 	Z2<double> z2;
-	vector<double> test = { 0,1,2,3,4 };
-	auto test2 = t1(test);
 	vector<Symmetry<double>*> symmetries;
-	symmetries.push_back(&t1);
-	symmetries.push_back(&t2);
-	symmetries.push_back(&t3);
-	//symmetries.push_back(&z2);
+	symmetries.push_back(&z2);
 
-	TIRBM tirbm(10, 5, FunctionType::SIGMOID);
-	
+	for (int i = 0; i < 10; i++) {
+		TranslationSymmetry<double> *t = new TranslationSymmetry<double>(i);
+		symmetries.push_back(t);
+	}
+
+	TIRBM tirbm(20, 10, FunctionType::SIGMOID);
+
 	ParamSet set;
-	set.lr = 0.1;
-	set.momentum = 0.0;
-	set.regulization = Regularization::L1;
-	set.weightDecay = 2e-4;
+	set.lr = 0.07;
+	set.momentum = 0.5;
+	set.regulization = (Regularization)(Regularization::L1);
+	set.weightDecay = 2e-3;
 	tirbm.setParameters(set);
 	tirbm.setSymmetries(symmetries);
 	std::cout << "--Start Training --" << std::endl;
-	for (int i = 0; i < 200; i++) {
-		tirbm.train(samples, sampleSize, 10);
+	for (int i = 0; i < 400; i++) {
+		tirbm.train(samples, sampleSize, 20);
 		runIsing(J, sampleSize, samples, &theoreticalEnergy, &firstEnergy, true);
 		std::cout << "Starting next iteration: " << i << std::endl;
+	}
+	for (int i = 0; i < sampleSize; i++) {
+		for (int j = 0; j < 20; j++) {
+			std::cout << samples[i][j];
+		}
+		std::cout << std::endl;
 	}
 
 	tirbm.saveToFile("tirbm");

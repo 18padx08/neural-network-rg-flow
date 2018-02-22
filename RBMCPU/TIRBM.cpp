@@ -108,7 +108,7 @@ void TIRBM::sample_h_given_v(vector<double>& vis_src, vector<vector<double>>& hi
 	
 	int num_hid = (int)n_hid;
 	int num_vis = (int)n_vis;
-
+#pragma omp parallel for
 	for (int i = 0; i < num_hid; i++) {
 		double constPart = 0;
 		for (int s = 0; s < n_sym; s++) {
@@ -122,10 +122,7 @@ void TIRBM::sample_h_given_v(vector<double>& vis_src, vector<vector<double>>& hi
 			}
 			symPart[s] += bjs[i][s];
 			//again only compute the constant part once
-			
 			constPart += bjs[i][s];
-			
-			
 		}
 		for (int s = 0; s < n_sym; s++) {
 			hid_target[i][s] = std::exp(symPart[s]) / (1 + std::exp(constPart));
@@ -146,7 +143,7 @@ void TIRBM::sample_v_given_h(vector<double>& hid_src, vector<double>& vis_target
 	double pre_sigmoid = 0;
 	int num_vis = (int)n_vis;
 	int num_hid = (int)n_hid;
-
+#pragma omp parallel for
 	for (int i = 0; i < num_vis; i++) {
 		pre_sigmoid = 0;
 			for (int j = 0; j < num_hid; j++) {
@@ -172,8 +169,8 @@ double TIRBM::contrastive_divergence(vector<vector<double>>& input, int cdK, int
 		vector<double> hidN_sampled(n_hid);
 		vector<double> visN(n_vis);
 		vector<double> visN_sampled(n_vis);
-		vector<int> max_pooled_s(n_vis);
-		vector<int> max_pooled_sN(n_vis);
+		vector<int> max_pooled_s(n_hid);
+		vector<int> max_pooled_sN(n_hid);
 		//do CDk
 		for (int i = 0; i < cdK; i++) {
 			if (i == 0) {
