@@ -3,6 +3,7 @@
 #include "Ising1D.h"
 #include "LatticeObject.cpp"
 
+
 using namespace std;
 
 double Ising1D::energyDiff(int index)
@@ -14,17 +15,17 @@ double Ising1D::energyDiff(int index)
 
 Ising1D::Ising1D(int size) : Ising1D(size, 0.01,-1) {}
 
-Ising1D::Ising1D(int size, double beta, double J) : lattice({size}),  beta(beta), J(J)
+Ising1D::Ising1D(int size, double beta, double J) : lattice({size}),  beta(beta), J(J), dist(0,size-1),generator()
 {
 	this->seed = time(NULL) + (int)&lattice.lattice;
 	for (int i = 0; i < lattice.dimensions[0]; i++) {
-		rand_s(&this->seed);
+		seed = dist(generator);
 		int n = this->seed % 2;
 		if (n == 0) {
 			lattice[{i}] = -1;
 		}
 		else {
-			lattice[{i}] = 1;
+			lattice[{i}] = -1;
 		}
 	}
 }
@@ -37,10 +38,11 @@ Ising1D::~Ising1D()
 void Ising1D::monteCarloStep()
 {
 	//get random index 
-	rand_s(&this->seed);
-	int index = this->seed % (2*this->lattice.dimensions[0]);
+	this->seed = dist(generator);
+	int index = this->seed;
 	double diff = energyDiff(index);
-	double prob = (double)rand() / RAND_MAX;
+	std::uniform_real_distribution<double> dist(0, 1);
+	double prob = dist(generator);
 	if (prob < min(1.0, exp(-diff*beta))) {
 		this->lattice[{index}] *= -1;
 	}
@@ -64,6 +66,7 @@ vector<int> Ising1D::getConfiguration()
 double Ising1D::getMagnetization()
 {
 	double mean = 0;
+#pragma omp parallel for
 	for (int i = 0; i < this->lattice.latticeSize; i++) {
 		mean += this->lattice[{i}];
 	}
@@ -72,12 +75,13 @@ double Ising1D::getMagnetization()
 
 double Ising1D::getMeanEnergy()
 {
-	double energy = 0;
+	int energy = 0;
+#pragma omp parallel for
 	for (int i = 0; i < this->lattice.latticeSize; i++) {
-		double addi = -J*(this->lattice[{i - 1}] * this->lattice[{i}]);
+		int addi = -(this->lattice[{i - 1}] * this->lattice[{i}]);
 		energy += addi;
 	}
-	return energy/this->lattice.latticeSize;
+	return J*(double)energy/this->lattice.latticeSize;
 }
 
 double Ising1D::getTheoreticalMeanEnergy() {

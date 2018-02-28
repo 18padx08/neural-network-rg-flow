@@ -1,5 +1,6 @@
 #pragma once
 #include "LatticeObject.h"
+#include <algorithm>
 #include <random>
 
 #include <time.h>       /* time */
@@ -12,6 +13,8 @@ private:
 	double beta;
 	double J;
 	double energyDiff(int index);
+	std::uniform_int_distribution<int> dist;
+	std::default_random_engine generator;
 public:
 	Ising1D(int size);
 	Ising1D(int size, double  beta, double J);

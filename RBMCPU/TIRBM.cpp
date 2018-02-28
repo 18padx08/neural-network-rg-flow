@@ -1,7 +1,9 @@
 #include "TIRBM.h"
 #include <iostream>
 #include <fstream>
-
+#include <chrono>
+#include <time.h>
+using namespace std::chrono;
 
 TIRBM::~TIRBM()
 {
@@ -26,9 +28,17 @@ void TIRBM::setParameters(ParamSet set)
 
 void TIRBM::train(vector<vector<double>>& input, int sample_size, int epoch)
 {
+	milliseconds loopStart = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+	long long realStart = time(NULL);
 	for (int ep = 0; ep < epoch; ep++) {
+		milliseconds now = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+		long long duration = std::abs((loopStart - now).count());
+		std::cout << "\r" << "Epoch " << ep + 1 << " out of " << epoch << " last loop lasted for: " << duration /1000.0  << "s ETA: " << (duration/1000.0) * (epoch -ep) << "s" ;
+		loopStart = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 		contrastive_divergence(input, 1, sample_size);
 	}
+	std::cout << "\r" << "                                                                                                     ";
+	std::cout << "\r" << "--Finished--" << " took " << (time(NULL) - realStart) << "s" << std::endl;
 }
 
 
@@ -108,7 +118,7 @@ void TIRBM::sample_h_given_v(vector<double>& vis_src, vector<vector<double>>& hi
 	
 	int num_hid = (int)n_hid;
 	int num_vis = (int)n_vis;
-#pragma omp parallel for
+#pragma omp parallel for collapse(1)
 	for (int i = 0; i < num_hid; i++) {
 		double constPart = 0;
 		for (int s = 0; s < n_sym; s++) {
@@ -143,7 +153,7 @@ void TIRBM::sample_v_given_h(vector<double>& hid_src, vector<double>& vis_target
 	double pre_sigmoid = 0;
 	int num_vis = (int)n_vis;
 	int num_hid = (int)n_hid;
-#pragma omp parallel for
+#pragma omp parallel for collapse(1)
 	for (int i = 0; i < num_vis; i++) {
 		pre_sigmoid = 0;
 			for (int j = 0; j < num_hid; j++) {
@@ -161,7 +171,7 @@ double TIRBM::contrastive_divergence(vector<vector<double>>& input, int cdK, int
 {
 	vector<double> tmpVisUpdate(n_vis);
 	vector<vector<double>> tmpHidUpdate(n_hid, vector<double>(n_sym));
-#pragma parallel for
+#pragma omp parallel for
 	for (int numBatch = 0; numBatch < batchSize; numBatch++) {
 		vector<vector<double>> hid0(n_hid, vector<double>(n_sym));
 		vector<double> hid0_sampled(n_hid);
@@ -215,8 +225,11 @@ double TIRBM::contrastive_divergence(vector<vector<double>>& input, int cdK, int
 				tmpHidUpdate[j][max_pooled_sN[j]] += this->parameters.lr * (hid0_sampled[j] - hidN_sampled[j]);
 			}
 	}
+	
 	//apply the changes to the values
-#pragma omp parallel for
+#pragma omp parallel 
+{
+#pragma omp parallel for collapse(1)
 	for (int i = 0; i < n_vis; i++) {
 		for (int j = 0; j < n_hid; j++) {
 			double tmpW = this->wij[i][j];
@@ -242,6 +255,7 @@ double TIRBM::contrastive_divergence(vector<vector<double>>& input, int cdK, int
 			this->bjs[j][s] += tmpHidUpdate[j][s] / batchSize;
 		}
 	}
+}
 
 	return 0.0;
 }
@@ -267,6 +281,10 @@ TIRBM::TIRBM(int n_vis, int n_hid, FunctionType activationFunction) :
 	n_vis(n_vis),
 	n_sym(0)
 {
-	
+	for (int i = 0; i < n_vis; i++) {
+		for (int j = 0; j < n_hid; j++) {
+			this->wij[i][j] = uniform(-1, 1);
+		}
+	}
 
 }

@@ -95,3 +95,22 @@ double ** MNISTData::getBatch(int batchSize)
 	std::cout << sampleBatch[0][1];
 	return sampleBatch;
 }
+
+std::vector<std::vector<double>> MNISTData::getVectorizedBatch(int batchSize)
+{
+	std::vector<std::vector<double>> sampleBatch(batchSize, std::vector<double>(this->width*this->height));
+	for (int i = 0; i < batchSize; i++) {
+		//sampleBatch[i] = (double*)malloc(sizeof(double)*this->width * this->height);
+		//only take the ones which are a 3 or 6
+		int random = dis(gen);
+		unsigned char c = this->labels[random];
+		std::cout << random;
+		int offset = 0;
+		for (int offset = 0; offset < this->width*this->height; offset++) {
+			unsigned char c = this->images[random][offset];
+			sampleBatch[i][offset] = std::round((int)c / 255.0); //normalize to 0 and 1
+		}
+	}
+	//std::cout << sampleBatch[0][1];
+	return sampleBatch;
+}

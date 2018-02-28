@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 class MNISTData {
 private:
 	int width;
@@ -9,4 +10,5 @@ private:
 public:
 	MNISTData();
 	double **getBatch(int batchSize);
+	std::vector<std::vector<double>> getVectorizedBatch(int batchSize);
 };

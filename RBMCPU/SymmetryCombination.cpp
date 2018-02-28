@@ -19,8 +19,8 @@ template<class T>
 			 tmpInput = tmpOutput;
 		 }
 	 }
-	 delete(tmpInput);
-	 delete(tmpOutput);
+	 delete[](tmpInput);
+	 delete[](tmpOutput);
 	 return 0;
 }
 

@@ -5,5 +5,6 @@ public:
 	TIRBMTest();
 	~TIRBMTest();
 	void runTest();
+	void runMnist();
 };
 
