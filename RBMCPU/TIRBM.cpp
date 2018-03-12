@@ -171,7 +171,8 @@ double TIRBM::contrastive_divergence(vector<vector<double>>& input, int cdK, int
 {
 	vector<double> tmpVisUpdate(n_vis);
 	vector<vector<double>> tmpHidUpdate(n_hid, vector<double>(n_sym));
-#pragma omp parallel for
+	vector<vector<double>> tmpDwij(n_vis, vector<double>(n_hid));
+#pragma omp parallel for shared(tmpDwij)
 	for (int numBatch = 0; numBatch < batchSize; numBatch++) {
 		vector<vector<double>> hid0(n_hid, vector<double>(n_sym));
 		vector<double> hid0_sampled(n_hid);
@@ -185,7 +186,7 @@ double TIRBM::contrastive_divergence(vector<vector<double>>& input, int cdK, int
 		for (int i = 0; i < cdK; i++) {
 			if (i == 0) {
 				sample_h_given_v(input[numBatch], hid0, hid0_sampled, max_pooled_s);
-				sample_v_given_h(hid0_sampled, visN, visN_sampled, max_pooled_sN);
+				sample_v_given_h(hid0_sampled, visN, visN_sampled, max_pooled_s);
 			}
 			else {
 				sample_h_given_v(visN_sampled, hidN, hidN_sampled, max_pooled_sN);
@@ -201,17 +202,20 @@ double TIRBM::contrastive_divergence(vector<vector<double>>& input, int cdK, int
 				double delta = 0;
 
 				delta = this->parameters.lr * ((*symmetries[max_pooled_s[j]])(input[numBatch])[i] * hid0_sampled[j] - (*symmetries[max_pooled_sN[j]])(visN)[i] * hidN_sampled[j]);
-				
-				this->tmpDwij[i][j] += delta;
+#pragma omp critical 
+				{
+					tmpDwij[i][j] += delta;
 
-				//check for regularizer
-				if (this->parameters.regulization & Regularization::L1) {
-					//apply L1 regulizer
-					int sign = std::signbit(tmpW) ? -1 : 1;
-					this->tmpDwij[i][j] -= this->parameters.lr *this->parameters.weightDecay *sign;
-				}
-				if (this->parameters.regulization & Regularization::L2) {
-					this->tmpDwij[i][j] -= this->parameters.lr *this->parameters.weightDecay * tmpW;
+					//check for regularizer
+					if (this->parameters.regulization & Regularization::L1) {
+						//apply L1 regulizer
+						int sign = std::signbit(tmpW) ? -1 : 1;
+
+						tmpDwij[i][j] -= this->parameters.lr *this->parameters.weightDecay *sign;
+					}
+					if (this->parameters.regulization & Regularization::L2) {
+						tmpDwij[i][j] -= this->parameters.lr *this->parameters.weightDecay * tmpW;
+					}
 				}
 			}
 		}
@@ -229,11 +233,11 @@ double TIRBM::contrastive_divergence(vector<vector<double>>& input, int cdK, int
 	//apply the changes to the values
 #pragma omp parallel 
 {
-#pragma omp parallel for collapse(1)
+#pragma omp parallel for collapse(1) shared(tmpDwij, tmpVisUpdate,tmpHidUpdate)
 	for (int i = 0; i < n_vis; i++) {
 		for (int j = 0; j < n_hid; j++) {
 			double tmpW = this->wij[i][j];
-			this->tmpDwij[i][j] /= batchSize;
+			tmpDwij[i][j] /= batchSize;
 			//let the change flow
 			//if average is activated, average the weights
 			double newWeight = this->wij[i][j] + dWij[i][j] * this->parameters.momentum + tmpDwij[i][j];

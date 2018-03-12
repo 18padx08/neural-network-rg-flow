@@ -15,7 +15,7 @@ double Ising1D::energyDiff(int index)
 
 Ising1D::Ising1D(int size) : Ising1D(size, 0.01,-1) {}
 
-Ising1D::Ising1D(int size, double beta, double J) : lattice({size}),  beta(beta), J(J), dist(0,size-1),generator()
+Ising1D::Ising1D(int size, double beta, double J) : lattice({size}),  beta(beta), J(J), dist(0,size-1),generator(time(NULL))
 {
 	this->seed = time(NULL) + (int)&lattice.lattice;
 	for (int i = 0; i < lattice.dimensions[0]; i++) {
@@ -25,7 +25,7 @@ Ising1D::Ising1D(int size, double beta, double J) : lattice({size}),  beta(beta)
 			lattice[{i}] = -1;
 		}
 		else {
-			lattice[{i}] = -1;
+			lattice[{i}] = 1;
 		}
 	}
 }

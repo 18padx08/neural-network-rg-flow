@@ -18,9 +18,9 @@ TIRBMTest::~TIRBMTest()
 
 void runIsing(double J, int sampleSize, vector<vector<double>> &samples, double *theoreticalEnergy, double *firstEnergy, bool firstTime) {
 	std::cout << "Start Ising simulation with: " << "beta(1), " << "J(" << J << "), " << "sampleSize(" << sampleSize << ")" << std::endl;
-#pragma omp parallel for
+#pragma omp parallel for shared(samples)
 	for (int i = 0; i < sampleSize; i++) {
-		Ising1D ising(50, 1, J);
+		Ising1D ising(100, 1, J);
 		int counter = 0;
 		//double mE, tE, M;
 		do {
@@ -39,8 +39,10 @@ void runIsing(double J, int sampleSize, vector<vector<double>> &samples, double 
 		
 		std::vector<int> v = ising.getConfiguration();
 		for (int j = 0; j < v.size(); j++) {
+			
 			samples[i][j] = v[j];
 		}
+		
 
 
 
@@ -50,37 +52,39 @@ void runIsing(double J, int sampleSize, vector<vector<double>> &samples, double 
 void TIRBMTest::runTest()
 {
 	
-	int sampleSize = 100;
-	double J = 0.75;
+	int sampleSize = 25;
+	double J = 1.0;
 	double theoreticalEnergy = 0;
-	vector<vector<double>> samples(sampleSize, std::vector<double>(50));
+	vector<vector<double>> samples(sampleSize, std::vector<double>(200));
 	double firstEnergy = 0;
 	runIsing(J, sampleSize, samples, &theoreticalEnergy, &firstEnergy, true);
 	Z2<double> z2;
 	vector<Symmetry<double>*> symmetries;
-	symmetries.push_back(&z2);
+	//symmetries.push_back(&z2);
 
-	for (int i = 0; i < 10; i++) {
-		TranslationSymmetry<double> *t = new TranslationSymmetry<double>(i*5);
+	for (int i = 0; i < 20; i++) {
+		TranslationSymmetry<double> *t = new TranslationSymmetry<double>(i);
 		symmetries.push_back(t);
 	}
 
-	TIRBM tirbm(50, 25, FunctionType::SIGMOID);
+	TIRBM tirbm(100, 3, FunctionType::SIGMOID);
 
 	ParamSet set;
 	set.lr = 0.1;
-	set.momentum = 0.5;
-	set.regulization = (Regularization)(Regularization::L1);
+	set.momentum = 0.4;
+	set.regulization = (Regularization)(Regularization::L2);
 	set.weightDecay = 2e-2;
 	tirbm.setParameters(set);
 	tirbm.setSymmetries(symmetries);
 	std::cout << "--Start Training --" << std::endl;
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 400; i++) {
 		tirbm.train(samples, sampleSize, 20);
+		std::cout << std::endl;
 		runIsing(J, sampleSize, samples, &theoreticalEnergy, &firstEnergy, true);
 		std::cout << "Starting next iteration: " << i << std::endl;
+		tirbm.saveToFile("tirbm");
 	}
-	tirbm.saveToFile("tirbm");
+	
 }
 
 void TIRBMTest::runMnist()

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -159,6 +159,7 @@
     <ClInclude Include="..\CudaTest\Ising1D.h" />
     <ClInclude Include="..\CudaTest\LatticeObject.h" />
     <ClInclude Include="AnalyticalTest.h" />
+    <ClInclude Include="CustomRBM.h" />
     <ClInclude Include="DBM.h" />
     <ClInclude Include="DBMTest.h" />
     <ClInclude Include="MNISTData.h" />
@@ -178,6 +179,7 @@
     <ClCompile Include="..\CudaTest\Ising1D.cpp" />
     <ClCompile Include="..\CudaTest\LatticeObject.cpp" />
     <ClCompile Include="AnalyticalTest.cpp" />
+    <ClCompile Include="CustomRBM.cpp" />
     <ClCompile Include="DBM.cpp" />
     <ClCompile Include="DBMTest.cpp" />
     <ClCompile Include="MNISTData.cpp" />
