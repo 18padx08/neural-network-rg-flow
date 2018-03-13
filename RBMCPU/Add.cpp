@@ -2,8 +2,10 @@
 
 
 namespace ct {
-	Add::Add()
+	Add::Add(shared_ptr<Node> left, shared_ptr<Node> right)
 	{
+		this->inputs.push_back(left);
+		this->inputs.push_back(right);
 	}
 
 

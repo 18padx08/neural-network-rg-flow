@@ -127,7 +127,7 @@
       <Filter>ComputationTree\HelperClasses</Filter>
     </ClInclude>
     <ClInclude Include="Add.h">
-      <Filter>Header Files</Filter>
+      <Filter>ComputationTree\Nodes\Operations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -207,7 +207,7 @@
       <Filter>ComputationTree\HelperClasses</Filter>
     </ClCompile>
     <ClCompile Include="Add.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>ComputationTree\Nodes\Operations</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

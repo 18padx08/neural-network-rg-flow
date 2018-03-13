@@ -13,32 +13,33 @@ namespace ct {
 
 	void Session::run()
 	{
+		int i = 0;
 		do {
 			//gather input
-			if (graph->currentNode->type() == "placeholder") {
-				auto castNode = dynamic_pointer_cast<Placeholder>(graph->currentNode);
-				castNode->output = make_shared<Tensor>(Tensor({ 1 }, { feedDict[castNode->name] }));
+			if (graph->flat_tree[i]->type() == "placeholder") {
+				auto castNode = dynamic_pointer_cast<Placeholder>(graph->flat_tree[i]);
+				castNode->output = feedDict[castNode->name];
 			}
-			else if (graph->currentNode->type() == "operation") {
+			else if (graph->flat_tree[i]->type() == "operation") {
 				vector<shared_ptr<Tensor>> inputs;
-				for (auto t : graph->currentNode->inputs) {
+				for (auto t : graph->flat_tree[i]->inputs) {
 					inputs.push_back(t->output);
 				}
-				graph->currentNode->output = graph->currentNode->compute(inputs);
+				graph->flat_tree[i]->output = graph->flat_tree[i]->compute(inputs);
 			}
-			else if (graph->currentNode->type() == "storage") {
+			else if (graph->flat_tree[i]->type() == "storage") {
 
 			}
-			else if (graph->currentNode->type() == "variable") {
-				auto castNode = dynamic_pointer_cast<Variable>(graph->currentNode);
+			else if (graph->flat_tree[i]->type() == "variable") {
+				auto castNode = dynamic_pointer_cast<Variable>(graph->flat_tree[i]);
 				//dimension check
 				castNode->output = castNode->value;
 			}
-			graph->currentNode = graph->currentNode->consumers[0];
-		} while (graph->currentNode != graph->begin && graph->currentNode->consumers.size() > 0);
-		cachedOutput = graph->currentNode->output;
+			i++;
+		} while (i < graph->flat_tree.size());
+		cachedOutput = graph->flat_tree[i-1]->output;
 	}
-	void Session::run(map<string, double> f)
+	void Session::run(map<string, shared_ptr<Tensor>> f)
 	{
 		this->feedDict = f;
 		run();

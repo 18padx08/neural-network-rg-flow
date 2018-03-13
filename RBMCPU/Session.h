@@ -8,13 +8,13 @@ namespace ct {
 	class Session
 	{
 	private:
-		map<string, double> feedDict;
+		map<string, shared_ptr<Tensor>> feedDict;
 		shared_ptr<Graph> graph;
 	public:
 		Session(shared_ptr<Graph> graph);
 		~Session();
 		void run();
-		void run(map<string, double> f);
+		void run(map<string, shared_ptr<Tensor>> f);
 		shared_ptr<Tensor> cachedOutput;
 	};
 }

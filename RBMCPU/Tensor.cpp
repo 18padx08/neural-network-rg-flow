@@ -25,6 +25,10 @@ namespace ct {
 	{
 	}
 
+	Tensor::Tensor()
+	{
+	}
+
 	Tensor::~Tensor()
 	{
 	}

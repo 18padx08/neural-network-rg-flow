@@ -5,7 +5,7 @@ namespace ct {
 	class Add : public Operation
 	{
 	public:
-		Add();
+		Add(shared_ptr<Node> left, shared_ptr<Node> right);
 		~Add();
 
 		// Inherited via Operation

@@ -20,22 +20,26 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
-#include "Tensor.h"
+#include "Session.h"
+#include "Graph.h"
+#include "Add.h"
 
+using namespace ct;
 int main()
 {
-	ct::Tensor t({ 5,5 });
-	t[{0, 0}] = 1;
-	t[{1, 0}] = 2;
-	t[{0, 1}] = 3;
-	t[{1, 1}] = 4;
-	t[{4, 4}] = 5;
-	for (int i = 0; i < 5; i++) {
-		for (int j = 0; j < 5; j++) {	
-				std::cout << t[{i, j}] << ",";
-		}
-		std::cout << std::endl << std::endl;
-	}
+	shared_ptr<Placeholder> pl = make_shared<Placeholder>(Placeholder("x"));
+	shared_ptr<Variable> var =  make_shared<Variable>();
+	var->value = make_shared<Tensor>(Tensor({ 1 }, { 5 }));
+	shared_ptr<Variable> var2 = make_shared<Variable>();
+	var2->value = make_shared<Tensor>(Tensor({ 1 }, { 100 }));
+	shared_ptr<Add> add = make_shared<Add>(Add(pl, var));
+	shared_ptr<Add> secondAdd = make_shared<Add>(Add(add, var2));
+	shared_ptr<Graph> graph = make_shared<Graph>(Graph(secondAdd));
+	Session s(graph);
+	map<string, shared_ptr<Tensor>> feedDic = { {"x", make_shared<Tensor>(Tensor({1}, {5}))} };
+	s.run(feedDic);
+	std::cout << (double)(*s.cachedOutput) << std::endl;
+	
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();

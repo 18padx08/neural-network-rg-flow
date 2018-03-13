@@ -10,6 +10,7 @@ namespace ct {
 		Tensor(std::initializer_list<int> dimensions, std::initializer_list<double> values);
 		Tensor(vector<int> dimensions);
 		Tensor(vector<int> dimensions, vector<double> values);
+		Tensor();
 		~Tensor();
 		vector<int> dimensions;
 		
