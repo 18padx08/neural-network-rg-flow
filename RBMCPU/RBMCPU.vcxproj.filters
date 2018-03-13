@@ -129,6 +129,12 @@
     <ClInclude Include="Add.h">
       <Filter>ComputationTree\Nodes\Operations</Filter>
     </ClInclude>
+    <ClInclude Include="OptPlaceholder.h">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Sigmoid.h">
+      <Filter>ComputationTree\Nodes\Operations</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -207,6 +213,12 @@
       <Filter>ComputationTree\HelperClasses</Filter>
     </ClCompile>
     <ClCompile Include="Add.cpp">
+      <Filter>ComputationTree\Nodes\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OptPlaceholder.cpp">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Sigmoid.cpp">
       <Filter>ComputationTree\Nodes\Operations</Filter>
     </ClCompile>
   </ItemGroup>

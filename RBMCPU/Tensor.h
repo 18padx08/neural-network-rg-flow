@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <functional>
 using namespace std;
 namespace ct {
 	class Tensor
@@ -13,12 +14,16 @@ namespace ct {
 		Tensor();
 		~Tensor();
 		vector<int> dimensions;
+		int size;
 		
 		double& operator[](std::initializer_list<int> list);
 		operator double&();
 
 		//tensor operations
 		Tensor operator+(Tensor a);
+		Tensor elementWise(std::function<double(double)> lambda);
 	};
 	
+	
+
 }

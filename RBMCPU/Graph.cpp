@@ -16,8 +16,18 @@ namespace ct {
 			else if (input->type() == "placeholder") {
 				placeholders.insert(placeholders.begin(), input);
 			}
-			
+			else if (input->type() == "storage") {
+				storages.insert(storages.begin(), input);
+			}
+			else if (input->type() == "optplaceholder") {
+				optplaceholders.insert(optplaceholders.begin(), input);
+			}
 		}
+		//close graph if there is a optplaceholder
+		if (optplaceholders.size() > 0) {
+			optplaceholders[0]->inputs.push_back(flat_tree[flat_tree.size() - 1]);
+		}
+		
 	}
 	/// TODO rename begin to end if it works
 	Graph::Graph(shared_ptr<Node> begin)
@@ -33,6 +43,12 @@ namespace ct {
 		}
 		else if (begin->type() == "placeholder") {
 			placeholders.insert(placeholders.begin(), begin);
+		}
+		else if (begin->type() == "storage") {
+			storages.insert(storages.begin(), begin);
+		}
+		else if (begin->type() == "optplaceholder") {
+			optplaceholders.insert(optplaceholders.begin(), begin);
 		}
 
 		

@@ -10,23 +10,40 @@ namespace ct {
 			alldims *= dim;
 		}
 		elements = vector<double>(alldims);
+		size = alldims;
 	}
 
 	Tensor::Tensor(std::initializer_list<int> dimensions, std::initializer_list<double> values) : dimensions(dimensions.begin(), dimensions.end()), elements(values.begin(), values.end())
 	{
+		int alldims = 1;
+		for (auto dim : dimensions) {
+			alldims *= dim;
+		}
+		size = alldims;
 	}
 
 	Tensor::Tensor(vector<int> dimensions) : dimensions(dimensions.begin(), dimensions.end())
 	{
+		int alldims = 1;
+		for (auto dim : dimensions) {
+			alldims *= dim;
+		}
+		size = alldims;
 	}
 
 	Tensor::Tensor(vector<int> dimensions, vector<double> values) : dimensions(dimensions.begin(), dimensions.end()),
 		elements(values.begin(), values.end())
 	{
+		int alldims = 1;
+		for (auto dim : dimensions) {
+			alldims *= dim;
+		}
+		size = alldims;
 	}
 
 	Tensor::Tensor()
 	{
+		size = 0;
 	}
 
 	Tensor::~Tensor()
@@ -62,4 +79,14 @@ namespace ct {
 		}
 		return newT;
 	}
+
+	 Tensor Tensor::elementWise(std::function<double(double)> lambda)
+	{
+		for (int i = 0; i < size; i++) {
+			this->elements[i] = lambda(this->elements[i]);
+		}
+		auto t = Tensor(*this);
+		return t;
+	}
+	
 }

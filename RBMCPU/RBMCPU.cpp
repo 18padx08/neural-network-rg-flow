@@ -23,23 +23,21 @@
 #include "Session.h"
 #include "Graph.h"
 #include "Add.h"
+#include "Sigmoid.h"
 
 using namespace ct;
 int main()
 {
-	shared_ptr<Placeholder> pl = make_shared<Placeholder>(Placeholder("x"));
+	shared_ptr<OptPlaceholder> pl = make_shared<OptPlaceholder>(OptPlaceholder("x"));
 	shared_ptr<Variable> var =  make_shared<Variable>();
-	var->value = make_shared<Tensor>(Tensor({ 1 }, { 5 }));
-	shared_ptr<Variable> var2 = make_shared<Variable>();
-	var2->value = make_shared<Tensor>(Tensor({ 1 }, { 100 }));
-	shared_ptr<Add> add = make_shared<Add>(Add(pl, var));
-	shared_ptr<Add> secondAdd = make_shared<Add>(Add(add, var2));
-	shared_ptr<Graph> graph = make_shared<Graph>(Graph(secondAdd));
+	var->value = make_shared<Tensor>(Tensor({ 2 }, { 5,-5 }));
+	shared_ptr<Sigmoid> sig = make_shared<Sigmoid>(Sigmoid(var));
+	shared_ptr<Graph> graph = make_shared<Graph>(Graph(sig));
 	Session s(graph);
-	map<string, shared_ptr<Tensor>> feedDic = { {"x", make_shared<Tensor>(Tensor({1}, {5}))} };
-	s.run(feedDic);
-	std::cout << (double)(*s.cachedOutput) << std::endl;
-	
+	map<string, shared_ptr<Tensor>> feedDic = { {"x", make_shared<Tensor>(Tensor({2}, {5,-5}))} };
+	s.run(feedDic, true, 0);
+	std::cout << (*s.cachedOutput)[{0}] << "," << (*s.cachedOutput)[{1}] << std::endl;
+	//std::cout << (double)(*s.cachedOutput);
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();

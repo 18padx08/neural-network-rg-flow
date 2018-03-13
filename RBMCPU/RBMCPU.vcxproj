@@ -168,10 +168,12 @@
     <ClInclude Include="MNISTTest.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Operation.h" />
+    <ClInclude Include="OptPlaceholder.h" />
     <ClInclude Include="Placeholder.h" />
     <ClInclude Include="RBM.h" />
     <ClInclude Include="RG.h" />
     <ClInclude Include="Session.h" />
+    <ClInclude Include="Sigmoid.h" />
     <ClInclude Include="Storage.h" />
     <ClInclude Include="Symmetry.h" />
     <ClInclude Include="SymmetryCombination.h" />
@@ -197,11 +199,13 @@
     <ClCompile Include="MNISTTest.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Operation.cpp" />
+    <ClCompile Include="OptPlaceholder.cpp" />
     <ClCompile Include="Placeholder.cpp" />
     <ClCompile Include="RBM.cpp" />
     <ClCompile Include="RBMCPU.cpp" />
     <ClCompile Include="RG.cpp" />
     <ClCompile Include="Session.cpp" />
+    <ClCompile Include="Sigmoid.cpp" />
     <ClCompile Include="Storage.cpp" />
     <ClCompile Include="SymmetryCombination.cpp" />
     <ClCompile Include="SymmetryTest.cpp" />

@@ -1,20 +1,15 @@
 #pragma once
-#include "Node.h"
-
+#include "Operation.h"
 namespace ct {
-	class Storage : public Node
+	class Sigmoid : public Operation
 	{
 	public:
-		Storage();
-		~Storage();
+		Sigmoid(shared_ptr<Node> input);
+		~Sigmoid();
 
-		// Inherited via Node
+		// Inherited via Operation
 		virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) override;
-		virtual string type() override;
-
-		// Inherited via Node
 		virtual shared_ptr<Tensor> compute(std::vector<shared_ptr<Tensor>> input) override;
-		vector<shared_ptr<Tensor>> storage;
 	};
 }
 
