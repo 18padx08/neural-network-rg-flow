@@ -20,17 +20,30 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include "Tensor.h"
 
 int main()
 {
-	srand(time(NULL));
+	ct::Tensor t({ 5,5 });
+	t[{0, 0}] = 1;
+	t[{1, 0}] = 2;
+	t[{0, 1}] = 3;
+	t[{1, 1}] = 4;
+	t[{4, 4}] = 5;
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 5; j++) {	
+				std::cout << t[{i, j}] << ",";
+		}
+		std::cout << std::endl << std::endl;
+	}
+	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();
 	//tTest.runMnist();
 	MNISTTest test;
 	//test.executeRBMCPU();
 	int chainLength = 10;
-
+	*/
 	/*int steps = 5000;
 	vector<double> couplings = { 0.1,0.2,0.5,1 };
 	std::vector<vector<double>> magnetization(5, std::vector<double>(steps));

@@ -29,20 +29,20 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>LLVM-vs2017</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>LLVM-vs2017</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>LLVM-vs2017</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -158,40 +158,58 @@
   <ItemGroup>
     <ClInclude Include="..\CudaTest\Ising1D.h" />
     <ClInclude Include="..\CudaTest\LatticeObject.h" />
+    <ClInclude Include="Add.h" />
     <ClInclude Include="AnalyticalTest.h" />
     <ClInclude Include="CustomRBM.h" />
     <ClInclude Include="DBM.h" />
     <ClInclude Include="DBMTest.h" />
+    <ClInclude Include="Graph.h" />
     <ClInclude Include="MNISTData.h" />
     <ClInclude Include="MNISTTest.h" />
+    <ClInclude Include="Node.h" />
+    <ClInclude Include="Operation.h" />
+    <ClInclude Include="Placeholder.h" />
     <ClInclude Include="RBM.h" />
     <ClInclude Include="RG.h" />
+    <ClInclude Include="Session.h" />
+    <ClInclude Include="Storage.h" />
     <ClInclude Include="Symmetry.h" />
     <ClInclude Include="SymmetryCombination.h" />
     <ClInclude Include="SymmetryTest.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Tensor.h" />
     <ClInclude Include="TIRBM.h" />
     <ClInclude Include="TIRBMTest.h" />
     <ClInclude Include="TranslationSymmetry.h" />
+    <ClInclude Include="Variable.h" />
     <ClInclude Include="Z2.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\CudaTest\Ising1D.cpp" />
     <ClCompile Include="..\CudaTest\LatticeObject.cpp" />
+    <ClCompile Include="Add.cpp" />
     <ClCompile Include="AnalyticalTest.cpp" />
     <ClCompile Include="CustomRBM.cpp" />
     <ClCompile Include="DBM.cpp" />
     <ClCompile Include="DBMTest.cpp" />
+    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="MNISTData.cpp" />
     <ClCompile Include="MNISTTest.cpp" />
+    <ClCompile Include="Node.cpp" />
+    <ClCompile Include="Operation.cpp" />
+    <ClCompile Include="Placeholder.cpp" />
     <ClCompile Include="RBM.cpp" />
     <ClCompile Include="RBMCPU.cpp" />
     <ClCompile Include="RG.cpp" />
+    <ClCompile Include="Session.cpp" />
+    <ClCompile Include="Storage.cpp" />
     <ClCompile Include="SymmetryCombination.cpp" />
     <ClCompile Include="SymmetryTest.cpp" />
+    <ClCompile Include="Tensor.cpp" />
     <ClCompile Include="TIRBM.cpp" />
     <ClCompile Include="TIRBMTest.cpp" />
     <ClCompile Include="TranslationSymmetry.cpp" />
+    <ClCompile Include="Variable.cpp" />
     <ClCompile Include="Z2.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

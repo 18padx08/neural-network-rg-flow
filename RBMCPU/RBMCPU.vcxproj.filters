@@ -34,6 +34,18 @@
     <Filter Include="DBM">
       <UniqueIdentifier>{2530a207-5960-4cf5-bebc-f5fe152d9d0d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ComputationTree">
+      <UniqueIdentifier>{398e323f-3ad4-4ce2-9797-486be5856621}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ComputationTree\Nodes">
+      <UniqueIdentifier>{3d72438f-2322-4228-ba99-b023aa10c841}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ComputationTree\HelperClasses">
+      <UniqueIdentifier>{f21b211f-b6a3-4a15-9eb2-2ee5fd165efd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ComputationTree\Nodes\Operations">
+      <UniqueIdentifier>{ea186bf7-9681-4e1a-98f3-2b9cf7a792c6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -87,6 +99,36 @@
     <ClInclude Include="TIRBMTest.h">
       <Filter>Tests</Filter>
     </ClInclude>
+    <ClInclude Include="CustomRBM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Session.h">
+      <Filter>ComputationTree</Filter>
+    </ClInclude>
+    <ClInclude Include="Graph.h">
+      <Filter>ComputationTree</Filter>
+    </ClInclude>
+    <ClInclude Include="Node.h">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Placeholder.h">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Operation.h">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Variable.h">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Storage.h">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Tensor.h">
+      <Filter>ComputationTree\HelperClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="Add.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -136,6 +178,36 @@
     </ClCompile>
     <ClCompile Include="TIRBMTest.cpp">
       <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="CustomRBM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Session.cpp">
+      <Filter>ComputationTree</Filter>
+    </ClCompile>
+    <ClCompile Include="Graph.cpp">
+      <Filter>ComputationTree</Filter>
+    </ClCompile>
+    <ClCompile Include="Node.cpp">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Placeholder.cpp">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Operation.cpp">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Variable.cpp">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Storage.cpp">
+      <Filter>ComputationTree\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Tensor.cpp">
+      <Filter>ComputationTree\HelperClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="Add.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
