@@ -22,6 +22,8 @@ namespace ct {
 		//tensor operations
 		Tensor operator+(Tensor a);
 		Tensor elementWise(std::function<double(double)> lambda);
+		//template<typename F>
+		//Tensor elementWise(F && lambda);
 	};
 	
 	

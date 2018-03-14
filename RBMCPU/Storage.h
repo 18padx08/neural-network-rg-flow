@@ -5,7 +5,7 @@ namespace ct {
 	class Storage : public Node
 	{
 	public:
-		Storage();
+		Storage(shared_ptr<Node> input);
 		~Storage();
 
 		// Inherited via Node

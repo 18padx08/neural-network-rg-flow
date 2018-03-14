@@ -86,7 +86,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>MaxSpeedHighLevel</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -96,6 +96,8 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OpenMP>GenerateParallelCode</OpenMP>
       <Cpp0xSupport>true</Cpp0xSupport>
+      <Parallelization>true</Parallelization>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,7 +126,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <Optimization>MaxSpeedHighLevel</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
@@ -170,8 +172,11 @@
     <ClInclude Include="Operation.h" />
     <ClInclude Include="OptPlaceholder.h" />
     <ClInclude Include="Placeholder.h" />
+    <ClInclude Include="ProbPooling.h" />
     <ClInclude Include="RBM.h" />
+    <ClInclude Include="RBMCompTree.h" />
     <ClInclude Include="RG.h" />
+    <ClInclude Include="RGLayer.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Sigmoid.h" />
     <ClInclude Include="Storage.h" />
@@ -201,9 +206,12 @@
     <ClCompile Include="Operation.cpp" />
     <ClCompile Include="OptPlaceholder.cpp" />
     <ClCompile Include="Placeholder.cpp" />
+    <ClCompile Include="ProbPooling.cpp" />
     <ClCompile Include="RBM.cpp" />
+    <ClCompile Include="RBMCompTree.cpp" />
     <ClCompile Include="RBMCPU.cpp" />
     <ClCompile Include="RG.cpp" />
+    <ClCompile Include="RGLayer.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Sigmoid.cpp" />
     <ClCompile Include="Storage.cpp" />

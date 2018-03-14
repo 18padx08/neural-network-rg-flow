@@ -24,19 +24,28 @@
 #include "Graph.h"
 #include "Add.h"
 #include "Sigmoid.h"
+#include "RGLayer.h"
+#include "ProbPooling.h"
+#include "RBMCompTree.h"
 
 using namespace ct;
 int main()
 {
-	shared_ptr<OptPlaceholder> pl = make_shared<OptPlaceholder>(OptPlaceholder("x"));
-	shared_ptr<Variable> var =  make_shared<Variable>();
-	var->value = make_shared<Tensor>(Tensor({ 2 }, { 5,-5 }));
-	shared_ptr<Sigmoid> sig = make_shared<Sigmoid>(Sigmoid(var));
-	shared_ptr<Graph> graph = make_shared<Graph>(Graph(sig));
-	Session s(graph);
-	map<string, shared_ptr<Tensor>> feedDic = { {"x", make_shared<Tensor>(Tensor({2}, {5,-5}))} };
-	s.run(feedDic, true, 0);
-	std::cout << (*s.cachedOutput)[{0}] << "," << (*s.cachedOutput)[{1}] << std::endl;
+	auto graph = RBMCompTree::getRBMGraph();
+	auto session = make_shared<Session>(Session(graph));
+	vector<int> dims = { 10 };
+	vector<double> values;
+	for (int i = 0; i < 10; i++) {
+		values.push_back(1);
+	}
+	map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
+		session->run(feedDic, true, 5);
+		auto stor = dynamic_pointer_cast<Storage>(graph->storages[0]);
+		for (int i = 0; i < 5; i++) {
+
+			std::cout << (*(stor->storage[2]))[{i}] << " " ;
+		}
+
 	//std::cout << (double)(*s.cachedOutput);
 	/*srand(time(NULL));
 	TIRBMTest tTest;

@@ -16,7 +16,7 @@ namespace ct {
 		int i = 0;
 		int loopCounter = 0;
 		for (auto store : graph->storages) {
-			auto castNode = dynamic_pointer_cast<Storage>(graph->flat_tree[i]);
+			auto castNode = dynamic_pointer_cast<Storage>(store);
 			castNode->storage.clear();
 		}
 		do {
@@ -48,6 +48,7 @@ namespace ct {
 			else if (graph->flat_tree[i]->type() == "storage") {
 				auto castNode = dynamic_pointer_cast<Storage>(graph->flat_tree[i]);
 				castNode->storage.push_back(castNode->inputs[0]->output);
+				castNode->output = castNode->inputs[0]->output;
 			}
 			else if (graph->flat_tree[i]->type() == "variable") {
 				auto castNode = dynamic_pointer_cast<Variable>(graph->flat_tree[i]);

@@ -18,6 +18,7 @@ namespace ct {
 			}
 			else if (input->type() == "storage") {
 				storages.insert(storages.begin(), input);
+				insert_nodes(input, input->inputs);
 			}
 			else if (input->type() == "optplaceholder") {
 				optplaceholders.insert(optplaceholders.begin(), input);
@@ -46,6 +47,7 @@ namespace ct {
 		}
 		else if (begin->type() == "storage") {
 			storages.insert(storages.begin(), begin);
+			insert_nodes(begin, begin->inputs);
 		}
 		else if (begin->type() == "optplaceholder") {
 			optplaceholders.insert(optplaceholders.begin(), begin);

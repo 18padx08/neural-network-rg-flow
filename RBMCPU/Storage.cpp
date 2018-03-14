@@ -1,8 +1,9 @@
 #include "Storage.h"
 
 namespace ct {
-	Storage::Storage()
+	Storage::Storage(shared_ptr<Node> input)
 	{
+		this->inputs.push_back(input);
 	}
 
 

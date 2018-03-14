@@ -93,9 +93,6 @@
     <ClInclude Include="Z2.h">
       <Filter>SymmetryGenerator</Filter>
     </ClInclude>
-    <ClInclude Include="TIRBM.h">
-      <Filter>RBM</Filter>
-    </ClInclude>
     <ClInclude Include="TIRBMTest.h">
       <Filter>Tests</Filter>
     </ClInclude>
@@ -134,6 +131,18 @@
     </ClInclude>
     <ClInclude Include="Sigmoid.h">
       <Filter>ComputationTree\Nodes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="TIRBM.h">
+      <Filter>RBM</Filter>
+    </ClInclude>
+    <ClInclude Include="RGLayer.h">
+      <Filter>ComputationTree\Nodes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="ProbPooling.h">
+      <Filter>ComputationTree\Nodes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="RBMCompTree.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -220,6 +229,15 @@
     </ClCompile>
     <ClCompile Include="Sigmoid.cpp">
       <Filter>ComputationTree\Nodes\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="ProbPooling.cpp">
+      <Filter>ComputationTree\Nodes\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="RGLayer.cpp">
+      <Filter>ComputationTree\Nodes\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="RBMCompTree.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
