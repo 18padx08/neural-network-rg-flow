@@ -16,7 +16,7 @@ namespace ct {
 		int i = 0;
 		int loopCounter = 0;
 		for (auto store : graph->storages) {
-			auto castNode = dynamic_pointer_cast<Storage>(store);
+			auto castNode = dynamic_pointer_cast<Storage>(store.second);
 			castNode->storage.clear();
 		}
 		do {

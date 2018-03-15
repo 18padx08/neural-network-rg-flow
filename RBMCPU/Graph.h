@@ -16,14 +16,15 @@ namespace ct {
 		bool isClosed;
 		int loopCounter = -1;
 		vector<shared_ptr<Node>> operations;
-		vector<shared_ptr<Node>> variables;
+		
 		vector<shared_ptr<Node>> placeholders;
 		
 		void insert_nodes(shared_ptr<Node> parent, vector<shared_ptr<Node>> inputs);
 		
 	public:
 		vector<shared_ptr<Node>> optplaceholders;
-		vector<shared_ptr<Node>> storages;
+		map<string,shared_ptr<Node>> storages;
+		vector<shared_ptr<Node>> variables;
 		vector<shared_ptr<Node>> flat_tree;
 		const shared_ptr<Node> begin;
 		shared_ptr<Node> currentNode;

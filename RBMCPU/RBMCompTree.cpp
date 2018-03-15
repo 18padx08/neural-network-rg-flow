@@ -19,11 +19,11 @@ namespace ct {
 		auto positive = make_shared<RGLayer>(RGLayer(optPl, coupling, false));
 		auto sigmoid1 = make_shared<Sigmoid>(Sigmoid(positive));
 		auto hiddens = make_shared<ProbPooling>(ProbPooling(sigmoid1));
-		auto storeHidden = make_shared<Storage>(Storage(hiddens));
+		auto storeHidden = make_shared<Storage>(Storage(hiddens, "hiddens"));
 		auto negative = make_shared<RGLayer>(RGLayer(storeHidden, coupling, true));
 		auto sigmoid2 = make_shared<Sigmoid>(Sigmoid(negative));
 		auto visible = make_shared<ProbPooling>(ProbPooling(sigmoid2));
-		auto storeVisible = make_shared<Storage>(Storage(visible));
+		auto storeVisible = make_shared<Storage>(Storage(visible, "visibles"));
 		auto graph = make_shared<Graph>(Graph(storeVisible));
 		return graph;
 	}

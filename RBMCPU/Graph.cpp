@@ -17,7 +17,8 @@ namespace ct {
 				placeholders.insert(placeholders.begin(), input);
 			}
 			else if (input->type() == "storage") {
-				storages.insert(storages.begin(), input);
+				auto castNode = dynamic_pointer_cast<Storage>(input);
+				storages.insert(storages.begin(), { castNode->name, input });
 				insert_nodes(input, input->inputs);
 			}
 			else if (input->type() == "optplaceholder") {
@@ -46,7 +47,8 @@ namespace ct {
 			placeholders.insert(placeholders.begin(), begin);
 		}
 		else if (begin->type() == "storage") {
-			storages.insert(storages.begin(), begin);
+			auto castNode = dynamic_pointer_cast<Storage>(begin);
+			storages.insert(storages.begin(), { castNode->name, begin });
 			insert_nodes(begin, begin->inputs);
 		}
 		else if (begin->type() == "optplaceholder") {

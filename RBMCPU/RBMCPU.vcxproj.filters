@@ -46,6 +46,9 @@
     <Filter Include="ComputationTree\Nodes\Operations">
       <UniqueIdentifier>{ea186bf7-9681-4e1a-98f3-2b9cf7a792c6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ComputationTree\Nodes\Optimizers">
+      <UniqueIdentifier>{272a68ad-b851-476a-96a2-cb7f09805c08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -144,6 +147,9 @@
     <ClInclude Include="RBMCompTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ContrastiveDivergence.h">
+      <Filter>ComputationTree\Nodes\Optimizers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -238,6 +244,9 @@
     </ClCompile>
     <ClCompile Include="RBMCompTree.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ContrastiveDivergence.cpp">
+      <Filter>ComputationTree\Nodes\Optimizers</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

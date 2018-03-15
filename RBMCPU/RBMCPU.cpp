@@ -27,26 +27,33 @@
 #include "RGLayer.h"
 #include "ProbPooling.h"
 #include "RBMCompTree.h"
+#include "ContrastiveDivergence.h"
 
 using namespace ct;
 int main()
 {
 	auto graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
-	vector<int> dims = { 10 };
-	vector<double> values;
-	for (int i = 0; i < 10; i++) {
-		values.push_back(1);
+	Ising1D ising(1000, 1.2, 1);
+	vector<int> dims = { 1000 };
+	vector<double> values(1000);
+	for (int i = 0; i < 20000; i++) {
+		ising.monteCarloStep();
 	}
+	auto conf = ising.getConfiguration();
+	for (int i = 0; i < conf.size(); i++) {
+		values[i] = conf[i];
+	}
+	
 	map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
-		session->run(feedDic, true, 5);
-		auto stor = dynamic_pointer_cast<Storage>(graph->storages[0]);
-		for (int i = 0; i < 5; i++) {
-
-			std::cout << (*(stor->storage[2]))[{i}] << " " ;
-		}
-
-	//std::cout << (double)(*s.cachedOutput);
+	optimizers::ContrastiveDivergence cd(graph);
+	for (int i = 0; i < 10000; i++) {
+		session->run(feedDic, true, 1);
+		cd.optimize();
+		auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
+		std::cout << "Coupling: " << (double)*(var->value) << std::endl;
+	}
+	
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();

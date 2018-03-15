@@ -5,9 +5,9 @@ namespace ct {
 	class Storage : public Node
 	{
 	public:
-		Storage(shared_ptr<Node> input);
+		Storage(shared_ptr<Node> input, string name);
 		~Storage();
-
+		string name;
 		// Inherited via Node
 		virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) override;
 		virtual string type() override;
