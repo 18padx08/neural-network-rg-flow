@@ -23,7 +23,7 @@ namespace ct {
 		auto functor = [this](double arg) 
 		{
 			double p = this->dist(this->engine);
-			if (p < arg) {
+			if (p < (arg+1)/2.0) {
 				return 1;
 			}
 			return -1;

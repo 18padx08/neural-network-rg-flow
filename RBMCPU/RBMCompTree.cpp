@@ -15,11 +15,11 @@ namespace ct {
 	{
 		auto optPl = make_shared<OptPlaceholder>(OptPlaceholder("x"));
 		auto coupling = make_shared<Variable>(Variable());
-		coupling->value = make_shared<Tensor>(Tensor({ 1 }, { -1 }));
+		coupling->value = make_shared<Tensor>(Tensor({ 1 }, { 1}));
 		auto positive = make_shared<RGLayer>(RGLayer(optPl, coupling, false));
 		auto sigmoid1 = make_shared<Sigmoid>(Sigmoid(positive));
-		auto hiddens = make_shared<ProbPooling>(ProbPooling(sigmoid1));
-		auto storeHidden = make_shared<Storage>(Storage(hiddens, "hiddens"));
+		auto storeHidden = make_shared<Storage>(Storage(sigmoid1, "hiddens"));
+		auto hiddens = make_shared<ProbPooling>(ProbPooling(storeHidden));
 		auto negative = make_shared<RGLayer>(RGLayer(storeHidden, coupling, true));
 		auto sigmoid2 = make_shared<Sigmoid>(Sigmoid(negative));
 		auto visible = make_shared<ProbPooling>(ProbPooling(sigmoid2));

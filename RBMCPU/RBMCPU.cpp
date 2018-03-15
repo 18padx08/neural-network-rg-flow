@@ -34,7 +34,7 @@ int main()
 {
 	auto graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
-	Ising1D ising(1000, 1.2, 1);
+	Ising1D ising(1000, 0.8, 1);
 	vector<int> dims = { 1000 };
 	vector<double> values(1000);
 	for (int i = 0; i < 20000; i++) {
@@ -42,16 +42,27 @@ int main()
 	}
 	auto conf = ising.getConfiguration();
 	for (int i = 0; i < conf.size(); i++) {
-		values[i] = conf[i];
+		values[i] = conf[i] <=0? -1 : 1;
 	}
 	
 	map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
-	optimizers::ContrastiveDivergence cd(graph);
+	optimizers::ContrastiveDivergence cd(graph,0.08);
 	for (int i = 0; i < 10000; i++) {
-		session->run(feedDic, true, 1);
-		cd.optimize();
+		for (int j = 0; j < 10; j++) {
+			session->run(feedDic, true, 1);
+			cd.optimize(1);
+		}
 		auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
 		std::cout << "Coupling: " << (double)*(var->value) << std::endl;
+		for (int i = 0; i < 15000; i++) {
+			ising.monteCarloStep();
+		}
+		conf = ising.getConfiguration();
+		for (int i = 0; i < conf.size(); i++) {
+			values[i] = conf[i] <= 0 ? -1 : 1;
+		}
+
+		feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
 	}
 	
 	/*srand(time(NULL));

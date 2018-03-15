@@ -55,6 +55,7 @@ namespace ct {
 		vector<int> tuple(list.begin(), list.end());
 		int dim = tuple[0];
 		int lastDimensions = dimensions[0];
+#pragma omp parallel for
 		for (int i = 1; i < tuple.size(); i++) {
 			if (tuple[i] > dimensions[i]) throw exception("Dimension do not match");
 			dim += tuple[i] * lastDimensions;
@@ -74,6 +75,7 @@ namespace ct {
 	Tensor Tensor::operator+(Tensor a)
 	{
 		Tensor newT(this->dimensions, this->elements);
+#pragma omp parallel for
 		for (int i = 0; i < elements.size(); i++) {
 			newT.elements[i] += a.elements[i];
 		}
@@ -82,6 +84,7 @@ namespace ct {
 
 	 Tensor Tensor::elementWise(std::function<double(double)> lambda)
 	{
+#pragma omp parallel for
 		for (int i = 0; i < size; i++) {
 			this->elements[i] = lambda(this->elements[i]);
 		}

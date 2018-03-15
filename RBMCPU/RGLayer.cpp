@@ -31,6 +31,7 @@ namespace ct {
 		int lastDim = 0;
 		if (!isInverse) {
 			Tensor tens({ xDim / 2 });
+#pragma omp parallel for
 			for (int i = 0; i < xDim / 2; i++) {
 				tens[{i}] = coupling * (inputTensor[{lastDim}] + (lastDim +2 < xDim?inputTensor[{lastDim + 2}] : 0));
 				lastDim += 2;
@@ -40,6 +41,7 @@ namespace ct {
 		else {
 			// 0 -> 0,2 ; 1-> 2 4
 			Tensor tens({ xDim *2 });
+#pragma omp parallel for
 			for (int i = 0; i < xDim *2; i++) {
 				if (i % 2 == 0) {
 					if (i == 0) {

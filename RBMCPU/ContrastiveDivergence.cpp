@@ -23,18 +23,19 @@ namespace ct {
 		{
 			return shared_ptr<Tensor>();
 		}
-		void ContrastiveDivergence::optimize()
+		void ContrastiveDivergence::optimize(int k)
 		{
 			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles"]))->storage[0]);
 			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens"]))->storage[0]);
-			auto vis_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles"]))->storage[1]);
-			auto hid_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens"]))->storage[1]);
+			auto vis_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles"]))->storage[k]);
+			auto hid_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens"]))->storage[k]);
 
 			auto visDimx = vis_0.dimensions[0];
 			auto hidDimx = hid_0.dimensions[0];
 
 			double delta = 0;
 			int counter = 0;
+#pragma omp parallel for
 			for (int i = 0; i < visDimx; i++) {
 				if (i % 2 == 0) {
 					if (i == 0) {
