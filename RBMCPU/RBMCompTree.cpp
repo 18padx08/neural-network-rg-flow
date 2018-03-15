@@ -14,17 +14,21 @@ namespace ct {
 	shared_ptr<Graph> ct::RBMCompTree::getRBMGraph()
 	{
 		auto optPl = make_shared<OptPlaceholder>(OptPlaceholder("x"));
+		auto storeVisible = make_shared<Storage>(Storage(optPl, "visibles_pooled"));
 		auto coupling = make_shared<Variable>(Variable());
 		coupling->value = make_shared<Tensor>(Tensor({ 1 }, { 1}));
-		auto positive = make_shared<RGLayer>(RGLayer(optPl, coupling, false));
-		auto sigmoid1 = make_shared<Sigmoid>(Sigmoid(positive));
-		auto storeHidden = make_shared<Storage>(Storage(sigmoid1, "hiddens"));
-		auto hiddens = make_shared<ProbPooling>(ProbPooling(storeHidden));
+		auto positive = make_shared<RGLayer>(RGLayer(storeVisible, coupling, false));
+		//sigmoid is in RGlayer implemented
+		//auto sigmoid1 = make_shared<Sigmoid>(Sigmoid(positive));
+		auto storeHidden_raw = make_shared<Storage>(Storage(positive, "hiddens_raw"));
+		auto hiddens = make_shared<ProbPooling>(ProbPooling(storeHidden_raw));
+		auto storeHidden = make_shared<Storage>(Storage(hiddens, "hiddens_pooled"));
 		auto negative = make_shared<RGLayer>(RGLayer(storeHidden, coupling, true));
-		auto sigmoid2 = make_shared<Sigmoid>(Sigmoid(negative));
-		auto visible = make_shared<ProbPooling>(ProbPooling(sigmoid2));
-		auto storeVisible = make_shared<Storage>(Storage(visible, "visibles"));
-		auto graph = make_shared<Graph>(Graph(storeVisible));
+		//sigmoid is in RGlayer implemented
+		//auto sigmoid2 = make_shared<Sigmoid>(Sigmoid(negative));
+		auto storeVisible_raw= make_shared<Storage>(Storage(negative, "visibles_raw"));
+		auto visible = make_shared<ProbPooling>(ProbPooling(storeVisible_raw));
+		auto graph = make_shared<Graph>(Graph(visible));
 		return graph;
 	}
 }

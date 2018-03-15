@@ -25,34 +25,34 @@ namespace ct {
 		}
 		void ContrastiveDivergence::optimize(int k)
 		{
-			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles"]))->storage[0]);
-			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens"]))->storage[0]);
-			auto vis_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles"]))->storage[k]);
-			auto hid_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens"]))->storage[k]);
+			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"]))->storage[0]);
+			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[0]);
+			auto vis_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_raw"]))->storage[k]);
+			auto hid_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[k]);
 
 			auto visDimx = vis_0.dimensions[0];
 			auto hidDimx = hid_0.dimensions[0];
 
 			double delta = 0;
 			int counter = 0;
-#pragma omp parallel for
+#pragma omp parallel for reduction(+:delta)
 			for (int i = 0; i < visDimx; i++) {
 				if (i % 2 == 0) {
 					if (i == 0) {
 						delta += learningRate * (vis_0[{i}] * hid_0[{i / 2}] - vis_n[{i}] * hid_n[{i / 2}]);
-						counter++;
 					}
 					else {
-						delta += learningRate * (vis_0[{i}] * hid_0[{i / 2 - 1}] + vis_0[{i}] * hid_0[{i / 2}] - vis_n[{i}] * hid_n[{i / 2 - 1}] - vis_n[{i}] * hid_n[{i / 2}]);
-						counter += 2;
+						delta += learningRate * (vis_0[{i}] * hid_0[{i / 2 - 1}]  - vis_n[{i}] * hid_n[{i / 2 - 1}] + vis_0[{i}] * hid_0[{i / 2 }] - vis_n[{i}] * hid_n[{i / 2 }]);
+						
 					}
 				}
 			}
 			//take the average
-			delta /= counter;
+			delta /= visDimx-1;
 			//update the coupling for now only one
 			auto coupling = dynamic_pointer_cast<Variable>(theGraph->variables[0]);
-			*(coupling->value) = *(coupling->value) + Tensor({ 1 }, { delta });
+			*(coupling->value) = *(coupling->value) + Tensor({ 1 }, { delta }) + Tensor({ 1 }, {lastUpdate * momentum});
+			lastUpdate = delta;
 		}
 	}
 }

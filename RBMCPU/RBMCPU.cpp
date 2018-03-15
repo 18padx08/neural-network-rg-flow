@@ -34,9 +34,9 @@ int main()
 {
 	auto graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
-	Ising1D ising(1000, 0.8, 1);
-	vector<int> dims = { 1000 };
-	vector<double> values(1000);
+	Ising1D ising(200, 0.8, 1);
+	vector<int> dims = { 200 };
+	vector<double> values(200);
 	for (int i = 0; i < 20000; i++) {
 		ising.monteCarloStep();
 	}
@@ -46,20 +46,26 @@ int main()
 	}
 	
 	map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
-	optimizers::ContrastiveDivergence cd(graph,0.08);
+	auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
+	double average = 0;
+	int counter = 1;
+	optimizers::ContrastiveDivergence cd(graph,0.01, 0.3);
 	for (int i = 0; i < 10000; i++) {
-		for (int j = 0; j < 10; j++) {
-			session->run(feedDic, true, 1);
-			cd.optimize(1);
+		for (int j = 0; j < 5; j++) {
+			session->run(feedDic, true, 5);
+			cd.optimize(5);
 		}
-		auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
-		std::cout << "Coupling: " << (double)*(var->value) << std::endl;
-		for (int i = 0; i < 15000; i++) {
+		average += std::abs((double)*(var->value));
+		std::cout << "\r" << "                                                                                                         ";
+		std::cout << "\r" << "Coupling: " << (double)*(var->value) << " (avg. " <<  average / counter << ")";
+		counter++;
+		for (int i = 0; i < 500; i++) {
 			ising.monteCarloStep();
 		}
-		conf = ising.getConfiguration();
-		for (int i = 0; i < conf.size(); i++) {
-			values[i] = conf[i] <= 0 ? -1 : 1;
+		auto tmpconf = ising.getConfiguration();
+		
+		for (int i = 0; i < tmpconf.size(); i++) {
+			values[i] = tmpconf[i] <= 0 ? -1 : 1;
 		}
 
 		feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };

@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include "Graph.h"
 #include "Storage.h"
 #include "Operation.h"
@@ -11,6 +12,7 @@ namespace ct {
 			shared_ptr<Graph> theGraph;
 			double learningRate;
 			double momentum;
+			double lastUpdate;
 		public:
 			ContrastiveDivergence(shared_ptr<Graph> graph, double learningRate = 0.1, double momentum = 0);
 			~ContrastiveDivergence();

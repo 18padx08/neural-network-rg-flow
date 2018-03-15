@@ -23,7 +23,9 @@ namespace ct {
 		auto functor = [this](double arg) 
 		{
 			double p = this->dist(this->engine);
-			if (p < (arg+1)/2.0) {
+			double prob = (arg + 1) / 2.0;
+			//std::cout << p << " < " << prob << "?" << std::endl;
+			if (p < prob) {
 				return 1;
 			}
 			return -1;

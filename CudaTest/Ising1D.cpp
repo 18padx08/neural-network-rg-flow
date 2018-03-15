@@ -66,7 +66,7 @@ vector<int> Ising1D::getConfiguration()
 double Ising1D::getMagnetization()
 {
 	double mean = 0;
-#pragma omp parallel for
+#pragma omp parallel for reduction(+:mean)
 	for (int i = 0; i < this->lattice.latticeSize; i++) {
 		mean += this->lattice[{i}];
 	}
@@ -76,7 +76,7 @@ double Ising1D::getMagnetization()
 double Ising1D::getMeanEnergy()
 {
 	int energy = 0;
-#pragma omp parallel for
+#pragma omp parallel for reduction(+:energy)
 	for (int i = 0; i < this->lattice.latticeSize; i++) {
 		int addi = -(this->lattice[{i - 1}] * this->lattice[{i}]);
 		energy += addi;

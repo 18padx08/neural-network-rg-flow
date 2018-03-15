@@ -28,13 +28,11 @@ namespace ct {
 		//first only 1D
 		//this means we couple every second spin
 		
-		int lastDim = 0;
 		if (!isInverse) {
 			Tensor tens({ xDim / 2 });
 #pragma omp parallel for
 			for (int i = 0; i < xDim / 2; i++) {
-				tens[{i}] = coupling * (inputTensor[{lastDim}] + (lastDim +2 < xDim?inputTensor[{lastDim + 2}] : 0));
-				lastDim += 2;
+				tens[{i}] = 2.0 /(1 + std::exp(- coupling * (inputTensor[{2*i}] + (2*i +2 < xDim?inputTensor[{2 * i + 2}] : 0)))) -1 ;
 			}
 			return make_shared<Tensor>(tens);
 		}
@@ -45,10 +43,10 @@ namespace ct {
 			for (int i = 0; i < xDim *2; i++) {
 				if (i % 2 == 0) {
 					if (i == 0) {
-						tens[{i}] = coupling * inputTensor[{i / 2}];
+						tens[{i}] = 2.0 / (1 + std::exp(- coupling * inputTensor[{i / 2}]))-1;
 					}
 					else {
-						tens[{i}] = coupling * (inputTensor[{i / 2 - 1}] + inputTensor[{i / 2 }]);
+						tens[{i}] = 2.0 / (1+ std::exp(- coupling * (inputTensor[{i / 2 - 1}] + inputTensor[{i / 2 }])))-1;
 					}
 				}
 				else {
