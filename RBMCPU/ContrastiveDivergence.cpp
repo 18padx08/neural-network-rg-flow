@@ -4,7 +4,7 @@ namespace ct {
 	namespace optimizers {
 
 		ContrastiveDivergence::ContrastiveDivergence(shared_ptr<Graph> graph, double learningRate, double momentum):
-			learningRate(learningRate), momentum(momentum)
+			learningRate(learningRate), momentum(momentum), engine(time(NULL)), dist()
 		{
 			theGraph = graph;
 		}
@@ -25,7 +25,7 @@ namespace ct {
 		}
 		void ContrastiveDivergence::optimize(int k)
 		{
-			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"]))->storage[0]);
+			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_raw"]))->storage[0]);
 			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[0]);
 			auto vis_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_raw"]))->storage[k]);
 			auto hid_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[k]);
@@ -35,7 +35,9 @@ namespace ct {
 
 			double delta = 0;
 			int counter = 0;
-#pragma omp parallel for reduction(+:delta)
+			auto random_connection = dist(engine) % (visDimx);
+			delta += learningRate * (vis_0[{random_connection}] * hid_0[{random_connection / 2}] - vis_n[{random_connection}] * hid_n[{random_connection / 2}]);	
+/*
 			for (int i = 0; i < visDimx; i++) {
 				if (i % 2 == 0) {
 					if (i == 0) {
@@ -46,9 +48,9 @@ namespace ct {
 						
 					}
 				}
-			}
+			}*/
 			//take the average
-			delta /= visDimx-1;
+			//delta /= visDimx-1;
 			//update the coupling for now only one
 			auto coupling = dynamic_pointer_cast<Variable>(theGraph->variables[0]);
 			*(coupling->value) = *(coupling->value) + Tensor({ 1 }, { delta }) + Tensor({ 1 }, {lastUpdate * momentum});

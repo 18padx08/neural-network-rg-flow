@@ -34,9 +34,9 @@ int main()
 {
 	auto graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
-	Ising1D ising(200, 0.8, 1);
-	vector<int> dims = { 200 };
-	vector<double> values(200);
+	Ising1D ising(500, 0.5, 1);
+	vector<int> dims = { 500 };
+	vector<double> values(500);
 	for (int i = 0; i < 20000; i++) {
 		ising.monteCarloStep();
 	}
@@ -49,17 +49,17 @@ int main()
 	auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
 	double average = 0;
 	int counter = 1;
-	optimizers::ContrastiveDivergence cd(graph,0.01, 0.3);
-	for (int i = 0; i < 10000; i++) {
+	optimizers::ContrastiveDivergence cd(graph,0.01, 0.2);
+	for (int i = 0; i < 2000; i++) {
 		for (int j = 0; j < 5; j++) {
-			session->run(feedDic, true, 5);
-			cd.optimize(5);
+			session->run(feedDic, true, 100);
+			cd.optimize(100);
 		}
 		average += std::abs((double)*(var->value));
 		std::cout << "\r" << "                                                                                                         ";
 		std::cout << "\r" << "Coupling: " << (double)*(var->value) << " (avg. " <<  average / counter << ")";
 		counter++;
-		for (int i = 0; i < 500; i++) {
+		for (int i = 0; i < 1500; i++) {
 			ising.monteCarloStep();
 		}
 		auto tmpconf = ising.getConfiguration();

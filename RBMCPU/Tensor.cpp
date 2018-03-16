@@ -28,6 +28,7 @@ namespace ct {
 		for (auto dim : dimensions) {
 			alldims *= dim;
 		}
+		elements = vector<double>(alldims);
 		size = alldims;
 	}
 
@@ -83,11 +84,12 @@ namespace ct {
 
 	 Tensor Tensor::elementWise(std::function<double(double)> lambda)
 	{
+		 auto t = Tensor(this->dimensions);
 #pragma omp parallel for
 		for (int i = 0; i < size; i++) {
-			this->elements[i] = lambda(this->elements[i]);
+			t[{i}] = lambda(this->elements[i]);
 		}
-		auto t = Tensor(*this);
+	
 		return t;
 	}
 	

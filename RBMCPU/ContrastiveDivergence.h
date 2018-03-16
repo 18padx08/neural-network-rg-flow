@@ -1,5 +1,8 @@
 #pragma once
 #include <iostream>
+#include <random>
+#include <algorithm>
+#include <time.h>
 #include "Graph.h"
 #include "Storage.h"
 #include "Operation.h"
@@ -13,6 +16,8 @@ namespace ct {
 			double learningRate;
 			double momentum;
 			double lastUpdate;
+			uniform_int_distribution<int> dist;
+			default_random_engine engine;
 		public:
 			ContrastiveDivergence(shared_ptr<Graph> graph, double learningRate = 0.1, double momentum = 0);
 			~ContrastiveDivergence();

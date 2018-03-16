@@ -25,10 +25,7 @@ namespace ct {
 				optplaceholders.insert(optplaceholders.begin(), input);
 			}
 		}
-		//close graph if there is a optplaceholder
-		if (optplaceholders.size() > 0) {
-			optplaceholders[0]->inputs.push_back(flat_tree[flat_tree.size() - 1]);
-		}
+		
 		
 	}
 	/// TODO rename begin to end if it works
@@ -54,7 +51,10 @@ namespace ct {
 		else if (begin->type() == "optplaceholder") {
 			optplaceholders.insert(optplaceholders.begin(), begin);
 		}
-
+		//close graph if there is a optplaceholder
+		if (optplaceholders.size() > 0) {
+			optplaceholders[0]->inputs.push_back(flat_tree[flat_tree.size() - 1]);
+		}
 		
 	}
 
