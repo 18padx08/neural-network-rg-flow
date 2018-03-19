@@ -34,7 +34,7 @@ int main()
 {
 	auto graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
-	Ising1D ising(500, 0.5, 1);
+	Ising1D ising(500, 0.8, 1);
 	vector<int> dims = { 500 };
 	vector<double> values(500);
 	for (int i = 0; i < 20000; i++) {
@@ -42,23 +42,31 @@ int main()
 	}
 	auto conf = ising.getConfiguration();
 	for (int i = 0; i < conf.size(); i++) {
-		values[i] = conf[i] <=0? -1 : 1;
+		if (i < conf.size() / 2 ) {
+			values[i] = -1;
+		}
+		else {
+			values[i] = 1;
+		}
+	//	values[i] = conf[i] <=0? -1 : 1;
 	}
 	
 	map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
 	auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
 	double average = 0;
 	int counter = 1;
-	optimizers::ContrastiveDivergence cd(graph,0.01, 0.2);
-	for (int i = 0; i < 2000; i++) {
-		for (int j = 0; j < 5; j++) {
-			session->run(feedDic, true, 100);
-			cd.optimize(100);
+	optimizers::ContrastiveDivergence cd(graph,0.005, 0);
+	for (int i = 0; i < 5000; i++) {
+		for (int j = 0; j < 1; j++) {
+			session->run(feedDic, true, 10);
+			cd.optimize(10,0.8);
 		}
-		average += std::abs((double)*(var->value));
-		std::cout << "\r" << "                                                                                                         ";
-		std::cout << "\r" << "Coupling: " << (double)*(var->value) << " (avg. " <<  average / counter << ")";
-		counter++;
+		if (i > 4500) {
+			average += std::abs((double)*(var->value));
+			std::cout << "\r" << "                                                                                                         ";
+			std::cout << "\r" << "Coupling: " << (double)*(var->value) << " (avg. " << average / counter << ")";
+			counter++;
+		}
 		for (int i = 0; i < 1500; i++) {
 			ising.monteCarloStep();
 		}
@@ -70,6 +78,41 @@ int main()
 
 		feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
 	}
+	var->value = make_shared<Tensor>(Tensor({ 1 }, { average / counter }));
+
+	//calculate the expectation values 
+	auto correlationNN = ising.calcExpectationValue(1);
+	auto correlationNNN = ising.calcExpectationValue(2);
+	int val = 0;
+	std::uniform_int_distribution<int> dist(0, 249);
+	auto engine = std::default_random_engine(time(NULL));
+	auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"]);
+	for (int i = 0; i < 500; i++) {
+		auto index = dist(engine);
+		session->run(feedDic, true, 50);
+		auto size = (*castNode->storage[49]).dimensions[0];
+		auto val1 = (*castNode->storage[49])[{index}];
+		auto val2 = (*castNode->storage[49])[{index + 1 < size ? index + 1 : 0}];
+		val += val1 * val2;
+
+		/*for (int i = 0; i < 1500; i++) {
+			ising.monteCarloStep();
+		}
+		auto tmpconf = ising.getConfiguration();
+
+		for (int i = 0; i < tmpconf.size(); i++) {
+			values[i] = tmpconf[i] <= 0 ? -1 : 1;
+		}
+
+		feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };*/
+	}
+	auto corrNNN = (double)val / 500;
+
+	std::cout << "Monte Carlo measurements vs. NN" << std::endl;
+	std::cout << "<v_i v_{i+1}> ~ " << correlationNN << "  exact => " << tanh( 0.8* 1) << " error: " << abs(correlationNN - tanh(0.8)) << std::endl;
+	std::cout << "<v_i v_{i+2}> ~ " << correlationNNN << " exact => " << pow(tanh(0.8 * 1), 2) << " error: " << abs(correlationNNN - pow(tanh(0.8),2)) <<  std::endl;
+	std::cout << "<v_i v_{i+2}> = " << corrNNN << " error: " << abs(corrNNN - pow(tanh(0.8),2)) <<std::endl;
+
 	
 	/*srand(time(NULL));
 	TIRBMTest tTest;

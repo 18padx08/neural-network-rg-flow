@@ -16,7 +16,7 @@ namespace ct {
 		auto optPl = make_shared<OptPlaceholder>(OptPlaceholder("x"));
 		auto storeVisible = make_shared<Storage>(Storage(optPl, "visibles_pooled"));
 		auto coupling = make_shared<Variable>(Variable());
-		coupling->value = make_shared<Tensor>(Tensor({ 1 }, { 1}));
+		coupling->value = make_shared<Tensor>(Tensor({ 1 }, { -3}));
 		auto positive = make_shared<RGLayer>(RGLayer(storeVisible, coupling, false));
 		//sigmoid is in RGlayer implemented
 		//auto sigmoid1 = make_shared<Sigmoid>(Sigmoid(positive));

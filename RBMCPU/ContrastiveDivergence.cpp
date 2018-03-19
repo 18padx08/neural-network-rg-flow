@@ -23,11 +23,11 @@ namespace ct {
 		{
 			return shared_ptr<Tensor>();
 		}
-		void ContrastiveDivergence::optimize(int k)
+		void ContrastiveDivergence::optimize(int k, double betaJ)
 		{
-			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_raw"]))->storage[0]);
+			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"]))->storage[0]);
 			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[0]);
-			auto vis_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_raw"]))->storage[k]);
+			auto vis_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"]))->storage[k]);
 			auto hid_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[k]);
 
 			auto visDimx = vis_0.dimensions[0];
@@ -35,25 +35,29 @@ namespace ct {
 
 			double delta = 0;
 			int counter = 0;
-			auto random_connection = dist(engine) % (visDimx);
-			delta += learningRate * (vis_0[{random_connection}] * hid_0[{random_connection / 2}] - vis_n[{random_connection}] * hid_n[{random_connection / 2}]);	
-/*
-			for (int i = 0; i < visDimx; i++) {
-				if (i % 2 == 0) {
-					if (i == 0) {
-						delta += learningRate * (vis_0[{i}] * hid_0[{i / 2}] - vis_n[{i}] * hid_n[{i / 2}]);
-					}
-					else {
-						delta += learningRate * (vis_0[{i}] * hid_0[{i / 2 - 1}]  - vis_n[{i}] * hid_n[{i / 2 - 1}] + vis_0[{i}] * hid_0[{i / 2 }] - vis_n[{i}] * hid_n[{i / 2 }]);
-						
-					}
-				}
-			}*/
+			//auto random_connection = dist(engine) % (hidDimx);
+			//auto positive = vis_0[{2*random_connection}] * hid_0[{random_connection}];
+			//auto negative = vis_n[{2*random_connection}] * hid_n[{random_connection}];
+			
+			//delta += learningRate * ( positive-negative );	
+#pragma omp parallel for reduction(+:delta)
+			for (int i = 0; i < hidDimx; i++) {
+				auto pos1 = vis_0[{2 * i}] * hid_0[{i}];
+				auto neg1 = vis_n[{2 * i}] * hid_n[{i}];
+				auto pos2 = vis_0[{2 * i + 2}] * hid_0[{i}];
+				auto neg2 = vis_n[{2 * i + 2}] * hid_n[{i}];
+				auto corrNNN = vis_0[{2 * i}] * vis_0[{2 * i + 2}];
+				auto corrNNN_n = vis_n[{2 * i}] * vis_n[{2 * i + 2}];
+				auto corrNNN_nh = hid_n[{i}] * hid_n[{i + 1 < hidDimx? i+1 : 0}];
+				//std::cout << pos1 - neg1 << " " << pos2 - neg2 <<std::endl;
+				delta += learningRate * (pos1-neg1 + pos2 - neg2 + corrNNN_n - pow(tanh(betaJ),2));
+			}
 			//take the average
-			//delta /= visDimx-1;
+			delta /= hidDimx;
 			//update the coupling for now only one
 			auto coupling = dynamic_pointer_cast<Variable>(theGraph->variables[0]);
-			*(coupling->value) = *(coupling->value) + Tensor({ 1 }, { delta }) + Tensor({ 1 }, {lastUpdate * momentum});
+			*(coupling->value) = *(coupling->value) + Tensor({ 1 }, {delta }) + Tensor({ 1 }, {lastUpdate * momentum});
+			
 			lastUpdate = delta;
 		}
 	}

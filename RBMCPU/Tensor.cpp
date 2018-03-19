@@ -85,6 +85,9 @@ namespace ct {
 	 Tensor Tensor::elementWise(std::function<double(double)> lambda)
 	{
 		 auto t = Tensor(this->dimensions);
+		 if (size != this->dimensions[0]) {
+			 std::cout << "thats wrong";
+		 }
 #pragma omp parallel for
 		for (int i = 0; i < size; i++) {
 			t[{i}] = lambda(this->elements[i]);

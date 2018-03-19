@@ -15,6 +15,7 @@ private:
 	double energyDiff(int index);
 	std::uniform_int_distribution<int> dist;
 	std::default_random_engine generator;
+	int tau = -1;
 public:
 	Ising1D(int size);
 	Ising1D(int size, double  beta, double J);
@@ -24,6 +25,8 @@ public:
 	double getMagnetization();
 	double getMeanEnergy();
 	double getTheoreticalMeanEnergy();
+	double calcExpectationValue(int n = 1);
+	double calcAutoCorrelationTime();
 	unsigned int seed;
 };
 

@@ -28,6 +28,7 @@ Ising1D::Ising1D(int size, double beta, double J) : lattice({size}),  beta(beta)
 			lattice[{i}] = 1;
 		}
 	}
+	this->tau = lattice.latticeSize/10;
 }
 
 Ising1D::~Ising1D()
@@ -97,4 +98,27 @@ double Ising1D::getTheoreticalMeanEnergy() {
 		result = this->J;
 	}
 	return -result;
+}
+
+double Ising1D::calcExpectationValue(int n)
+{
+//	auto tau = calcAutoCorrelationTime();
+	int value = 0;
+	for (int i = 0; i < 10*this->lattice.latticeSize; i++) {
+		//ensure that we have no correlation
+		for (int j = 0; j < 5*tau; j++) {
+			this->monteCarloStep();
+		}
+		//measure observable
+		auto randomIndex = this->dist(generator);
+		value += this->lattice[{randomIndex}] * this->lattice[{randomIndex + n}];
+	}
+	return (double)value/(10*this->lattice.latticeSize);
+}
+
+double Ising1D::calcAutoCorrelationTime()
+{
+	//calculate autocorrelation time go to 5 times auto int
+
+	return 0.0;
 }

@@ -25,7 +25,7 @@ namespace ct {
 			// Inherited via Operation
 			virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) override;
 			virtual shared_ptr<Tensor> compute(std::vector<shared_ptr<Tensor>> input) override;
-			void optimize(int k=1);
+			void optimize(int k=1, double betaJ=1.0);
 		};
 	}
 }
