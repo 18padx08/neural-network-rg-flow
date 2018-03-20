@@ -55,11 +55,13 @@ int main()
 	auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
 	double average = 0;
 	int counter = 1;
-	optimizers::ContrastiveDivergence cd(graph,0.005, 0);
+	auto correlationNN = ising.calcExpectationValue(1);
+	auto correlationNNN = ising.calcExpectationValue(2);
+	optimizers::ContrastiveDivergence cd(graph,0.01, 0);
 	for (int i = 0; i < 5000; i++) {
 		for (int j = 0; j < 1; j++) {
 			session->run(feedDic, true, 10);
-			cd.optimize(10,0.8);
+			cd.optimize(10,correlationNNN);
 		}
 		if (i > 4500) {
 			average += std::abs((double)*(var->value));
@@ -81,8 +83,8 @@ int main()
 	var->value = make_shared<Tensor>(Tensor({ 1 }, { average / counter }));
 
 	//calculate the expectation values 
-	auto correlationNN = ising.calcExpectationValue(1);
-	auto correlationNNN = ising.calcExpectationValue(2);
+	//auto correlationNN = ising.calcExpectationValue(1);
+	
 	int val = 0;
 	std::uniform_int_distribution<int> dist(0, 249);
 	auto engine = std::default_random_engine(time(NULL));

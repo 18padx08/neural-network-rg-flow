@@ -50,7 +50,7 @@ namespace ct {
 				auto corrNNN_n = vis_n[{2 * i}] * vis_n[{2 * i + 2}];
 				auto corrNNN_nh = hid_n[{i}] * hid_n[{i + 1 < hidDimx? i+1 : 0}];
 				//std::cout << pos1 - neg1 << " " << pos2 - neg2 <<std::endl;
-				delta += learningRate * (pos1-neg1 + pos2 - neg2 + corrNNN_n - pow(tanh(betaJ),2));
+				delta += learningRate * (corrNNN_n - betaJ);
 			}
 			//take the average
 			delta /= hidDimx;
