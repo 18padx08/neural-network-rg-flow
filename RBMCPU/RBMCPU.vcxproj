@@ -177,6 +177,7 @@
     <ClInclude Include="RBM.h" />
     <ClInclude Include="RBMCompTree.h" />
     <ClInclude Include="RG.h" />
+    <ClInclude Include="RGFlowTest.h" />
     <ClInclude Include="RGLayer.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Sigmoid.h" />
@@ -213,6 +214,7 @@
     <ClCompile Include="RBMCompTree.cpp" />
     <ClCompile Include="RBMCPU.cpp" />
     <ClCompile Include="RG.cpp" />
+    <ClCompile Include="RGFlowTest.cpp" />
     <ClCompile Include="RGLayer.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Sigmoid.cpp" />

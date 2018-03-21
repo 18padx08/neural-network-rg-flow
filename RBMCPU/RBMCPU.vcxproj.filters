@@ -150,6 +150,9 @@
     <ClInclude Include="ContrastiveDivergence.h">
       <Filter>ComputationTree\Nodes\Optimizers</Filter>
     </ClInclude>
+    <ClInclude Include="RGFlowTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -247,6 +250,9 @@
     </ClCompile>
     <ClCompile Include="ContrastiveDivergence.cpp">
       <Filter>ComputationTree\Nodes\Optimizers</Filter>
+    </ClCompile>
+    <ClCompile Include="RGFlowTest.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

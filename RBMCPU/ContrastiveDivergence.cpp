@@ -53,7 +53,7 @@ namespace ct {
 					auto corrNNN_n = vis_n[{2 * i,s}] * vis_n[{2 * i + 2,s}];
 					auto corrNNN_nh = hid_n[{i}] * hid_n[{i + 1 < hidDimx ? i + 1 : 0,s}];
 					//std::cout << pos1 - neg1 << " " << pos2 - neg2 <<std::endl;
-					delta += learningRate * (pos1*pos2 - neg1 * neg2);
+					delta += learningRate * (corrNNN_n - corrNNN);
 					test += pos1 * pos2 - neg1 * neg2;
 				}
 			}
