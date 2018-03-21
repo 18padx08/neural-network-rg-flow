@@ -7,6 +7,7 @@
 #include "Storage.h"
 #include "Operation.h"
 #include "Variable.h"
+#include "OptPlaceholder.h"
 namespace ct {
 	namespace optimizers {
 		class ContrastiveDivergence : public Operation

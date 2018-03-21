@@ -57,6 +57,10 @@ namespace ct {
 		int dim = tuple[0];
 		int lastDimensions = dimensions[0];
 		for (int i = 1; i < tuple.size(); i++) {
+			if (i > dimensions.size() - 1) 
+			{
+				break;
+			}
 			if (tuple[i] > dimensions[i]) throw exception("Dimension do not match");
 			dim += tuple[i] * lastDimensions;
 			lastDimensions *= dimensions[i];

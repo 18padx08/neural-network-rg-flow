@@ -19,6 +19,7 @@ namespace ct {
 			auto castNode = dynamic_pointer_cast<Storage>(store.second);
 			castNode->storage.clear();
 		}
+		this->graph->optplaceholders[0]->inputs[0]->output = shared_ptr<Tensor>();
 		do {
 			if (i >= graph->flat_tree.size()) {
 				i = 0;
@@ -27,7 +28,7 @@ namespace ct {
 			//gather input
 			if (graph->flat_tree[i]->type() == "optplaceholder") {
 				auto castNode = dynamic_pointer_cast<OptPlaceholder>(graph->flat_tree[i]);
-				if (!castNode->inputs[0]->output) {
+				if (!castNode->inputs[0]->output ) {
 					castNode->output = feedDict[castNode->name];
 				}
 				else {
@@ -48,7 +49,7 @@ namespace ct {
 			else if (graph->flat_tree[i]->type() == "storage") {
 				auto castNode = dynamic_pointer_cast<Storage>(graph->flat_tree[i]);
 				castNode->storage.push_back(castNode->inputs[0]->output);
-				castNode->output = castNode->inputs[0]->output;
+				castNode->output = make_shared<Tensor>(*castNode->inputs[0]->output);
 			}
 			else if (graph->flat_tree[i]->type() == "variable") {
 				auto castNode = dynamic_pointer_cast<Variable>(graph->flat_tree[i]);
