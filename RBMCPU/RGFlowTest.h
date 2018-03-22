@@ -27,6 +27,8 @@ class RGFlowTest
 public:
 	RGFlowTest();
 	~RGFlowTest();
-	void run(double beta);
+	void plotConvergence(double beta);
+	void plotError(vector<int> num_samples);
+	void plotRGFlow(double startingBeta);
 };
 
