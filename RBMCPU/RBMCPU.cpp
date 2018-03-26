@@ -37,16 +37,18 @@ int main()
 	/*std::cout << "-- beta = 0.6 --" << std::endl;
 	test.plotConvergence(0.6);
 	std::cout << "-- beta = 0.8 --" << std::endl;
-	test.plotConvergence(0.8);
-	std::cout << "-- beta = 1.0 --" << std::endl;
+	test.plotConvergence(0.8);*/
+	/*std::cout << "-- beta = 1.0 --" << std::endl;
 	test.plotConvergence(1.0);
 	std::cout << "-- beta = 1.2 --" << std::endl;
-	test.plotConvergence(1.2);
-	std::cout << "-- beta = 1.4 --" << std::endl;
-	test.plotConvergence(1.4);*/
-	std::cout << "--error test--" << std::endl;
-	//test.plotError({ 1,10,100,1000,10000 });
-	test.plotRGFlow(1.0);
+	test.plotConvergence(1.2);*/
+	//std::cout << "-- beta = 1.4 --" << std::endl;
+	//test.plotConvergence(1.4);
+	//std::cout << "--error test--" << std::endl;
+	//test.plotError({ 100,1000,10000 });
+	std::cout << "-- beta = 0.8 --" << " (modCD Test)" << std::endl;
+	test.modTest(0.8);
+	//test.plotRGFlow(1.0);
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();

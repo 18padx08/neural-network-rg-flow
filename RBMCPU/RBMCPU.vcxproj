@@ -169,6 +169,7 @@
     <ClInclude Include="Graph.h" />
     <ClInclude Include="MNISTData.h" />
     <ClInclude Include="MNISTTest.h" />
+    <ClInclude Include="ModCD.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Operation.h" />
     <ClInclude Include="OptPlaceholder.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="MNISTData.cpp" />
     <ClCompile Include="MNISTTest.cpp" />
+    <ClCompile Include="ModCD.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Operation.cpp" />
     <ClCompile Include="OptPlaceholder.cpp" />

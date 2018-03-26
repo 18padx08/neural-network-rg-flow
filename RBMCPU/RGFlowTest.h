@@ -21,6 +21,7 @@
 #include "ProbPooling.h"
 #include "RBMCompTree.h"
 #include "ContrastiveDivergence.h"
+#include "ModCD.h"
 
 class RGFlowTest
 {
@@ -30,5 +31,7 @@ public:
 	void plotConvergence(double beta);
 	void plotError(vector<int> num_samples);
 	void plotRGFlow(double startingBeta);
+
+	void modTest(double startingBeta);
 };
 

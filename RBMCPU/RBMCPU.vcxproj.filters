@@ -153,6 +153,9 @@
     <ClInclude Include="RGFlowTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ModCD.h">
+      <Filter>ComputationTree\Nodes\Optimizers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -253,6 +256,9 @@
     </ClCompile>
     <ClCompile Include="RGFlowTest.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ModCD.cpp">
+      <Filter>ComputationTree\Nodes\Optimizers</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
