@@ -156,6 +156,9 @@
     <ClInclude Include="ModCD.h">
       <Filter>ComputationTree\Nodes\Optimizers</Filter>
     </ClInclude>
+    <ClInclude Include="CheatCD.h">
+      <Filter>ComputationTree\Nodes\Optimizers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -258,6 +261,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ModCD.cpp">
+      <Filter>ComputationTree\Nodes\Optimizers</Filter>
+    </ClCompile>
+    <ClCompile Include="CheatCD.cpp">
       <Filter>ComputationTree\Nodes\Optimizers</Filter>
     </ClCompile>
   </ItemGroup>

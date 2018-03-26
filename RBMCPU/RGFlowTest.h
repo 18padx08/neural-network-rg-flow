@@ -22,6 +22,7 @@
 #include "RBMCompTree.h"
 #include "ContrastiveDivergence.h"
 #include "ModCD.h"
+#include "CheatCD.h"
 
 class RGFlowTest
 {
@@ -33,5 +34,7 @@ public:
 	void plotRGFlow(double startingBeta);
 
 	void modTest(double startingBeta);
+	void testGibbsConvergence();
+	void cheatTest(double startingBeta);
 };
 

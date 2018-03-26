@@ -46,8 +46,10 @@ int main()
 	//test.plotConvergence(1.4);
 	//std::cout << "--error test--" << std::endl;
 	//test.plotError({ 100,1000,10000 });
-	std::cout << "-- beta = 0.8 --" << " (modCD Test)" << std::endl;
-	test.modTest(0.8);
+	//std::cout << "-- beta = 0.8 --" << " (modCD Test)" << std::endl;
+	//test.modTest(0.8);
+	//test.testGibbsConvergence();
+	test.cheatTest(1.4);
 	//test.plotRGFlow(1.0);
 	/*srand(time(NULL));
 	TIRBMTest tTest;

@@ -162,6 +162,7 @@
     <ClInclude Include="..\CudaTest\LatticeObject.h" />
     <ClInclude Include="Add.h" />
     <ClInclude Include="AnalyticalTest.h" />
+    <ClInclude Include="CheatCD.h" />
     <ClInclude Include="ContrastiveDivergence.h" />
     <ClInclude Include="CustomRBM.h" />
     <ClInclude Include="DBM.h" />
@@ -199,6 +200,7 @@
     <ClCompile Include="..\CudaTest\LatticeObject.cpp" />
     <ClCompile Include="Add.cpp" />
     <ClCompile Include="AnalyticalTest.cpp" />
+    <ClCompile Include="CheatCD.cpp" />
     <ClCompile Include="ContrastiveDivergence.cpp" />
     <ClCompile Include="CustomRBM.cpp" />
     <ClCompile Include="DBM.cpp" />
