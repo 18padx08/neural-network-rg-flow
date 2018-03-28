@@ -23,7 +23,7 @@ namespace ct {
 		{
 			return shared_ptr<Tensor>();
 		}
-		void ContrastiveDivergence::optimize(int k, double betaJ)
+		void ContrastiveDivergence::optimize(int k, double betaJ, bool useLR)
 		{
 			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"]))->storage[0]);
 			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_pooled"]))->storage[0]);
@@ -45,25 +45,25 @@ namespace ct {
 			for (int s = 0; s < samples; s++) {
 #pragma omp parallel for reduction(+:delta,test)
 				for (int i = 0; i < hidDimx; i++) {
-					auto pos1 = vis_0[{2 * i,s}] * hid_0[{i,s}];
-					auto neg1 = vis_n[{2 * i,s}] * hid_n[{i,s}];
-					auto pos2 = vis_0[{2 * i + 2,s}] * hid_0[{i,s}];
-					auto neg2 = vis_n[{2 * i + 2,s}] * hid_n[{i,s}];
-					auto corrNNN = vis_0[{2 * i,s}] * vis_0[{2 * i + 2,s}];
-					auto corrNNN_n = vis_n[{2 * i,s}] * vis_n[{2 * i + 2,s}];
-					auto corrNNN_nh = hid_n[{i}] * hid_n[{i + 1 < hidDimx ? i + 1 : 0,s}];
-					//std::cout << pos1 - neg1 << " " << pos2 - neg2 <<std::endl;
-					delta += learningRate * (corrNNN_n - corrNNN);
-					test += pos1 * pos2 - neg1 * neg2;
+					auto corrNNN = vis_0[{2 * i,s}] * vis_0[{(2 * i + 2) % hidDimx,s}];
+					auto corrNNN_n = vis_n[{2 * i,s}] * vis_n[{(2 * i + 2) % hidDimx,s}];
+					delta += (corrNNN_n - corrNNN);
 				}
 			}
 			//take the average
-			//std::cout << test / samples/hidDimx << std::endl;
-			delta *= learningRate;
-			delta /= samples*hidDimx;
-			//update the coupling for now only one
+			//std::cout << delta << std::endl;
 			auto coupling = dynamic_pointer_cast<Variable>(theGraph->variables[0]);
-			*(coupling->value) = *(coupling->value) + Tensor({ 1 }, {delta }) + Tensor({ 1 }, {lastUpdate * momentum});
+			delta /= samples*hidDimx;
+			auto blub = pow(cosh(abs(delta)), 2);
+			//std::cout << std::endl << blub << std::endl;
+			delta *= useLR? learningRate : blub;
+			//absolute boundary of delta: not bigger than 10 % of the current value of the coupling (prevent going to far away from 0)
+			if (abs(delta) > 0.1 * abs(*(coupling->value))) {
+				delta = 0.1 * abs(*(coupling->value)) * (signbit(delta)? -1.0 : 1.0);
+			}
+			//update the coupling for now only one
+			
+			*(coupling->value) = *(coupling->value)  + Tensor({ 1 }, {delta}) + Tensor({ 1 }, {lastUpdate * momentum});
 			
 			lastUpdate = delta;
 		}

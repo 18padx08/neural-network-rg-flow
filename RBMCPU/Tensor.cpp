@@ -42,6 +42,13 @@ namespace ct {
 		size = alldims;
 	}
 
+	Tensor::Tensor(Tensor & tensor)
+	{
+		this->dimensions = vector<int>(tensor.dimensions.begin(), tensor.dimensions.end());
+		this->elements = vector<double>(tensor.elements.begin(), tensor.elements.end());
+		this->size = tensor.size;
+	}
+
 	Tensor::Tensor()
 	{
 		size = 0;
@@ -88,8 +95,8 @@ namespace ct {
 
 	 Tensor Tensor::elementWise(std::function<double(double)> lambda)
 	{
-		 auto t = Tensor(this->dimensions);
-		 if (size != this->dimensions[0]) {
+		 Tensor t(this->dimensions);
+		 if (size != t.size) {
 			 std::cout << "thats wrong";
 		 }
 #pragma omp parallel for

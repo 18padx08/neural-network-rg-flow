@@ -32,6 +32,7 @@ public:
 	void plotConvergence(double beta);
 	void plotError(vector<int> num_samples);
 	void plotRGFlow(double startingBeta);
+	void plotRGFlowNew(double startingBeta);
 
 	void modTest(double startingBeta);
 	void testGibbsConvergence();

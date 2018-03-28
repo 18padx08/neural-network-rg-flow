@@ -3,6 +3,7 @@
 #include <random>
 #include <algorithm>
 #include <time.h>
+#include <math.h>
 #include "Graph.h"
 #include "Storage.h"
 #include "Operation.h"
@@ -26,7 +27,7 @@ namespace ct {
 			// Inherited via Operation
 			virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) override;
 			virtual shared_ptr<Tensor> compute(std::vector<shared_ptr<Tensor>> input) override;
-			void optimize(int k=1, double betaJ=1.0);
+			void optimize(int k=1, double betaJ=1.0, bool useLR=false);
 		};
 	}
 }

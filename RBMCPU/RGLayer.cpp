@@ -30,7 +30,7 @@ namespace ct {
 		//this means we couple every second spin
 		
 		if (!isInverse) {
-			Tensor tens({ xDim / 2 });
+			Tensor tens({ xDim / 2, samples });
 #pragma omp parallel for
 			for (int s = 0; s < samples; s++) {
 #pragma omp parallel for
@@ -42,7 +42,7 @@ namespace ct {
 		}
 		else {
 			// 0 -> 0,2 ; 1-> 2 4
-			Tensor tens({ xDim *2 });
+			Tensor tens({ xDim *2, samples});
 #pragma omp parallel for
 			for (int s = 0; s < samples; s++) {
 #pragma omp parallel for

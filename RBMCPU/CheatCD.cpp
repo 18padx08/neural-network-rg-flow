@@ -38,8 +38,8 @@ namespace ct {
 #pragma omp parallel for reduction(+:delta)
 			for (int s = 0; s < samples; s++) {
 				
-				int i = dist(engine) % (hidDimx - 1);
-				auto corrNNN = vis_0[{2 * i, s}] * vis_0[{2 * i + 2, s}];
+				int i = dist(engine) % (hidDimx -1);
+				auto corrNNN = vis_0[{2 * i, s}] * vis_0[{(2 * i + 2)%hidDimx, s}];
 				
 				//std::cout << pos1 - neg1 << " " << pos2 - neg2 <<std::endl;
 				delta += corrNNN;
@@ -47,9 +47,9 @@ namespace ct {
 			//take the average
 			//std::cout << test / samples/hidDimx << std::endl;
 			delta /= samples;
-			//std::cout << delta << std::endl;
-			delta = std::atanh(std::sqrt(delta));
-			if (delta > 4.0) return;
+			//std::cout << samples << std::endl;
+			delta = std::atanh(std::sqrt(std::abs(delta)));
+			//if (delta > 4.0) return;
 			//update the coupling for now only one
 			auto coupling = dynamic_pointer_cast<Variable>(theGraph->variables[0]);
 			//if (delta - (double)*(coupling->value) > (double)*(coupling->value) * 0.1) return;
