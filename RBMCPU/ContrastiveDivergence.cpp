@@ -47,23 +47,28 @@ namespace ct {
 				for (int i = 0; i < hidDimx; i++) {
 					auto corrNNN = vis_0[{2 * i,s}] * vis_0[{(2 * i + 2) % hidDimx,s}];
 					auto corrNNN_n = vis_n[{2 * i,s}] * vis_n[{(2 * i + 2) % hidDimx,s}];
+					auto corrNNN_n_delta = vis_n[{2 * i, s,1}] * vis_n[{(2 * i + 2) % hidDimx, s,1}];
 					delta += (corrNNN_n - corrNNN);
+					test += (corrNNN_n_delta - corrNNN);
 				}
 			}
 			//take the average
 			//std::cout << delta << std::endl;
 			auto coupling = dynamic_pointer_cast<Variable>(theGraph->variables[0]);
 			delta /= samples*hidDimx;
-			auto blub = pow(cosh(abs(delta)), 2);
+			test /= samples * hidDimx;
+			auto blub =  abs(((test - delta)/0.05));
+			//std::cout << test << "  " << delta << std::endl;
 			//std::cout << std::endl << blub << std::endl;
 			delta *= useLR? learningRate : blub;
-			//absolute boundary of delta: not bigger than 10 % of the current value of the coupling (prevent going to far away from 0)
-			if (abs(delta) > 0.1 * abs(*(coupling->value))) {
-				delta = 0.1 * abs(*(coupling->value)) * (signbit(delta)? -1.0 : 1.0);
+			//absolute boundary of delta: not bigger than 20 % of the current value of the coupling (prevent going to far away from 0)
+			if (abs(delta) >  abs(*(coupling->value))) {
+				delta = 0.2 * abs(*(coupling->value)) * (signbit(delta)? -1.0 : 1.0);
+				//std::cout << "some problems indeed";
 			}
 			//update the coupling for now only one
 			
-			*(coupling->value) = *(coupling->value)  + Tensor({ 1 }, {delta}) + Tensor({ 1 }, {lastUpdate * momentum});
+			*(coupling->value) = *(coupling->value)  + Tensor({ 1 }, {+delta}) + Tensor({ 1 }, {lastUpdate * momentum});
 			
 			lastUpdate = delta;
 		}

@@ -29,6 +29,7 @@
 #include "RBMCompTree.h"
 #include "ContrastiveDivergence.h"
 #include "RGFlowTest.h"
+#include "ErrorAnalysis.h"
 
 using namespace ct;
 int main()
@@ -51,7 +52,9 @@ int main()
 	//test.testGibbsConvergence();
 	//test.cheatTest(1.4);
 	///test.plotRGFlow(1.0);
-	test.plotRGFlowNew(1.0);
+	//test.plotRGFlowNew(1.0);
+	ErrorAnalysis analysis;
+	analysis.plotErrorOnTraining(1.0);
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();

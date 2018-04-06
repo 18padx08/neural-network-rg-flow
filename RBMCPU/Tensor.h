@@ -18,6 +18,7 @@ namespace ct {
 		int size;
 		
 		double& operator[](std::initializer_list<int> list);
+		double*  getPointer(std::initializer_list<int> list);
 		operator double&();
 
 		//tensor operations

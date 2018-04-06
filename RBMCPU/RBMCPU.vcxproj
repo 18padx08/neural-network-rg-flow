@@ -167,6 +167,7 @@
     <ClInclude Include="CustomRBM.h" />
     <ClInclude Include="DBM.h" />
     <ClInclude Include="DBMTest.h" />
+    <ClInclude Include="ErrorAnalysis.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="MNISTData.h" />
     <ClInclude Include="MNISTTest.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="CustomRBM.cpp" />
     <ClCompile Include="DBM.cpp" />
     <ClCompile Include="DBMTest.cpp" />
+    <ClCompile Include="ErrorAnalysis.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="MNISTData.cpp" />
     <ClCompile Include="MNISTTest.cpp" />

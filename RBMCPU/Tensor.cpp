@@ -74,6 +74,23 @@ namespace ct {
 		}
 		return elements[dim];
 	}
+	double *Tensor::getPointer(std::initializer_list<int> list)
+	{
+		// TODO: insert return statement here
+		vector<int> tuple(list.begin(), list.end());
+		int dim = tuple[0];
+		int lastDimensions = dimensions[0];
+		for (int i = 1; i < tuple.size(); i++) {
+			if (i > dimensions.size() - 1)
+			{
+				break;
+			}
+			if (tuple[i] > dimensions[i]) throw exception("Dimension do not match");
+			dim += tuple[i] * lastDimensions;
+			lastDimensions *= dimensions[i];
+		}
+		return &elements[dim];
+	}
 	Tensor::operator double&()
 	{
 		if (dimensions.size() == 1 && dimensions[0] == 1) {

@@ -295,10 +295,11 @@ void RGFlowTest::plotRGFlowNew(double startingBeta)
 	int batchSize = 10;
 	int num_layers = 5;
 	int num_steps = 1500;
-	int max_iterations = 1000;
+	int max_iterations = 2000;
 	Ising1D ising(1024, startingBeta, 1);
 	auto samples = vector<double>(1024 * batchSize);
 	vector<int> dims = { 1024,batchSize };
+	vector<int> thermDims = { 1024,batchSize * 5 };
 	auto graphList = vector<shared_ptr<Graph>>();
 	auto sessions = vector<Session>();
 	for (int i = 0; i < num_layers; i++) {
@@ -317,38 +318,40 @@ void RGFlowTest::plotRGFlowNew(double startingBeta)
 	}
 
 	//create one batch of data
-	for (int sam = 0; sam < batchSize; sam++) {
+	vector<double> thermSamps(batchSize * 5 * 1024);
+	for (int sam = 0; sam < batchSize*5; sam++) {
 		auto t = ising.getConfiguration();
 		for (int i = 0; i < t.size(); i++) {
-			samples[i + sam * t.size()] = t[i] <= 0 ? -1 : 1;
+			thermSamps[i + sam * t.size()] = t[i] <= 0 ? -1 : 1;
 		}
 		for (int j = 0; j < 1500; j++) {
 			ising.monteCarloStep();
 		}
 	}
 	//use this batch to thermalize through the layer
-	feedDic = { { "x", make_shared<Tensor>(Tensor(dims, samples)) } };
-		for (int it = 0; it < max_iterations/10; it++) {
+	feedDic = { { "x", make_shared<Tensor>(Tensor(thermDims, thermSamps)) } };
+		for (int it = 0; it < max_iterations/5; it++) {
 			if (it % 10 == 0) {
 				std::cout << "\r" << "                                                                                                         ";
 				std::cout << "\r" << "Coupling: ";
 			}
 			for (int layer = 0; layer < num_layers; layer++) {
-				feedDic = { { "x", make_shared<Tensor>(Tensor(dims, samples)) } };
-			for (int i = 0; i <= layer; i++) {
-				if (i > 0) {
-					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_pooled"])->storage[5]);
-					feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
-				}
-				sessions[i].run(feedDic, true, 5);
-				if (i == layer) {
-					optimizers::ContrastiveDivergence cd(graphList[layer], 0.1, 0);
-					cd.optimize(5,10);
-					if (it % 10 == 0) {
-						auto var = dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
-						std::cout << " " << (double)*(var->value) / 2.0 << " ";
-					}
-				}
+				feedDic = { { "x", make_shared<Tensor>(Tensor(thermDims, thermSamps)) } };
+			
+			if (layer > 0) {
+				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_pooled"])->storage[5]);
+				feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
+			}
+			sessions[layer].run(feedDic, true, 5);
+			
+			optimizers::ContrastiveDivergence cd(graphList[layer], 0.2, 0);
+			if (it > max_iterations / 6) {
+				cd.optimize(5, 10, true);
+			}
+			cd.optimize(5, 10, false);
+			if (it % 10 == 0) {
+				auto var = dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
+				std::cout << " " << (double)*(var->value) / 2.0 << " ";
 			}
 		}
 	}
@@ -381,7 +384,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta)
 				}
 				sessions[i].run(feedDic, true, 10);
 				if (i == layer) {
-					optimizers::ContrastiveDivergence cd(graphList[layer], 0.05, 0);
+					optimizers::ContrastiveDivergence cd(graphList[layer], 0.08, 0);
 					cd.optimize(10, 10, true);
 				}
 			}

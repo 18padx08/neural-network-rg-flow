@@ -159,6 +159,9 @@
     <ClInclude Include="CheatCD.h">
       <Filter>ComputationTree\Nodes\Optimizers</Filter>
     </ClInclude>
+    <ClInclude Include="ErrorAnalysis.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -265,6 +268,9 @@
     </ClCompile>
     <ClCompile Include="CheatCD.cpp">
       <Filter>ComputationTree\Nodes\Optimizers</Filter>
+    </ClCompile>
+    <ClCompile Include="ErrorAnalysis.cpp">
+      <Filter>Tests</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
