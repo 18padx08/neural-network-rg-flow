@@ -14,7 +14,7 @@ RGFlowTest::~RGFlowTest()
 void RGFlowTest::plotConvergence(double beta)
 {
 	//first layer setup
-	auto graph = RBMCompTree::getRBMGraph();
+	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
 	Ising1D ising(500, beta, 1);
 	vector<int> dims = { 500 };
@@ -101,7 +101,7 @@ void RGFlowTest::plotConvergence(double beta)
 void RGFlowTest::plotError(vector<int> num_samples)
 {
 	//first layer setup
-	auto graph = RBMCompTree::getRBMGraph();
+	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
 	Ising1D ising(500, 1, 1);
 	vector<int> dims = { 500 };
@@ -207,7 +207,7 @@ void RGFlowTest::plotRGFlow(double startingBeta)
 	auto sessions = vector<Session>();
 	for (int i = 0; i < num_layers; i++) {
 		//different layers
-		auto graph = RBMCompTree::getRBMGraph();
+		shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 		auto castNode = dynamic_pointer_cast<Variable>(graph->variables[0]);
 		castNode->value = make_shared<Tensor>(Tensor({ 1 }, {-1}));
 		auto session = Session(graph);
@@ -304,7 +304,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta)
 	auto sessions = vector<Session>();
 	for (int i = 0; i < num_layers; i++) {
 		//different layers
-		auto graph = RBMCompTree::getRBMGraph();
+		shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 		auto castNode = dynamic_pointer_cast<Variable>(graph->variables[0]);
 		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { -2*startingBeta / (i+1)}));
 		auto session = Session(graph);
@@ -402,7 +402,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta)
 void RGFlowTest::modTest(double startingBeta)
 {
 	//first layer setup
-	auto graph = RBMCompTree::getRBMGraph();
+	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
 	Ising1D ising(500, startingBeta, 1);
 	vector<int> dims = { 500 };
@@ -498,7 +498,7 @@ void RGFlowTest::testGibbsConvergence()
 	std::uniform_int_distribution<int> dist(0, 250);
 	auto engine = std::default_random_engine(time(NULL));
 
-	auto graph = RBMCompTree::getRBMGraph();
+	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
 	auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
 	var->value = make_shared<Tensor>(Tensor({ 1 }, { -2 }));
@@ -539,7 +539,7 @@ void RGFlowTest::testGibbsConvergence()
 void RGFlowTest::cheatTest(double startingBeta)
 {
 	//first layer setup
-	auto graph = RBMCompTree::getRBMGraph();
+	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
 	Ising1D ising(500, startingBeta, 1);
 	vector<int> dims = { 500 };

@@ -11,7 +11,7 @@
 #include "OptPlaceholder.h"
 namespace ct {
 	namespace optimizers {
-		class ContrastiveDivergence : public Operation
+		class ContrastiveDivergence 
 		{
 		private:
 			shared_ptr<Graph> theGraph;
@@ -25,8 +25,8 @@ namespace ct {
 			~ContrastiveDivergence();
 
 			// Inherited via Operation
-			virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) override;
-			virtual shared_ptr<Tensor> compute(std::vector<shared_ptr<Tensor>> input) override;
+			virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) ;
+			virtual shared_ptr<Tensor> compute(std::vector<shared_ptr<Tensor>> input) ;
 			void optimize(int k=1, double betaJ=1.0, bool useLR=false);
 		};
 	}

@@ -12,6 +12,8 @@ namespace ct {
 
 		ContrastiveDivergence::~ContrastiveDivergence()
 		{
+			
+			theGraph.reset();
 		}
 
 		shared_ptr<Tensor> ct::optimizers::ContrastiveDivergence::compute(std::initializer_list<shared_ptr<Tensor>> input)
@@ -71,6 +73,7 @@ namespace ct {
 			*(coupling->value) = *(coupling->value)  + Tensor({ 1 }, {+delta}) + Tensor({ 1 }, {lastUpdate * momentum});
 			
 			lastUpdate = delta;
+			coupling.reset();
 		}
 	}
 }

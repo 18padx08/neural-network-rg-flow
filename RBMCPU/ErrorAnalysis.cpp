@@ -20,7 +20,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 {
 	//batchsize
 	int batchsize = 10;
-	int spinChainSize = 256;
+	int spinChainSize = 512;
 	//we need a ising model
 	Ising1D ising(spinChainSize, beta, 1.0);
 	//thermalize the ising model
@@ -29,7 +29,12 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 	}
 	std::ofstream error_scatter("error_scatter.csv");
 	std::ofstream responseError("response_error.csv");
-	for (int trial = 0; trial < 1000; trial++) {
+	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
+	Session session(graph);
+	optimizers::ContrastiveDivergence cd(graph, 0.1, 0);
+	optimizers::ContrastiveDivergence newCd(graph, 0.08, 0);
+
+	for (int trial = 0; trial < 200; trial++) {
 		//we need a batch
 		vector<double> samples(spinChainSize * batchsize);
 		//and a dimension
@@ -53,15 +58,14 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 		auto mcError = betaj - beta;
 
 		//get a rbm comp tree
-		auto graph = RBMCompTree::getRBMGraph();
-		Session session(graph);
-		optimizers::ContrastiveDivergence cd(graph, 0.1, 0);
+
+
 
 		//our input node to the network
 		map<string, shared_ptr<Tensor>> feedDic;
 		//now use this batch to thermalize the network
 		//stop thermalization when gradient is flat
-		feedDic = { {"x", make_shared<Tensor>(dims,samples)} };
+		feedDic = { {"x",   make_shared<Tensor>(dims, samples) } };
 		auto castNode = dynamic_pointer_cast<Variable>(graph->variables[0]);
 		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { -2.0 }));
 		double prev = -1.0;
@@ -94,14 +98,13 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 			average = (double)*castNode->value / 2.0 / counter;
 		} while (true);
 		of.close();
-		std::cout << std::endl << "============" << std::endl;
+		std::cout << std::endl << "============ " << trial << " ==========" << std::endl;
 		std::cout << "thermalized after " << counter * loops << " steps: " << (double)*castNode->value << std::endl;
 		std::cout << "do some measurements" << std::endl;
 		std::ofstream newOf("error_gauss_" + to_string(trial) + ".csv");
 		double av = 0;
 		for (int batch = 0; batch < batchsize; batch++) {
 			session.run(feedDic, true, 100);
-			optimizers::ContrastiveDivergence newCd(graph, 0.08, 0);
 			newCd.optimize(100, 1, true);
 			av += abs(*castNode->value);
 			newOf << (double)*castNode->value << std::endl;
@@ -119,28 +122,37 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 			}
 		}
 		std::cout << "Batch initialized, lets Gibbs Sample" << std::endl;
+		feedDic.clear();
 		feedDic = { { "x", make_shared<Tensor>(dims,samples) } };
 		session.run(feedDic, true, 100);
 		std::cout << "Gibbs sampling finished, calculate mean" << std::endl;
 		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_pooled"]);
+		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"]);
 		double trainedCorr = 0;
+		double trainedHidden = 0;
 		auto chains = (*storageNode->storage[100]);
-#pragma omp parallel for reduction(+:trainedCorr)
+		auto hiddenChain = (*hiddenStorage->storage[100]);
+#pragma omp parallel for reduction(+:trainedCorr, trainedHidden)
 		for (int s = 0; s < batchsize; s++) {
-#pragma omp parallel for reduction(+:trainedCorr)
+#pragma omp parallel for reduction(+:trainedCorr,trainedHidden)
 			for (int i = 0; i < spinChainSize; i+=2) {
 				trainedCorr += chains[{i, s, 0}] * chains[{i+2%spinChainSize,s,0}];
+				trainedHidden += hiddenChain[{i, s, 0}] * hiddenChain[{i + 1 % (spinChainSize/2), s, 0}];
 			}
 		}
 		
 		trainedCorr /= batchsize * (spinChainSize/2.0);
-		responseError << -pow(tanh(beta), 2) + trainedCorr << "," << -pow(tanh(beta), 2) + secondCorr << std::endl;
+		trainedHidden /= batchsize * (spinChainSize / 2.0);
+		responseError << -pow(tanh(beta), 2) + trainedCorr << "," << -pow(tanh(beta), 2) + secondCorr << "," << trainedHidden -pow(tanh(beta), 2) << std::endl;
 		std::cout << std::endl;
 		std::cout << "correlation network " << trainedCorr << std::endl;
 		std::cout << "correlation mc " << secondCorr << std::endl;
+		std::cout << "hidden network" << trainedHidden << std::endl;
 		std::cout << "theoretical value " << pow(tanh(beta), 2) << " mc error: " << -pow(tanh(beta),2) + secondCorr << " nn error " << -pow(tanh(beta), 2) + trainedCorr <<std::endl;
 		std::cout << std::endl;
 		std::cout << "============" << std::endl;
+		responseError.flush();
+		error_scatter.flush();
 	}
 	error_scatter.close();
 }
@@ -154,7 +166,7 @@ void ErrorAnalysis::plotErrorOfResponse(double beta)
 
 	//we need a (trained) network
 	//get a rbm comp tree
-	auto graph = RBMCompTree::getRBMGraph();
+	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	auto variable = dynamic_pointer_cast<Variable>(graph->variables[0]);
 	//set network parameter to theoretical value
 	variable->value = make_shared<Tensor>(Tensor({ 1 }, { -2*beta }));

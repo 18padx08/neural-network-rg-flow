@@ -8,6 +8,9 @@ namespace ct {
 
 	Node::~Node()
 	{
+		inputs.clear();
+		output.reset();
+		consumers.clear();
 	}
 	
 

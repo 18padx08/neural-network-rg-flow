@@ -60,6 +60,12 @@ namespace ct {
 
 	Graph::~Graph()
 	{
+		storages.clear();
+		variables.clear();
+		placeholders.clear();
+		optplaceholders.clear();
+		flat_tree.clear();
+		currentNode.reset();
 	}
 	void Graph::run()
 	{

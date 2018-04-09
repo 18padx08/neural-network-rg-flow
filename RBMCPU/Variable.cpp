@@ -8,6 +8,8 @@ namespace ct {
 
 	Variable::~Variable()
 	{
+		inputs.clear();
+		consumers.clear();
 	}
 	shared_ptr<Tensor> Variable::compute(std::initializer_list<shared_ptr<Tensor>> input)
 	{

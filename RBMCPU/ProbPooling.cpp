@@ -9,6 +9,7 @@ namespace ct {
 
 	ProbPooling::~ProbPooling()
 	{
+
 	}
 
 	shared_ptr<Tensor> ct::ProbPooling::compute(std::initializer_list<shared_ptr<Tensor>> input)
@@ -59,6 +60,8 @@ namespace ct {
 			
 			}
 		}
+		input.clear();
 		return make_shared<Tensor>(t);
+		//return shared_ptr<Tensor>();
 	}
 }

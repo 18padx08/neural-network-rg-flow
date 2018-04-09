@@ -5,7 +5,7 @@ namespace ct {
 	{
 	public:
 		Operation();
-		~Operation();
+		virtual ~Operation();
 
 		// Inherited via Node
 		virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) = 0;

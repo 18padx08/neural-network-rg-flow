@@ -28,7 +28,7 @@ namespace ct {
 		//auto sigmoid2 = make_shared<Sigmoid>(Sigmoid(negative));
 		auto storeVisible_raw= make_shared<Storage>(Storage(negative, "visibles_raw"));
 		auto visible = make_shared<ProbPooling>(ProbPooling(storeVisible_raw));
-		auto graph = make_shared<Graph>(Graph(visible));
+		auto graph = shared_ptr<Graph>(new Graph(visible));
 		return graph;
 	}
 }

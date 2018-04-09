@@ -9,6 +9,8 @@ namespace ct {
 
 	Storage::~Storage()
 	{
+		inputs.clear();
+		storage.clear();
 	}
 	shared_ptr<Tensor> Storage::compute(std::initializer_list<shared_ptr<Tensor>> input)
 	{

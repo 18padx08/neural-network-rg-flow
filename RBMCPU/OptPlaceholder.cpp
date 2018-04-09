@@ -9,6 +9,8 @@ namespace ct {
 
 	OptPlaceholder::~OptPlaceholder()
 	{
+		inputs.clear();
+		consumers.clear();
 	}
 
 	shared_ptr<Tensor> ct::OptPlaceholder::compute(std::initializer_list<shared_ptr<Tensor>> input)

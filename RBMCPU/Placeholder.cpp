@@ -10,6 +10,8 @@ namespace ct {
 
 	Placeholder::~Placeholder()
 	{
+		inputs.clear();
+		consumers.clear();
 	}
 	shared_ptr<Tensor> Placeholder::compute(std::initializer_list<shared_ptr<Tensor>> input)
 	{

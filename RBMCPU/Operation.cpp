@@ -9,6 +9,9 @@ namespace ct {
 
 	Operation::~Operation()
 	{
+		inputs.clear();
+		consumers.clear();
+		output.reset();
 	}
 
 	string Operation::type()
