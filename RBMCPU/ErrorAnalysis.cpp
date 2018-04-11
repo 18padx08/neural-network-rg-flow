@@ -27,8 +27,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 	for (int i = 0; i < 25000; i++) {
 		ising.monteCarloStep();
 	}
-	std::ofstream error_scatter("error_scatter.csv");
-	std::ofstream responseError("response_error.csv");
+	std::ofstream error_scatter("data/error_scatter.csv");
+	std::ofstream responseError("data/response_error.csv");
 	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	Session session(graph);
 	optimizers::ContrastiveDivergence cd(graph, 0.1, 0);
@@ -41,13 +41,20 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 		double corr = 0;
 		double secondCorr = 0;
 		vector<int> dims = { spinChainSize, batchsize };
+		std::ofstream of("data/error_gauss_mc_" + std::to_string(trial)+"_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize)  + ".csv");
 		for (int sam = 0; sam < batchsize; sam++) {
 			auto t = ising.getConfiguration();
+			double tmpCorr = 0;
+			double tmpSecondCorr = 0;
 			for (int i = 0; i < spinChainSize; i++) {
 				samples[i + sam * spinChainSize] = t[i] <= 0 ? -1 : 1;
+				tmpCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 1) % spinChainSize] <= 0 ? -1 : 1);
+				tmpSecondCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 2) % spinChainSize] <= 0 ? -1 : 1);
 				corr += (t[i] <= 0 ? -1 : 1) * (t[(i + 1) % spinChainSize] <= 0 ? -1 : 1);
 				secondCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 2) % spinChainSize] <= 0 ? -1 : 1);
+				
 			}
+			of << (double)tmpSecondCorr/spinChainSize << std::endl;
 			for (int i = 0; i < 3000; i++) {
 				ising.monteCarloStep();
 			}
@@ -70,7 +77,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { -2.0 }));
 		double prev = -1.0;
 		double next = -1.0;
-		std::ofstream of("error_test_" + std::to_string(trial) + ".csv");
+		//std::ofstream of("error_test_" + std::to_string(trial) + ".csv");
 		int counter = 0;
 		int events = 0;
 		double gradient = 0;
@@ -80,41 +87,41 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 		do {
 			if (counter % 50 == 0 && counter != 0) {
 				//check if average is smaller
-				if (abs(average - lastAverage) < 0.0001) break;
+				if (abs(average - lastAverage) < 0.00005) break;
 				lastAverage = average;
 				average = 0;
 				counter = 0;
 				loops++;
 			}
 			prev = *castNode->value;
-			session.run(feedDic, true, 10);
-			cd.optimize(10, 1.0, false);
+			session.run(feedDic, true, 1);
+			cd.optimize(1, 1.0, false);
 			next = *castNode->value;
-			of << (double)*castNode->value << std::endl;
+			//of << (double)*castNode->value << std::endl;
 			std::cout << "\r" << "                                              ";
 			std::cout << "\r" << (double)*castNode->value / 2.0;
 			counter++;
 
 			average = (double)*castNode->value / 2.0 / counter;
 		} while (true);
-		of.close();
+		//of.close();
 		std::cout << std::endl << "============ " << trial << " ==========" << std::endl;
 		std::cout << "thermalized after " << counter * loops << " steps: " << (double)*castNode->value << std::endl;
 		std::cout << "do some measurements" << std::endl;
-		std::ofstream newOf("error_gauss_" + to_string(trial) + ".csv");
+		std::ofstream newOf("data/error_gauss_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize) + ".csv");
 		double av = 0;
 		for (int batch = 0; batch < batchsize; batch++) {
-			session.run(feedDic, true, 100);
-			newCd.optimize(100, 1, true);
+			session.run(feedDic, true, 1);
+			newCd.optimize(1, 5, true);
 			av += abs(*castNode->value);
 			newOf << (double)*castNode->value << std::endl;
 		}
 		newOf.close();
-		error_scatter <<av / batchsize / 2.0 - beta << ", " << mcError << std::endl;
-		std::cout << "network error naive: " << av / batchsize / 2.0 - beta << std::endl;
+		error_scatter <<av / (batchsize) / 2.0 - beta << ", " << mcError << std::endl;
+		std::cout << "network error naive: " << av / (batchsize) / 2.0 - beta << std::endl;
 		std::cout << "mc error: " << mcError << std::endl;
 		std::cout << std::endl << "network was trained, now check network response" << std::endl;
-
+		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { av / batchsize }));
 		//initialize not so random random state
 		for (int theBatch = 0; theBatch < batchsize; theBatch++) {
 			for (int i = 0; i < spinChainSize; i++) {
@@ -132,13 +139,17 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 		double trainedHidden = 0;
 		auto chains = (*storageNode->storage[100]);
 		auto hiddenChain = (*hiddenStorage->storage[100]);
-#pragma omp parallel for reduction(+:trainedCorr, trainedHidden)
+		std::ofstream gauss("data/error_gauss_nn_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
 		for (int s = 0; s < batchsize; s++) {
-#pragma omp parallel for reduction(+:trainedCorr,trainedHidden)
+			double tmpCorr = 0;
+			double tmpHidden = 0;
 			for (int i = 0; i < spinChainSize; i+=2) {
+				tmpCorr+= chains[{i, s, 0}] * chains[{i + 2 % spinChainSize, s, 0}];
+				tmpHidden += hiddenChain[{i, s, 0}] * hiddenChain[{i + 1 % (spinChainSize / 2), s, 0}];
 				trainedCorr += chains[{i, s, 0}] * chains[{i+2%spinChainSize,s,0}];
 				trainedHidden += hiddenChain[{i, s, 0}] * hiddenChain[{i + 1 % (spinChainSize/2), s, 0}];
 			}
+			gauss << tmpCorr /( spinChainSize / 2.0) << "," << tmpHidden / (spinChainSize / 2.0) << std::endl;
 		}
 		
 		trainedCorr /= batchsize * (spinChainSize/2.0);
