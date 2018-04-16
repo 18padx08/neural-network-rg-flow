@@ -34,7 +34,7 @@
 using namespace ct;
 int main()
 {
-	RGFlowTest test;
+	
 	/*std::cout << "-- beta = 0.6 --" << std::endl;
 	test.plotConvergence(0.6);
 	std::cout << "-- beta = 0.8 --" << std::endl;
@@ -52,9 +52,17 @@ int main()
 	//test.testGibbsConvergence();
 	//test.cheatTest(1.4);
 	///test.plotRGFlow(1.0);
-	//test.plotRGFlowNew(1.0);
-	ErrorAnalysis analysis;
-	analysis.plotErrorOnTraining(1.0);
+	auto couplings = { 0.6,0.8,1.0,1.2,1.4 };
+	for (auto c : couplings) {
+		for (int i = 10; i <= 80; i *= 2) {
+			std::cout << std::endl <<  "-- bs=" << i << " --" << std::endl;
+			RGFlowTest test;
+			test.plotRGFlowNew(c, i);
+		}
+	}
+	
+	//ErrorAnalysis analysis;
+	//analysis.plotErrorOnTraining(1.0);
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();
