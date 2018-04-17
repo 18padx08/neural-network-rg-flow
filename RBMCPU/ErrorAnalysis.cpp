@@ -16,10 +16,10 @@ ErrorAnalysis::~ErrorAnalysis()
 {
 }
 
-void ErrorAnalysis::plotErrorOnTraining(double beta)
+void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 {
 	//batchsize
-	int batchsize = 10;
+	int batchsize = bs;
 	int spinChainSize = 512;
 	//we need a ising model
 	Ising1D ising(spinChainSize, beta, 1.0);
@@ -27,8 +27,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 	for (int i = 0; i < 25000; i++) {
 		ising.monteCarloStep();
 	}
-	std::ofstream error_scatter("data/error_scatter.csv");
-	std::ofstream responseError("data/response_error.csv");
+	std::ofstream error_scatter("data/error_scatter_" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) +".csv");
+	std::ofstream responseError("data/response_error" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) + ".csv");
 	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	Session session(graph);
 	optimizers::ContrastiveDivergence cd(graph, 0.1, 0);
@@ -41,7 +41,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 		double corr = 0;
 		double secondCorr = 0;
 		vector<int> dims = { spinChainSize, batchsize };
-		std::ofstream of("data/error_gauss_mc_" + std::to_string(trial)+"_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize)  + ".csv");
+		std::ofstream of("data/error_gauss_mc_bj=" + std::to_string(beta) + "_" + std::to_string(trial)+"_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize)  + ".csv");
 		for (int sam = 0; sam < batchsize; sam++) {
 			auto t = ising.getConfiguration();
 			double tmpCorr = 0;
@@ -87,7 +87,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 		do {
 			if (counter % 50 == 0 && counter != 0) {
 				//check if average is smaller
-				if (abs(average - lastAverage) < 0.00005) break;
+				if (abs(average - lastAverage) < 0.01*abs(average) * (1.0/sqrt(batchsize))) break;
 				lastAverage = average;
 				average = 0;
 				counter = 0;
@@ -102,13 +102,13 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 			std::cout << "\r" << (double)*castNode->value / 2.0;
 			counter++;
 
-			average = (double)*castNode->value / 2.0 / counter;
+			average += (double)*castNode->value / 2.0 / 50;
 		} while (true);
 		//of.close();
 		std::cout << std::endl << "============ " << trial << " ==========" << std::endl;
 		std::cout << "thermalized after " << counter * loops << " steps: " << (double)*castNode->value << std::endl;
 		std::cout << "do some measurements" << std::endl;
-		std::ofstream newOf("data/error_gauss_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize) + ".csv");
+		std::ofstream newOf("data/error_gauss_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize) + ".csv");
 		double av = 0;
 		for (int batch = 0; batch < batchsize; batch++) {
 			session.run(feedDic, true, 1);
@@ -139,7 +139,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta)
 		double trainedHidden = 0;
 		auto chains = (*storageNode->storage[100]);
 		auto hiddenChain = (*hiddenStorage->storage[100]);
-		std::ofstream gauss("data/error_gauss_nn_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
+		std::ofstream gauss("data/error_gauss_nn_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
 		for (int s = 0; s < batchsize; s++) {
 			double tmpCorr = 0;
 			double tmpHidden = 0;

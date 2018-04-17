@@ -37,7 +37,7 @@ public:
 	//use one batch to train the network and compare the monte carlo error to the network output error
 	//important quantities include visible correlation and hidden correlation and network parameter
 	//also check reconstruction error
-	void plotErrorOnTraining(double beta = 1.0);
+	void plotErrorOnTraining(double beta = 1.0, int bs=10);
 
 	//use a pretrained network (e.g. calculate the parameter analytically) and check the response error
 	void plotErrorOfResponse(double beta = 1.0);

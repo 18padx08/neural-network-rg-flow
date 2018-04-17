@@ -52,17 +52,24 @@ int main()
 	//test.testGibbsConvergence();
 	//test.cheatTest(1.4);
 	///test.plotRGFlow(1.0);
-	auto couplings = { 0.6,0.8,1.0,1.2,1.4 };
-	for (auto c : couplings) {
+	vector<double> couplings = { 0.8,1.0,1.2 };
+	vector<double> bs = { 10,20,40,80 };
+	/*for (auto c : couplings) {
 		for (int i = 10; i <= 80; i *= 2) {
 			std::cout << std::endl <<  "-- bs=" << i << " --" << std::endl;
 			RGFlowTest test;
 			test.plotRGFlowNew(c, i);
 		}
+	}*/
+#pragma omp parallel for
+	for (int i = 0; i < couplings.size(); i++) {
+#pragma omp parallel for
+		for (int j = 0; j < bs.size(); j++) {
+			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
+			ErrorAnalysis analysis;
+			analysis.plotErrorOnTraining(couplings[i], bs[j]);
+		}
 	}
-	
-	//ErrorAnalysis analysis;
-	//analysis.plotErrorOnTraining(1.0);
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();
