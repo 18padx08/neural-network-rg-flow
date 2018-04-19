@@ -13,6 +13,61 @@ double Ising1D::energyDiff(int index)
 	return after - before;
 }
 
+
+void Ising1D::buildCluster()
+{
+	cluster.clear();
+	std::uniform_real_distribution<double> prob(0, 1);
+	//choose random spin
+	int index = dist(generator);
+	//parallel loop left and right
+#pragma omp parallel sections
+	{
+#pragma omp section 
+		{
+			//go left
+			for (int i = index-1; i > 0; i--) {
+				double pro = prob(generator);
+				if (signbit((double)lattice[{i}]) == signbit((double)lattice[{index}]))
+				{
+					if (pro < 1.0 - exp(-2 * beta * J)) {
+						//add to cluster
+						cluster.push_back(i);
+					}
+				}
+				else {
+					break;
+				}
+			}
+		}
+#pragma omp section
+		{
+			//go right
+			for (int i = index + 1; i < this->lattice.latticeSize; i++) {
+				double pro = prob(generator);
+				if (signbit((double)lattice[{i}]) == signbit((double)lattice[{index}])) 
+				{
+					if (pro < 1.0 - exp(-2 * beta * J)) {
+						//add to cluster
+						cluster.push_back(i);
+					}
+				}
+				else {
+					break;
+				}
+			}
+		}
+	}
+}
+
+void Ising1D::flipCluster()
+{
+#pragma omp parallel for
+	for (int i = 0; i < cluster.size(); i++) {
+		this->lattice[{cluster[i]}] *= -1;
+	}
+}
+
 Ising1D::Ising1D(int size) : Ising1D(size, 0.01,-1) {}
 
 Ising1D::Ising1D(int size, double beta, double J) : lattice({size}),  beta(beta), J(J), dist(0,size-1),generator(time(NULL))
@@ -36,6 +91,7 @@ Ising1D::~Ising1D()
 	//this->lattice.~LatticeObject();
 }
 
+
 void Ising1D::monteCarloStep()
 {
 	//get random index 
@@ -47,6 +103,20 @@ void Ising1D::monteCarloStep()
 	if (prob < min(1.0, exp(-diff*beta))) {
 		this->lattice[{index}] *= -1;
 	}
+}
+
+void Ising1D::monteCarloSweep()
+{
+	//one monteCarlo sweep means going montecarlostep for 5 times lattice sides then wolff update
+	for (int i = 0; i < metropolisSweeps * this->lattice.latticeSize; i++) {
+		this->monteCarloStep();
+	}
+	//now build clusters
+	if (useWolff) {
+		buildCluster();
+		flipCluster();
+	}
+
 }
 
 vector<int> Ising1D::getConfiguration()

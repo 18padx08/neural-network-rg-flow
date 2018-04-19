@@ -320,8 +320,12 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 	}
 	map<string, shared_ptr<Tensor>> feedDic;
 	//thermalize montecarlo
-	for (int i = 0; i < 25000; i++) {
+	/*for (int i = 0; i < 25000; i++) {
 		ising.monteCarloStep();
+	}*/
+	ising.useWolff = true;
+	for (int i = 0; i < 1000; i++) {
+		ising.monteCarloSweep();
 	}
 
 	//create one batch of data
@@ -331,9 +335,10 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 		for (int i = 0; i < t.size(); i++) {
 			thermSamps[i + sam * t.size()] = t[i] <= 0 ? -1 : 1;
 		}
-		for (int j = 0; j < 1500; j++) {
+		/*for (int j = 0; j < 1500; j++) {
 			ising.monteCarloStep();
-		}
+		}*/
+		ising.monteCarloSweep();
 	}
 	//use this batch to thermalize through the layer
 	feedDic = { { "x", make_shared<Tensor>(Tensor(thermDims, thermSamps)) } };
@@ -427,9 +432,10 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 				for (int i = 0; i < t.size(); i++) {
 					samples[i + sam * t.size()] = t[i] <= 0 ? -1 : 1;
 				}
-				for (int j = 0; j < 1500; j++) {
+				/*for (int j = 0; j < 1500; j++) {
 					ising.monteCarloStep();
-				}
+				}*/
+				ising.monteCarloSweep();
 			}
 			//propagate the batch through the layer
 			if (it % 10 == 0) {

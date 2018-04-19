@@ -24,8 +24,12 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 	//we need a ising model
 	Ising1D ising(spinChainSize, beta, 1.0);
 	//thermalize the ising model
-	for (int i = 0; i < 25000; i++) {
+	/*for (int i = 0; i < 25000; i++) {
 		ising.monteCarloStep();
+	}*/
+	ising.useWolff = true;
+	for (int i = 0; i < 100; i++) {
+		ising.monteCarloSweep();
 	}
 	std::ofstream error_scatter("data/error_scatter_" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) +".csv");
 	std::ofstream responseError("data/response_error" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) + ".csv");
@@ -55,9 +59,10 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 				
 			}
 			of << (double)tmpSecondCorr/spinChainSize << std::endl;
-			for (int i = 0; i < 3000; i++) {
+			/*for (int i = 0; i < 3000; i++) {
 				ising.monteCarloStep();
-			}
+			}*/
+			ising.monteCarloSweep();
 		}
 		corr /= batchsize * spinChainSize;
 		secondCorr /= batchsize * spinChainSize;

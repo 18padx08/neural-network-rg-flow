@@ -61,9 +61,8 @@ int main()
 			test.plotRGFlowNew(c, i);
 		}
 	}*/
-#pragma omp parallel for
+
 	for (int i = 0; i < couplings.size(); i++) {
-#pragma omp parallel for
 		for (int j = 0; j < bs.size(); j++) {
 			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
 			ErrorAnalysis analysis;
