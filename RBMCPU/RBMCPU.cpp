@@ -30,6 +30,7 @@
 #include "ContrastiveDivergence.h"
 #include "RGFlowTest.h"
 #include "ErrorAnalysis.h"
+#include "Phi4Test.h"
 
 using namespace ct;
 int main()
@@ -61,14 +62,16 @@ int main()
 			test.plotRGFlowNew(c, i);
 		}
 	}*/
-
-	for (int i = 0; i < couplings.size(); i++) {
+	Phi4Test test;
+	test.run();
+	/*for (int i = 0; i < couplings.size(); i++) {
 		for (int j = 0; j < bs.size(); j++) {
 			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
 			ErrorAnalysis analysis;
 			analysis.plotErrorOnTraining(couplings[i], bs[j]);
 		}
-	}
+	}*/
+
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();

@@ -49,6 +49,9 @@
     <Filter Include="ComputationTree\Nodes\Optimizers">
       <UniqueIdentifier>{272a68ad-b851-476a-96a2-cb7f09805c08}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Phi4">
+      <UniqueIdentifier>{a5251971-ba28-467d-983e-a3adb4dbf50d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -162,6 +165,12 @@
     <ClInclude Include="ErrorAnalysis.h">
       <Filter>Tests</Filter>
     </ClInclude>
+    <ClInclude Include="Phi1D.h">
+      <Filter>Phi4</Filter>
+    </ClInclude>
+    <ClInclude Include="Phi4Test.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -270,6 +279,12 @@
       <Filter>ComputationTree\Nodes\Optimizers</Filter>
     </ClCompile>
     <ClCompile Include="ErrorAnalysis.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Phi1D.cpp">
+      <Filter>Phi4</Filter>
+    </ClCompile>
+    <ClCompile Include="Phi4Test.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
   </ItemGroup>
