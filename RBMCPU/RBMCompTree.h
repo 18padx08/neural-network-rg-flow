@@ -5,6 +5,7 @@
 #include "ProbPooling.h"
 #include "RGLayer.h"
 #include "Graph.h"
+#include "RGFlowCont.h"
 namespace ct {
 	class RBMCompTree
 	{

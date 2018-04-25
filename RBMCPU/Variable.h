@@ -15,6 +15,7 @@ namespace ct {
 		virtual string type() override;
 
 		shared_ptr<Tensor> value;
+		string name;
 
 		// Inherited via Node
 		virtual shared_ptr<Tensor> compute(std::vector<shared_ptr<Tensor>> input) override;

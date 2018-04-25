@@ -171,6 +171,9 @@
     <ClInclude Include="Phi4Test.h">
       <Filter>Tests</Filter>
     </ClInclude>
+    <ClInclude Include="RGFlowCont.h">
+      <Filter>ComputationTree\Nodes\Operations</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -286,6 +289,9 @@
     </ClCompile>
     <ClCompile Include="Phi4Test.cpp">
       <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="RGFlowCont.cpp">
+      <Filter>ComputationTree\Nodes\Operations</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

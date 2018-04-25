@@ -79,7 +79,15 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		//stop thermalization when gradient is flat
 		feedDic = { {"x",   make_shared<Tensor>(dims, samples) } };
 		auto castNode = dynamic_pointer_cast<Variable>(graph->variables[0]);
+		if (castNode->name != "A") {
+			castNode = dynamic_pointer_cast<Variable>(graph->variables[1]);
+		}
 		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { -2.0 }));
+		auto scaling = dynamic_pointer_cast<Variable>(graph->variables[1]);
+		if (scaling->name != "s") {
+			scaling = dynamic_pointer_cast<Variable>(graph->variables[0]);
+		}
+		scaling->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
 		double prev = -1.0;
 		double next = -1.0;
 		//std::ofstream of("error_test_" + std::to_string(trial) + ".csv");
@@ -104,7 +112,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			next = *castNode->value;
 			//of << (double)*castNode->value << std::endl;
 			std::cout << "\r" << "                                              ";
-			std::cout << "\r" << (double)*castNode->value / 2.0;
+			std::cout << "\r" << (double)*castNode->value / 2.0 << "   "  << (double)*scaling->value / 2.0;
 			counter++;
 
 			average += (double)*castNode->value / 2.0 / 50;
@@ -138,8 +146,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		feedDic = { { "x", make_shared<Tensor>(dims,samples) } };
 		session.run(feedDic, true, 100);
 		std::cout << "Gibbs sampling finished, calculate mean" << std::endl;
-		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_pooled"]);
-		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"]);
+		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
+		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"]);
 		double trainedCorr = 0;
 		double trainedHidden = 0;
 		auto chains = (*storageNode->storage[100]);
@@ -152,6 +160,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 				tmpCorr+= chains[{i, s, 0}] * chains[{i + 2 % spinChainSize, s, 0}];
 				tmpHidden += hiddenChain[{i, s, 0}] * hiddenChain[{i + 1 % (spinChainSize / 2), s, 0}];
 				trainedCorr += chains[{i, s, 0}] * chains[{i+2%spinChainSize,s,0}];
+				//std::cout << hiddenChain[{i, s, 0}] << std::endl;
 				trainedHidden += hiddenChain[{i, s, 0}] * hiddenChain[{i + 1 % (spinChainSize/2), s, 0}];
 			}
 			gauss << tmpCorr /( spinChainSize / 2.0) << "," << tmpHidden / (spinChainSize / 2.0) << std::endl;
