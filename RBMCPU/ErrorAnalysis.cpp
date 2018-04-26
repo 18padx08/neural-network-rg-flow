@@ -50,7 +50,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			auto t = ising.getConfiguration();
 			double tmpCorr = 0;
 			double tmpSecondCorr = 0;
-			for (int i = 0; i < spinChainSize; i++) {
+			for (int i = 0; i < spinChainSize; i+=2) {
 				samples[i + sam * spinChainSize] = t[i] <= 0 ? -1 : 1;
 				tmpCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 1) % spinChainSize] <= 0 ? -1 : 1);
 				tmpSecondCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 2) % spinChainSize] <= 0 ? -1 : 1);
@@ -58,14 +58,14 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 				secondCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 2) % spinChainSize] <= 0 ? -1 : 1);
 				
 			}
-			of << (double)tmpSecondCorr/spinChainSize << std::endl;
+			of << (double)tmpSecondCorr/(spinChainSize/2.0) << std::endl;
 			/*for (int i = 0; i < 3000; i++) {
 				ising.monteCarloStep();
 			}*/
 			ising.monteCarloSweep();
 		}
-		corr /= batchsize * spinChainSize;
-		secondCorr /= batchsize * spinChainSize;
+		corr /= batchsize * (spinChainSize/2.0);
+		secondCorr /= batchsize * (spinChainSize/2.0);
 		auto betaj = atanh(corr);
 		auto mcError = betaj - beta;
 
@@ -109,6 +109,12 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 
 			average += (double)*castNode->value / 2.0 / 50;
 		} while (true);
+		for (int i = 0; i < 400; i++) {
+			session.run(feedDic, true, 1);
+			newCd.optimize(1, 5, true);
+			std::cout << "\r" << "                                              ";
+			std::cout << "\r" << (double)*castNode->value / 2.0;
+		}
 		//of.close();
 		std::cout << std::endl << "============ " << trial << " ==========" << std::endl;
 		std::cout << "thermalized after " << counter * loops << " steps: " << (double)*castNode->value << std::endl;
@@ -136,14 +142,14 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		std::cout << "Batch initialized, lets Gibbs Sample" << std::endl;
 		feedDic.clear();
 		feedDic = { { "x", make_shared<Tensor>(dims,samples) } };
-		session.run(feedDic, true, 100);
+		session.run(feedDic, true, 500);
 		std::cout << "Gibbs sampling finished, calculate mean" << std::endl;
 		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_pooled"]);
 		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"]);
 		double trainedCorr = 0;
 		double trainedHidden = 0;
-		auto chains = (*storageNode->storage[100]);
-		auto hiddenChain = (*hiddenStorage->storage[100]);
+		auto chains = (*storageNode->storage[500]);
+		auto hiddenChain = (*hiddenStorage->storage[500]);
 		std::ofstream gauss("data/error_gauss_nn_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
 		for (int s = 0; s < batchsize; s++) {
 			double tmpCorr = 0;

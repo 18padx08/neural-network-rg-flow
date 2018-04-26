@@ -392,7 +392,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 				auto diff = abs(average - lastAverage);
 				lastEpsilon = epsilon;
 				epsilon = abs((1.0 / sqrt(batchSize)) * average);
-				if ((diff < epsilon) || abs(average) < 10e-6)
+				if ((diff < epsilon) || abs(average) < 10e-10)
 				{
 					lastAverage = 0;
 					average = 0;
@@ -425,7 +425,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 	std::cout << "== Thermalized ==" << std::endl;
 	std::ofstream output("rg_flow_comb_betaj=" + std::to_string(startingBeta) + "_bs=" + std::to_string(batchSize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
 	for (int layer = 0; layer < num_layers; layer++) {
-		for (int it = 0; it < max_iterations; it++) {
+		for (int it = 0; it < max_iterations*4; it++) {
 			//each iterations needs a new batch
 			for (int sam = 0; sam < batchSize; sam++) {
 				auto t = ising.getConfiguration();
@@ -459,7 +459,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 			if (it % 10 == 0) {
 				std::cout << " " << (double)*(var->value) / 2.0 << " ";
 			}
-			if (it > 200) {
+			if (it > (4*max_iterations) -200) {
 				output << (double) *(var->value) / 2.0 << ",";
 			}
 		}
