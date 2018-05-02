@@ -50,13 +50,15 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			auto t = ising.getConfiguration();
 			double tmpCorr = 0;
 			double tmpSecondCorr = 0;
-			for (int i = 0; i < spinChainSize; i+=2) {
+			for (int i = 0; i < spinChainSize; i++) {
 				samples[i + sam * spinChainSize] = t[i] <= 0 ? -1 : 1;
-				tmpCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 1) % spinChainSize] <= 0 ? -1 : 1);
-				tmpSecondCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 2) % spinChainSize] <= 0 ? -1 : 1);
-				corr += (t[i] <= 0 ? -1 : 1) * (t[(i + 1) % spinChainSize] <= 0 ? -1 : 1);
-				secondCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 2) % spinChainSize] <= 0 ? -1 : 1);
-				
+				//only every second to have same statistics as for neural net
+				if (i % 2 == 0) {
+					tmpCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 1) % spinChainSize] <= 0 ? -1 : 1);
+					tmpSecondCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 2) % spinChainSize] <= 0 ? -1 : 1);
+					corr += (t[i] <= 0 ? -1 : 1) * (t[(i + 1) % spinChainSize] <= 0 ? -1 : 1);
+					secondCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 2) % spinChainSize] <= 0 ? -1 : 1);
+				}
 			}
 			of << (double)tmpSecondCorr/(spinChainSize/2.0) << std::endl;
 			/*for (int i = 0; i < 3000; i++) {
@@ -109,7 +111,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 
 			average += (double)*castNode->value / 2.0 / 50;
 		} while (true);
-		for (int i = 0; i < 400; i++) {
+		for (int i = 0; i < 800; i++) {
 			session.run(feedDic, true, 1);
 			newCd.optimize(1, 5, true);
 			std::cout << "\r" << "                                              ";
