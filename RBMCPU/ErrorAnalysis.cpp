@@ -1,5 +1,5 @@
 #include "ErrorAnalysis.h"
-
+#include "Phi1D.h"
 
 
 double ErrorAnalysis::errorMonteCarlo(shared_ptr<Tensor> samples)
@@ -22,13 +22,14 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 	int batchsize = bs;
 	int spinChainSize = 512;
 	//we need a ising model
-	Ising1D ising(spinChainSize, beta, 1.0);
+	Phi1D ising(spinChainSize, beta, 0.0, 0, beta);
 	//thermalize the ising model
 	/*for (int i = 0; i < 25000; i++) {
 		ising.monteCarloStep();
 	}*/
+	double maximum = 0.0;
 	ising.useWolff = true;
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 500; i++) {
 		ising.monteCarloSweep();
 	}
 	std::ofstream error_scatter("data/error_scatter_" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) +".csv");
@@ -48,14 +49,15 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		std::ofstream of("data/error_gauss_mc_bj=" + std::to_string(beta) + "_" + std::to_string(trial)+"_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize)  + ".csv");
 		for (int sam = 0; sam < batchsize; sam++) {
 			auto t = ising.getConfiguration();
+			maximum += ising.getMax();
 			double tmpCorr = 0;
 			double tmpSecondCorr = 0;
 			for (int i = 0; i < spinChainSize; i++) {
-				samples[i + sam * spinChainSize] = t[i] <= 0 ? -1 : 1;
-				tmpCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 1) % spinChainSize] <= 0 ? -1 : 1);
-				tmpSecondCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 2) % spinChainSize] <= 0 ? -1 : 1);
-				corr += (t[i] <= 0 ? -1 : 1) * (t[(i + 1) % spinChainSize] <= 0 ? -1 : 1);
-				secondCorr += (t[i] <= 0 ? -1 : 1) * (t[(i + 2) % spinChainSize] <= 0 ? -1 : 1);
+				samples[i + sam * spinChainSize] = t[i] ;
+				tmpCorr += (t[i]) * (t[(i + 1) % spinChainSize] );
+				tmpSecondCorr += (t[i] ) * (t[(i + 2) % spinChainSize] );
+				corr += (t[i] ) * (t[(i + 1) % spinChainSize] );
+				secondCorr += (t[i] ) * (t[(i + 2) % spinChainSize] );
 				
 			}
 			of << (double)tmpSecondCorr/spinChainSize << std::endl;
@@ -64,8 +66,9 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			}*/
 			ising.monteCarloSweep();
 		}
-		corr /= batchsize * spinChainSize;
-		secondCorr /= batchsize * spinChainSize;
+		maximum /= batchsize;
+		corr /= batchsize * spinChainSize /maximum;
+		secondCorr /= batchsize * spinChainSize /maximum;
 		auto betaj = atanh(corr);
 		auto mcError = betaj - beta;
 
@@ -82,12 +85,12 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		if (castNode->name != "A") {
 			castNode = dynamic_pointer_cast<Variable>(graph->variables[1]);
 		}
-		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { -2.0 }));
+		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { -beta*2 }));
 		auto scaling = dynamic_pointer_cast<Variable>(graph->variables[1]);
 		if (scaling->name != "s") {
 			scaling = dynamic_pointer_cast<Variable>(graph->variables[0]);
 		}
-		scaling->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
+		scaling->value = make_shared<Tensor>(Tensor({ 1 }, { 1.0 }));
 		double prev = -1.0;
 		double next = -1.0;
 		//std::ofstream of("error_test_" + std::to_string(trial) + ".csv");
@@ -107,8 +110,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 				loops++;
 			}
 			prev = *castNode->value;
-			session.run(feedDic, true, 1);
-			cd.optimize(1, 1.0, false);
+			session.run(feedDic, true, 10);
+			cd.optimize(10, 1.0, true);
 			next = *castNode->value;
 			//of << (double)*castNode->value << std::endl;
 			std::cout << "\r" << "                                              ";
@@ -118,14 +121,20 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			average += (double)*castNode->value / 2.0 / 50;
 		} while (true);
 		//of.close();
+		/*for (int i = 0; i < 1000; i++) {
+			session.run(feedDic, true, 1);
+			//cd.optimize(1, 1.0, true);
+			std::cout << "\r" << "                                              ";
+			std::cout << "\r" << (double)*castNode->value / 2.0 << "   " << (double)*scaling->value / 2.0;
+		}*/
 		std::cout << std::endl << "============ " << trial << " ==========" << std::endl;
 		std::cout << "thermalized after " << counter * loops << " steps: " << (double)*castNode->value << std::endl;
 		std::cout << "do some measurements" << std::endl;
 		std::ofstream newOf("data/error_gauss_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize) + ".csv");
 		double av = 0;
 		for (int batch = 0; batch < batchsize; batch++) {
-			session.run(feedDic, true, 1);
-			newCd.optimize(1, 5, true);
+			session.run(feedDic, true, 10);
+			newCd.optimize(10, 5, true);
 			av += abs(*castNode->value);
 			newOf << (double)*castNode->value << std::endl;
 		}
@@ -153,27 +162,29 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		auto chains = (*storageNode->storage[100]);
 		auto hiddenChain = (*hiddenStorage->storage[100]);
 		std::ofstream gauss("data/error_gauss_nn_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
+		int counter2 = 0;
 		for (int s = 0; s < batchsize; s++) {
 			double tmpCorr = 0;
 			double tmpHidden = 0;
-			for (int i = 0; i < spinChainSize; i+=2) {
-				tmpCorr+= chains[{i, s, 0}] * chains[{i + 2 % spinChainSize, s, 0}];
-				tmpHidden += hiddenChain[{i, s, 0}] * hiddenChain[{i + 1 % (spinChainSize / 2), s, 0}];
-				trainedCorr += chains[{i, s, 0}] * chains[{i+2%spinChainSize,s,0}];
+			for (int i = 0; i < spinChainSize/2; i++) {
+				tmpCorr+= chains[{2*i, s, 0}] * chains[{(2*i + 2) % spinChainSize, s, 0}];
+				tmpHidden += hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1) % (spinChainSize / 2), s, 0}];
+				trainedCorr += chains[{2*i, s, 0}] * chains[{(2*i+2)%spinChainSize,s,0}];
 				//std::cout << hiddenChain[{i, s, 0}] << std::endl;
-				trainedHidden += hiddenChain[{i, s, 0}] * hiddenChain[{i + 1 % (spinChainSize/2), s, 0}];
+				trainedHidden += hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1) % (spinChainSize/2), s, 0}];
+				counter2++;
 			}
 			gauss << tmpCorr /( spinChainSize / 2.0) << "," << tmpHidden / (spinChainSize / 2.0) << std::endl;
 		}
 		
-		trainedCorr /= batchsize * (spinChainSize/2.0);
-		trainedHidden /= batchsize * (spinChainSize / 2.0);
+		trainedCorr /= counter2;
+		trainedHidden /= counter2;
 		responseError << -pow(tanh(beta), 2) + trainedCorr << "," << -pow(tanh(beta), 2) + secondCorr << "," << trainedHidden -pow(tanh(beta), 2) << std::endl;
 		std::cout << std::endl;
 		std::cout << "correlation network " << trainedCorr << std::endl;
 		std::cout << "correlation mc " << secondCorr << std::endl;
 		std::cout << "hidden network" << trainedHidden << std::endl;
-		std::cout << "theoretical value " << pow(tanh(beta), 2) << " mc error: " << -pow(tanh(beta),2) + secondCorr << " nn error " << -pow(tanh(beta), 2) + trainedCorr <<std::endl;
+		std::cout << " mc error - visible : " << -trainedCorr + secondCorr << " mc - hidden " <<  - trainedHidden + secondCorr <<std::endl;
 		std::cout << std::endl;
 		std::cout << "============" << std::endl;
 		responseError.flush();

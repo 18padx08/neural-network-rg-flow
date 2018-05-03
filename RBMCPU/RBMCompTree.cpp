@@ -21,15 +21,12 @@ namespace ct {
 		auto scaling = make_shared<Variable>(Variable());
 		scaling->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
 		scaling->name = "s";
-		auto positive = make_shared<RGFlowCont>(RGFlowCont(optPl, coupling, scaling, false));
-		//sigmoid is in RGlayer implemented
-		//auto sigmoid1 = make_shared<Sigmoid>(Sigmoid(positive));
+		auto positive = make_shared<RGFlowCont>(RGFlowCont(storeVisible, coupling, scaling, false));
+
 		auto storeHidden_raw = make_shared<Storage>(Storage(positive, "hiddens_raw"));
-		//auto hiddens = make_shared<ProbPooling>(ProbPooling(storeHidden_raw));
-		//auto storeHidden = make_shared<Storage>(Storage(hiddens, "hiddens_pooled"));
+
 		auto negative = make_shared<RGFlowCont>(RGFlowCont(storeHidden_raw, coupling, scaling, true));
-		//sigmoid is in RGlayer implemented
-		//auto sigmoid2 = make_shared<Sigmoid>(Sigmoid(negative));
+
 		auto storeVisible_raw= make_shared<Storage>(Storage(negative, "visibles_raw"));
 		auto visible = make_shared<ProbPooling>(ProbPooling(storeVisible_raw));
 		auto graph = shared_ptr<Graph>(new Graph(visible));

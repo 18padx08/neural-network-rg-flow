@@ -27,7 +27,7 @@ namespace ct {
 		}
 		void ContrastiveDivergence::optimize(int k, double betaJ, bool useLR)
 		{
-			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_raw"]))->storage[0]);
+			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"]))->storage[0]);
 			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[0]);
 			auto vis_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_raw"]))->storage[k]);
 			auto hid_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[k]);
@@ -50,14 +50,14 @@ namespace ct {
 			for (int s = 0; s < samples; s++) {
 #pragma omp parallel for reduction(+:delta,test, exp_hid0, exp_hidn)
 				for (int i = 0; i < hidDimx; i++) {
-					auto corrNNN = vis_0[{2 * i,s}] * vis_0[{(2 * i + 2) % hidDimx,s}];
-					auto corrNNN_n = vis_n[{2 * i,s}] * vis_n[{(2 * i + 2) % hidDimx,s}];
-					auto corrNNN_n_delta = vis_n[{2 * i, s,1}] * vis_n[{(2 * i + 2) % hidDimx, s,1}];
+					auto corrNNN = vis_0[{2 * i,s}] * vis_0[{(2 * i + 2) % visDimx,s}];
+					auto corrNNN_n = vis_n[{2 * i,s}] * vis_n[{(2 * i + 2) % visDimx,s}];
+					auto corrNNN_n_delta = vis_n[{2 * i, s,1}] * vis_n[{(2 * i + 2) % visDimx, s,1}];
 					delta += (corrNNN_n - corrNNN);
-					test += (corrNNN_n_delta - corrNNN);
+					test += corrNNN_n_delta - corrNNN;
 					if (isCont) {
-						exp_hid0 += pow(hid_0[{i, s}], 2);
-						exp_hidn += pow(hid_n[{i, s}], 2);
+						exp_hid0 += pow(vis_0[{2*i, s}], 2);
+						exp_hidn += pow(vis_n[{2*i, s}], 2);
 					}
 				}
 			}
@@ -68,30 +68,36 @@ namespace ct {
 				coupling = dynamic_pointer_cast<Variable>(theGraph->variables[1]);
 			}
 			delta /= samples*hidDimx;
+			
 			test /= samples * hidDimx;
 			exp_hid0 /= samples * hidDimx;
 			exp_hidn /= samples * hidDimx;
+
+			//std::cout << std::endl << delta << "  " << exp_hidn - exp_hid0 << std::endl;
 			auto blub =  abs(((test - delta)/0.05));
 			//std::cout << test << "  " << delta << std::endl;
-			//std::cout << std::endl << blub << std::endl;
+			//std::cout << std::endl << delta << std::endl;
 			delta *= useLR? learningRate : blub;
 			//absolute boundary of delta: not bigger than 20 % of the current value of the coupling (prevent going to far away from 0)
-			if (abs(delta) >  abs(*(coupling->value))) {
+			/*if (abs(delta) >  abs(*(coupling->value))) {
 				delta = 0.2 * abs(*(coupling->value)) * (signbit(delta)? -1.0 : 1.0);
 				//std::cout << "some problems indeed";
-			}
+			}*/
 			//update the coupling for now only one
 			if (isCont) {
 				auto scaling = dynamic_pointer_cast<Variable>(theGraph->variables[1]);
 				if (scaling->name != "s") {
 					scaling = dynamic_pointer_cast<Variable>(theGraph->variables[0]);
 				}
-			//	*(scaling->value) = *(scaling->value) + Tensor({ 1 }, { (1.0 / pow(*(coupling->value),2))*learningRate * (exp_hidn - exp_hid0) });
+				*(scaling->value) = *(scaling->value) + Tensor({ 1 }, { (1.0 / pow(*(scaling->value),2))*learningRate * (exp_hidn - exp_hid0) });
 			}
 			//std::cout << std::endl <<  delta << std::endl;
 			*(coupling->value) = *(coupling->value)  +  Tensor({ 1 }, {+delta}) + Tensor({ 1 }, {lastUpdate * momentum});
 			
 			lastUpdate = delta;
+
+			//update kappa regarding constraints from mass term parameter
+			*(coupling->value) = *(coupling->value) +  Tensor({ 1 }, { (-2 * (double)*(coupling->value) * delta + learningRate *(exp_hidn - exp_hid0)) });
 			coupling.reset();
 		}
 	}

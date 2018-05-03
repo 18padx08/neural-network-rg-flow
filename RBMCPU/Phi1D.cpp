@@ -121,14 +121,9 @@ void Phi1D::monteCarloSweep()
 vector<double> Phi1D::getConfiguration()
 {
 	vector<double> v;
+	double avgPhi = getMax();
 	for (int i = 0; i < this->lattice.latticeSize; i++) {
-		if (this->lattice[{i}] == -1) {
-			v.push_back(0);
-		}
-		else {
-			v.push_back(this->lattice[{i}]);
-		}
-
+		v.push_back(this->lattice[{i}]/avgPhi);
 	}
 	return v;
 }
@@ -161,6 +156,27 @@ double Phi1D::squaredVolumeAverage()
 		average += pow(lattice[{i}],2);
 	}
 	return average / lattice.latticeSize;
+}
+
+double Phi1D::total()
+{
+	auto average = 0.0;
+#pragma omp parallel for reduction(+:average)
+	for (int i = 0; i < lattice.latticeSize; i++) {
+		average += lattice[{i}];
+	}
+	return average;
+}
+
+double Phi1D::getMax()
+{
+	double max = 0;
+	for (int i = 0; i < lattice.latticeSize; i++) {
+		if (abs(lattice[{i}]) > max) {
+			max = abs(lattice[{i}]);
+		}
+	}
+	return max;
 }
 
 void Phi1D::thermalize()

@@ -53,7 +53,7 @@ int main()
 	//test.testGibbsConvergence();
 	//test.cheatTest(1.4);
 	///test.plotRGFlow(1.0);
-	vector<double> couplings = { 0.8,1.0,1.2 };
+	vector<double> couplings = { 0.4,1.0,1.2 };
 	vector<double> bs = { 10,20,40,80 };
 	/*for (auto c : couplings) {
 		for (int i = 10; i <= 80; i *= 2) {

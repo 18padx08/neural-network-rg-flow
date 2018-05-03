@@ -33,6 +33,8 @@ public:
 	double volumeAverage();
 	double absoluteVolumeAverage();
 	double squaredVolumeAverage();
+	double total();
+	double getMax();
 	void thermalize();
 	void changeBeta(double newBeta);
 	void changeLambda(double newLambda);
