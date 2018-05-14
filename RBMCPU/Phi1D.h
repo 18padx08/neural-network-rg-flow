@@ -23,6 +23,8 @@ private:
 	double kappa;
 	double lambda;
 	double m;
+	vector<std::normal_distribution<double>> dist_for_fft;
+	double pi = 3.14159;
 public:
 	Phi1D(int size, double kappa, double lambda, double m, double beta);
 	~Phi1D();
@@ -30,6 +32,7 @@ public:
 	void monteCarloStep();
 	void monteCarloSweep();
 	vector<double> getConfiguration();
+	void fftUpdate();
 	double volumeAverage();
 	double absoluteVolumeAverage();
 	double squaredVolumeAverage();

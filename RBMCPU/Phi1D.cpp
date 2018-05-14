@@ -1,4 +1,6 @@
 #include "Phi1D.h"
+#include <complex>
+#include "FFT.cpp"
 #include "../CudaTest/LatticeObject.cpp"
 
 
@@ -83,12 +85,13 @@ void Phi1D::flipCluster()
 }
 
 
-Phi1D::Phi1D(int size, double kappa, double lambda, double m, double beta) : beta(beta), lattice({ size }), kappa(kappa), lambda(lambda), m(m), dist(0, size - 1), generator(time(NULL))
+Phi1D::Phi1D(int size, double kappa, double lambda, double m, double beta) : dist_for_fft(size), beta(beta), lattice({ size }), kappa(kappa), lambda(lambda), m(m), dist(0, size - 1), generator(time(NULL))
 {
 	for (int i = 0; i < lattice.dimensions[0]; i++) {
 		uniform_real_distribution<double> deltaDist(-1.5, 1.5);
 		lattice[{i}] = deltaDist(generator);
-	}
+		dist_for_fft[i] = std::normal_distribution<double>(0, 1 - 2*kappa*std::cos(i * 2 * pi / size));
+ 	}
 	this->tau = lattice.latticeSize / 10.0;
 }
 
@@ -126,6 +129,25 @@ vector<double> Phi1D::getConfiguration()
 		v.push_back(this->lattice[{i}]/avgPhi);
 	}
 	return v;
+}
+
+//if lambda is equals to zero, we can use the fact that the action can be diagonalized
+void Phi1D::fftUpdate()
+{
+	assert(lambda == 0);
+	vector<complex<double>> v_hat(lattice.dimensions[0]);
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+		v_hat[i] = dist_for_fft[i](generator);
+	}
+	//fourier transform result
+	auto result = fft::fft(v_hat);
+	vector<double> newRes(lattice.dimensions[0]);
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+		//result should be real
+		assert(result[i].imag() < 1e-6);
+		lattice[{i}] = result[i].real();
+	}
+
 }
 
 double Phi1D::volumeAverage()

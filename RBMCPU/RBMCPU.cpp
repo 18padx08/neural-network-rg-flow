@@ -31,11 +31,14 @@
 #include "RGFlowTest.h"
 #include "ErrorAnalysis.h"
 #include "Phi4Test.h"
+#include "FFTTest.h"
+#include "TestFFTUpdate.h"
 
 using namespace ct;
 int main()
 {
-	
+	TestFFTUpdate test;
+	test.run();
 	/*std::cout << "-- beta = 0.6 --" << std::endl;
 	test.plotConvergence(0.6);
 	std::cout << "-- beta = 0.8 --" << std::endl;
@@ -53,8 +56,8 @@ int main()
 	//test.testGibbsConvergence();
 	//test.cheatTest(1.4);
 	///test.plotRGFlow(1.0);
-	vector<double> couplings = { 0.4,1.0,1.2 };
-	vector<double> bs = { 10,20,40,80 };
+	//vector<double> couplings = { 0.4,1.0,1.2 };
+	//vector<double> bs = { 10,20,40,80 };
 	/*for (auto c : couplings) {
 		for (int i = 10; i <= 80; i *= 2) {
 			std::cout << std::endl <<  "-- bs=" << i << " --" << std::endl;
@@ -64,13 +67,13 @@ int main()
 	}*/
 	//Phi4Test test;
 	//test.run();
-	for (int i = 0; i < couplings.size(); i++) {
+	/*for (int i = 0; i < couplings.size(); i++) {
 		for (int j = 0; j < bs.size(); j++) {
 			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
 			ErrorAnalysis analysis;
 			analysis.plotErrorOnTraining(couplings[i], bs[j]);
 		}
-	}
+	}*/
 
 	/*srand(time(NULL));
 	TIRBMTest tTest;

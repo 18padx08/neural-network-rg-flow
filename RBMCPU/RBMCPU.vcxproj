@@ -168,6 +168,8 @@
     <ClInclude Include="DBM.h" />
     <ClInclude Include="DBMTest.h" />
     <ClInclude Include="ErrorAnalysis.h" />
+    <ClInclude Include="FFT.h" />
+    <ClInclude Include="FFTTest.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="MNISTData.h" />
     <ClInclude Include="MNISTTest.h" />
@@ -193,6 +195,7 @@
     <ClInclude Include="SymmetryTest.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Tensor.h" />
+    <ClInclude Include="TestFFTUpdate.h" />
     <ClInclude Include="TIRBM.h" />
     <ClInclude Include="TIRBMTest.h" />
     <ClInclude Include="TranslationSymmetry.h" />
@@ -210,6 +213,8 @@
     <ClCompile Include="DBM.cpp" />
     <ClCompile Include="DBMTest.cpp" />
     <ClCompile Include="ErrorAnalysis.cpp" />
+    <ClCompile Include="FFT.cpp" />
+    <ClCompile Include="FFTTest.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="MNISTData.cpp" />
     <ClCompile Include="MNISTTest.cpp" />
@@ -234,6 +239,7 @@
     <ClCompile Include="SymmetryCombination.cpp" />
     <ClCompile Include="SymmetryTest.cpp" />
     <ClCompile Include="Tensor.cpp" />
+    <ClCompile Include="TestFFTUpdate.cpp" />
     <ClCompile Include="TIRBM.cpp" />
     <ClCompile Include="TIRBMTest.cpp" />
     <ClCompile Include="TranslationSymmetry.cpp" />
