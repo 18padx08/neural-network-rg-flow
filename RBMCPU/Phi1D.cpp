@@ -1,6 +1,7 @@
 #include "Phi1D.h"
 #include <complex>
 #include "FFT.cpp"
+#include <assert.h>
 #include "../CudaTest/LatticeObject.cpp"
 
 
@@ -90,7 +91,9 @@ Phi1D::Phi1D(int size, double kappa, double lambda, double m, double beta) : dis
 	for (int i = 0; i < lattice.dimensions[0]; i++) {
 		uniform_real_distribution<double> deltaDist(-1.5, 1.5);
 		lattice[{i}] = deltaDist(generator);
-		dist_for_fft[i] = std::normal_distribution<double>(0, 1 - 2*kappa*std::cos(i * 2 * pi / size));
+		auto sigma =  1.0 / sqrt(2.0)* sqrt(lattice.dimensions[0])/ std::sqrt((1 - 2*kappa*std::cos(i * 2 * pi / size)));
+		//std::cout << sigma << std::endl;
+		dist_for_fft[i] = std::normal_distribution<double>(0, sigma);
  	}
 	this->tau = lattice.latticeSize / 10.0;
 }
@@ -135,17 +138,29 @@ vector<double> Phi1D::getConfiguration()
 void Phi1D::fftUpdate()
 {
 	assert(lambda == 0);
+	auto rand = std::uniform_real_distribution<double>(0, 2 * pi);
 	vector<complex<double>> v_hat(lattice.dimensions[0]);
-	for (int i = 0; i < lattice.dimensions[0]; i++) {
-		v_hat[i] = dist_for_fft[i](generator);
+	for (int i = 1; i <= lattice.dimensions[0]/2; i++) {
+		auto tmp = dist_for_fft[i](generator);
+		v_hat[i] = { tmp, 0.0 };
+		v_hat[lattice.dimensions[0] - i] = { tmp,0.0 };
+		//std::cout << v_hat[i] << std::endl;
 	}
+	v_hat[0] = 0;
 	//fourier transform result
-	auto result = fft::fft(v_hat);
+	auto result = fft::ifft(v_hat);
 	vector<double> newRes(lattice.dimensions[0]);
+	auto N = lattice.dimensions[0];
 	for (int i = 0; i < lattice.dimensions[0]; i++) {
 		//result should be real
-		assert(result[i].imag() < 1e-6);
-		lattice[{i}] = result[i].real();
+		//std::cout << result[i] << std::endl;
+		result[i] *=1.0 / (double)N;
+		if (abs(result[i].imag()) > 1e-10) {
+			std::cout << "Error: imaginary part should be zero: " << result[i] << std::endl;
+			//break;
+		}
+		
+		lattice[{i}] =  result[i].real();
 	}
 
 }
@@ -253,5 +268,21 @@ double Phi1D::getMagnetization()
 		mean += this->lattice[{i}];
 	}
 	return mean / this->lattice.latticeSize;
+}
+
+void Phi1D::rescaleFields(double scaling)
+{
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+		lattice[{i}] = scaling * lattice[{i}];
+	}
+}
+
+double Phi1D::getCorrelationLength(int distance)
+{
+	double corrLength = 0;
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+		corrLength += lattice[{i}] * lattice[{i + distance}];
+	}
+	return corrLength / lattice.dimensions[0];
 }
 

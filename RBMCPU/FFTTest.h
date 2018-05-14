@@ -5,5 +5,6 @@ public:
 	FFTTest();
 	~FFTTest();
 	void run();
+	void runSymmetryTest();
 };
 

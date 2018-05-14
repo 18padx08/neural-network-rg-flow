@@ -38,7 +38,7 @@ using namespace ct;
 int main()
 {
 	TestFFTUpdate test;
-	test.run();
+	test.runFFTCompareToNewHidden();
 	/*std::cout << "-- beta = 0.6 --" << std::endl;
 	test.plotConvergence(0.6);
 	std::cout << "-- beta = 0.8 --" << std::endl;

@@ -5,5 +5,6 @@ public:
 	TestFFTUpdate();
 	~TestFFTUpdate();
 	void run();
+	void runFFTCompareToNewHidden();
 };
 
