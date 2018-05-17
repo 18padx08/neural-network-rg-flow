@@ -183,6 +183,9 @@
     <ClInclude Include="TestFFTUpdate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TestLoop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -309,6 +312,9 @@
       <Filter>Tests</Filter>
     </ClCompile>
     <ClCompile Include="TestFFTUpdate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLoop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

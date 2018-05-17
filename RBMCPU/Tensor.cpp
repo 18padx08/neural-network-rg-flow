@@ -61,15 +61,14 @@ namespace ct {
 	{
 		// TODO: insert return statement here
 		vector<int> tuple(list.begin(), list.end());
-		int dim = tuple[0];
+		int dim = tuple[0] <0? abs(dimensions[0] - tuple[0]) % dimensions[0]: tuple[0] % dimensions[0];
 		int lastDimensions = dimensions[0];
 		for (int i = 1; i < tuple.size(); i++) {
 			if (i > dimensions.size() - 1) 
 			{
 				break;
 			}
-			if (tuple[i] > dimensions[i]) throw exception("Dimension do not match");
-			dim += tuple[i] * lastDimensions;
+			dim += (tuple[i] < 0? abs(dimensions[i] - tuple[i])% dimensions[i] : tuple[i] % dimensions[i] ) * lastDimensions;
 			lastDimensions *= dimensions[i];
 		}
 		return elements[dim];

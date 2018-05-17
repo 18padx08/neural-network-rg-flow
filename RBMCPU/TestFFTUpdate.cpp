@@ -3,6 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include "FFT.cpp"
+#include <fstream>
 using namespace std::chrono_literals;
 TestFFTUpdate::TestFFTUpdate()
 {
@@ -15,8 +16,8 @@ TestFFTUpdate::~TestFFTUpdate()
 
 void TestFFTUpdate::run()
 {
-	Phi1D cluster(256,0.4,0,0,0);
-	Phi1D fft(256, 0.4, 0, 0, 0);
+	Phi1D cluster(512,0.4,0,0,0);
+	Phi1D fft(512, 0.4, 0, 0, 0);
 	double diff = 0;
 	int trials = 10000;
 	cluster.thermalize();
@@ -26,6 +27,7 @@ void TestFFTUpdate::run()
 	fft.fftUpdate();
 	double totalfft = 0;
 	double totalcluster = 0;
+	std::ofstream result("cluster_vs_fft_cs=512_kappa=0.4.csv");
 	for (int i = 0; i < trials; i++) {
 		auto clTmp = cluster.getCorrelationLength();
 		auto fftTmp = fft.getCorrelationLength();
@@ -34,6 +36,7 @@ void TestFFTUpdate::run()
 		diff += clTmp - fftTmp ;
 		totalfft += fftTmp;
 		totalcluster += clTmp;
+		result << clTmp << "," << fftTmp << std::endl;
 		auto start = std::chrono::high_resolution_clock::now();
 		cluster.monteCarloSweep();
 		clusterTime += std::chrono::high_resolution_clock::now() - start;
@@ -42,6 +45,7 @@ void TestFFTUpdate::run()
 		fftTime += std::chrono::high_resolution_clock::now() - start;
 		//std::cout << "Current difference " << clTmp << "  " << fftTmp <<std::endl;
 	}
+	result.close();
 	std::cout << "Total difference: " << diff / trials << std::endl;
 	std::cout << "Cluster Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(clusterTime).count() << " vs fft Time " << std::chrono::duration_cast<std::chrono::milliseconds>(fftTime).count() << std::endl;
 	std::cout << "Current difference " << totalcluster / trials << "  " << totalfft/trials << std::endl;
@@ -52,11 +56,12 @@ void TestFFTUpdate::runFFTCompareToNewHidden()
 	double kappa = 0.45;
 	Phi1D fftUpdater(512, kappa, 0, 0, 0);
 	//_sleep(1000);
-	Phi1D fftDec(512, kappa*kappa/(1.0-2.0*kappa*kappa), 0, 0, 0);
-	int trials = 5000;
+	Phi1D fftDec(256, kappa*kappa/(1.0-2.0*kappa*kappa), 0, 0, 0);
+	int trials = 10000;
 	double diff = 0;
 	double totalCl = 0;
 	double totalDec = 0;
+	std::ofstream result("vis_hid_renorm_kappa_cs=512_kappa=0.45.csv");
 	for (int i = 0; i < trials; i++) {
 		fftUpdater.fftUpdate();
 		fftDec.fftUpdate();
@@ -67,7 +72,9 @@ void TestFFTUpdate::runFFTCompareToNewHidden()
 		diff += tmpCl - tmpDec ;
 		totalCl += tmpCl;
 		totalDec += tmpDec;
+		result << tmpCl << "," << tmpDec << std::endl;
 	}
+	result.close();
 	std::cout << "Difference in correlation length: " << diff / trials << std::endl;
 	//std::cout << "Corr length " << fftUpdater.getCorrelationLength(2) << "  " << fftDec.getCorrelationLength() << std::endl;
 	std::cout << "Correlation Length: " << totalCl / trials << "  " << totalDec /trials << std::endl;

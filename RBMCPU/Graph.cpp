@@ -1,6 +1,19 @@
 #include "Graph.h"
 
 namespace ct {
+	shared_ptr<Variable> Graph::getVarForName(string name) {
+		int i = 0;
+		auto input = this->variables;
+		for (auto && ele : input) {
+			shared_ptr<Variable> tmp = dynamic_pointer_cast<Variable>(ele);
+			if (!tmp) continue;
+			if (tmp->name == name) {
+				return tmp;
+			}
+			i++;
+		}
+		return nullptr;
+	}
 	void Graph::insert_nodes(shared_ptr<Node> parent, vector<shared_ptr<Node>> inputs)
 	{
 		for (auto input : inputs) {

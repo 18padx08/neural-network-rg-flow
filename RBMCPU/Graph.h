@@ -10,6 +10,7 @@
 
 using namespace std;
 namespace ct {
+	
 	class Graph
 	{
 	private:
@@ -22,6 +23,7 @@ namespace ct {
 		void insert_nodes(shared_ptr<Node> parent, vector<shared_ptr<Node>> inputs);
 		
 	public:
+		shared_ptr<Variable> getVarForName(string name);
 		vector<shared_ptr<Node>> optplaceholders;
 		map<string,shared_ptr<Node>> storages;
 		vector<shared_ptr<Node>> variables;

@@ -10,18 +10,20 @@ std::uniform_real_distribution<double> dist(0, 1);
 std::normal_distribution<double> normal(0, 1);
 std::default_random_engine engine(time(NULL));
 
-double generateGaussianNoise(double mu, double sigma)
+double NormalDist(double mu, double sigma)
 {
-	return normal(engine);
+	std::normal_distribution<double> n(mu, sigma);
+	return n(engine);
 }
 
 namespace ct {
 
-	ct::RGFlowCont::RGFlowCont(shared_ptr<Node> input, shared_ptr<Variable> variable, shared_ptr<Variable> scalingParam,  bool isInverse) : isInverse(isInverse)
+	ct::RGFlowCont::RGFlowCont(shared_ptr<Node> input, shared_ptr<Variable> kappa, shared_ptr<Variable> Av, shared_ptr<Variable> Ah,  bool isInverse) : isInverse(isInverse)
 	{
 		this->inputs.push_back(input);
-		this->inputs.push_back(variable);
-		this->inputs.push_back(scalingParam);
+		this->inputs.push_back(kappa);
+		this->inputs.push_back(Av);
+		this->inputs.push_back(Ah);
 	}
 
 
@@ -35,24 +37,33 @@ namespace ct {
 		return compute(vec);
 	}
 
-
+	shared_ptr<Variable> ct::RGFlowCont::getVarForName(string name, std::vector<shared_ptr<Node>> input) {
+		int i = 0;
+		
+		for (auto && ele : input) {
+			shared_ptr<Variable> tmp = dynamic_pointer_cast<Variable>(ele);
+			if (!tmp) continue;
+			if (tmp->name == name) {
+				return tmp;
+			}
+			i++;
+		}
+		return nullptr;
+	}
 	shared_ptr<Tensor> ct::RGFlowCont::compute(std::vector<shared_ptr<Tensor>> input)
 	{
 		auto inputTensor = *(this->inputs[0]->output);
+		
 		int xDim = inputTensor.dimensions[0];
 		int samples = inputTensor.dimensions.size() > 1 ? inputTensor.dimensions[1] : 1;
-		auto v1 = (dynamic_pointer_cast<Variable>(this->inputs[1]));
-		auto v2 = (dynamic_pointer_cast<Variable>(this->inputs[2]));
-		double coupling = 0;
-		double scalingParam = 0;
-		if (v1->name == "A") {
-			coupling = (double)*(v1->value);
-			scalingParam = (double)*(v2->value);
-		}
-		else {
-			coupling = (double)*(v2->value);
-			scalingParam = (double)*(v1->value);
-		}
+		double kappa = 0;
+		double Ah = 0;
+		double Av = 0;
+		
+		kappa = (double)*getVarForName("kappa", this->inputs)->value;
+		Ah = (double)*getVarForName("Ah", this->inputs)->value;
+		Av = (double)*getVarForName("Av", this->inputs)->value;
+		
 		//first only 1D
 		//this means we couple every second spin
 
@@ -62,11 +73,17 @@ namespace ct {
 			for (int s = 0; s < samples; s++) {
 #pragma omp parallel for
 				for (int i = 0; i < xDim / 2; i++) {
-					//A continous RBM needs gaussian noise and a scaling parameter
-					auto gaussNoise = 0.5 * generateGaussianNoise(0,2);
-					//std::cout << gaussNoise << std::endl;
-					tens[{i, s, 0}] = 2.0 / (1 + std::exp(- scalingParam *  (coupling *(inputTensor[{2 * i, s}] + (2 * i + 2 < xDim ? inputTensor[{2 * i + 2, s}] : 0)) + gaussNoise))) - 1;
-					tens[{i, s, 1}] = 2.0 / (1 + std::exp(-(1.05*scalingParam) * (coupling * (inputTensor[{2 * i, s}] + (2 * i + 2 < xDim ? inputTensor[{2 * i + 2, s}] : 0)) + gaussNoise))) - 1;
+					//for our case of the crbm we have to draw the new values from a gaussian distribution
+					//with mean = 4k/Ah *v_i and sigma of sqrt(Ah)
+					auto val1 = inputTensor[{2 * i}];
+					auto val2 = inputTensor[{2 * i + 2}];
+					auto tmp1 = NormalDist(2 * kappa / Ah * val1, sqrt(1.0/abs(Ah)));
+					auto tmp2 = NormalDist(2 * kappa / Ah * val2, sqrt(1.0/abs(Ah)));
+					auto tmp3 = NormalDist(2 *1.05* kappa / Ah * val1, sqrt(1.0/abs(Ah)));
+					auto tmp4 = NormalDist(2 * 1.05* kappa / Ah * val2, sqrt(1.0/abs(Ah)));
+					//std::cout << tmp1 << " " << tmp2 << " " << tmp3 << " " << tmp4 << std::endl;
+					tens[{i, s, 0}] = tmp1 * tmp2 / ((3.14159)/Ah );
+					tens[{i, s, 1}] = tmp3 * tmp4  /((3.14159)/Ah);
 				}
 			}
 			return make_shared<Tensor>(tens);
@@ -79,16 +96,14 @@ namespace ct {
 #pragma omp parallel for
 				for (int i = 0; i < xDim * 2; i++) {
 					if (i % 2 == 0) {
-						auto gaussNoise =0.5* generateGaussianNoise(0, 2);
-
-						if (i == 0) {
-							tens[{i, s, 0}] = 2.0 / (1 + std::exp(-scalingParam *  (coupling *inputTensor[{i / 2, s}] + gaussNoise))) - 1;
-							tens[{i, s, 1}] = 2.0 / (1 + std::exp(-1.05* scalingParam* (coupling *inputTensor[{i / 2, s}] + gaussNoise))) - 1;
-						}
-						else {
-							tens[{i, s, 0}] = 2.0 / (1 + std::exp(-scalingParam * ( coupling * (inputTensor[{i / 2 - 1, s}] + inputTensor[{i / 2, s }] )+ gaussNoise))) - 1;
-							tens[{i, s, 1}] = 2.0 / (1 + std::exp(-1.05 * scalingParam * (coupling*(inputTensor[{i / 2 - 1, s}] + inputTensor[{i / 2, s }])+ gaussNoise))) - 1;
-						}
+						auto val1 = inputTensor[{i / 2 - 1}];
+						auto val2 = inputTensor[{i / 2}];
+						auto tmp1 = NormalDist(2 * kappa / Av * val1, sqrt(1.0/abs(Av)));
+						auto tmp2 = NormalDist(2 * kappa / Av * val2, sqrt(1.0/abs(Av)));
+						auto tmp3 = NormalDist(2 * 1.05* kappa / Av * val1, sqrt(1.0/abs(Av)));
+						auto tmp4 = NormalDist(2 * 1.05* kappa / Av * val2, sqrt(1.0/abs(Av)));
+						tens[{i, s, 0}] = tmp1 * tmp2 /((3.14159)/Av);
+						tens[{i, s, 1}] = tmp3 * tmp4 / ((3.14159)/Av);
 					}
 					else {
 						tens[{i, s, 0}] = 0;

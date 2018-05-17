@@ -91,7 +91,7 @@ Phi1D::Phi1D(int size, double kappa, double lambda, double m, double beta) : dis
 	for (int i = 0; i < lattice.dimensions[0]; i++) {
 		uniform_real_distribution<double> deltaDist(-1.5, 1.5);
 		lattice[{i}] = deltaDist(generator);
-		auto sigma =  1.0 / sqrt(2.0)* sqrt(lattice.dimensions[0])/ std::sqrt((1 - 2*kappa*std::cos(i * 2 * pi / size)));
+		auto sigma =  1.0 / 2.0* sqrt(lattice.dimensions[0])/ std::sqrt((1 - 2*kappa*std::cos(i * 2 * pi / size)));
 		//std::cout << sigma << std::endl;
 		dist_for_fft[i] = std::normal_distribution<double>(0, sigma);
  	}
@@ -142,8 +142,15 @@ void Phi1D::fftUpdate()
 	vector<complex<double>> v_hat(lattice.dimensions[0]);
 	for (int i = 1; i <= lattice.dimensions[0]/2; i++) {
 		auto tmp = dist_for_fft[i](generator);
-		v_hat[i] = { tmp, 0.0 };
-		v_hat[lattice.dimensions[0] - i] = { tmp,0.0 };
+		auto tmp2 = dist_for_fft[i](generator);
+		if (i == lattice.dimensions[0] / 2) {
+			v_hat[i] = { tmp, 0 };
+			v_hat[lattice.dimensions[0] - i] = { tmp,0 };
+		}
+		else {
+			v_hat[i] = { tmp, tmp2 };
+			v_hat[lattice.dimensions[0] - i] = { tmp,-tmp2 };
+		}
 		//std::cout << v_hat[i] << std::endl;
 	}
 	v_hat[0] = 0;

@@ -28,16 +28,13 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		ising.monteCarloStep();
 	}*/
 	double maximum = 0.0;
-	ising.useWolff = true;
-	for (int i = 0; i < 500; i++) {
-		ising.monteCarloSweep();
-	}
+	
 	std::ofstream error_scatter("data/error_scatter_" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) +".csv");
 	std::ofstream responseError("data/response_error" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) + ".csv");
 	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	Session session(graph);
-	optimizers::ContrastiveDivergence cd(graph, 0.1, 0);
-	optimizers::ContrastiveDivergence newCd(graph, 0.08, 0);
+	optimizers::ContrastiveDivergence cd(graph, 0.08, 0);
+	optimizers::ContrastiveDivergence newCd(graph, 0.01, 0);
 
 	for (int trial = 0; trial < 200; trial++) {
 		//we need a batch
@@ -64,7 +61,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			/*for (int i = 0; i < 3000; i++) {
 				ising.monteCarloStep();
 			}*/
-			ising.monteCarloSweep();
+			ising.fftUpdate();
 		}
 		maximum /= batchsize;
 		corr /= batchsize * spinChainSize /maximum;
@@ -81,16 +78,14 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		//now use this batch to thermalize the network
 		//stop thermalization when gradient is flat
 		feedDic = { {"x",   make_shared<Tensor>(dims, samples) } };
-		auto castNode = dynamic_pointer_cast<Variable>(graph->variables[0]);
-		if (castNode->name != "A") {
-			castNode = dynamic_pointer_cast<Variable>(graph->variables[1]);
-		}
-		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { -beta*2 }));
-		auto scaling = dynamic_pointer_cast<Variable>(graph->variables[1]);
-		if (scaling->name != "s") {
-			scaling = dynamic_pointer_cast<Variable>(graph->variables[0]);
-		}
-		scaling->value = make_shared<Tensor>(Tensor({ 1 }, { 1.0 }));
+		
+		auto castNode = graph->getVarForName("kappa");
+		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { beta }));
+		auto Ah = graph->getVarForName("Ah");
+		Ah->value = make_shared<Tensor>(Tensor({ 1 }, { 1.0-2*beta*beta }));
+		auto Av = graph->getVarForName("Av");
+		Av->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));;
+		
 		double prev = -1.0;
 		double next = -1.0;
 		//std::ofstream of("error_test_" + std::to_string(trial) + ".csv");
@@ -103,7 +98,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		do {
 			if (counter % 50 == 0 && counter != 0) {
 				//check if average is smaller
-				if (abs(average - lastAverage) < 0.01*abs(average) * (1.0/sqrt(batchsize))) break;
+				if (abs(average - lastAverage) < 0.1*abs(average) * (1.0/sqrt(batchsize))) break;
 				lastAverage = average;
 				average = 0;
 				counter = 0;
@@ -115,10 +110,10 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			next = *castNode->value;
 			//of << (double)*castNode->value << std::endl;
 			std::cout << "\r" << "                                              ";
-			std::cout << "\r" << (double)*castNode->value / 2.0 << "   "  << (double)*scaling->value / 2.0;
+			std::cout << "\r kappa=" << (double)*castNode->value << "; Ah="  << (double)*Ah->value << ";Av=" << (double)*Av->value ;
 			counter++;
 
-			average += (double)*castNode->value / 2.0 / 50;
+			average += (double)*castNode->value / 50;
 		} while (true);
 		//of.close();
 		/*for (int i = 0; i < 1000; i++) {
@@ -139,8 +134,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			newOf << (double)*castNode->value << std::endl;
 		}
 		newOf.close();
-		error_scatter <<av / (batchsize) / 2.0 - beta << ", " << mcError << std::endl;
-		std::cout << "network error naive: " << av / (batchsize) / 2.0 - beta << std::endl;
+		error_scatter <<av / (batchsize) - beta << ", " << mcError << std::endl;
+		std::cout << "network error naive: " << av / (batchsize) - beta << std::endl;
 		std::cout << "mc error: " << mcError << std::endl;
 		std::cout << std::endl << "network was trained, now check network response" << std::endl;
 		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { av / batchsize }));
@@ -179,7 +174,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		
 		trainedCorr /= counter2;
 		trainedHidden /= counter2;
-		responseError << -pow(tanh(beta), 2) + trainedCorr << "," << -pow(tanh(beta), 2) + secondCorr << "," << trainedHidden -pow(tanh(beta), 2) << std::endl;
+		responseError << -beta*beta/(1.0-2*beta*beta) + trainedCorr << "," << -beta * beta / (1.0 - 2 * beta*beta) + secondCorr << "," << trainedHidden - beta * beta / (1.0 - 2 * beta*beta) << std::endl;
 		std::cout << std::endl;
 		std::cout << "correlation network " << trainedCorr << std::endl;
 		std::cout << "correlation mc " << secondCorr << std::endl;

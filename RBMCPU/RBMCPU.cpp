@@ -33,12 +33,15 @@
 #include "Phi4Test.h"
 #include "FFTTest.h"
 #include "TestFFTUpdate.h"
+#include "TestLoop.h"
 
 using namespace ct;
 int main()
 {
-	TestFFTUpdate test;
-	test.runFFTCompareToNewHidden();
+	TestLoop loop;
+	loop.run();
+	//TestFFTUpdate test;
+	//test.runFFTCompareToNewHidden();
 	/*std::cout << "-- beta = 0.6 --" << std::endl;
 	test.plotConvergence(0.6);
 	std::cout << "-- beta = 0.8 --" << std::endl;
@@ -56,8 +59,8 @@ int main()
 	//test.testGibbsConvergence();
 	//test.cheatTest(1.4);
 	///test.plotRGFlow(1.0);
-	//vector<double> couplings = { 0.4,1.0,1.2 };
-	//vector<double> bs = { 10,20,40,80 };
+	vector<double> couplings = { 0.4,0.3,0.4 };
+	vector<double> bs = { 40,20,40,80 };
 	/*for (auto c : couplings) {
 		for (int i = 10; i <= 80; i *= 2) {
 			std::cout << std::endl <<  "-- bs=" << i << " --" << std::endl;
