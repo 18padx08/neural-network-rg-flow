@@ -127,9 +127,8 @@ void Phi1D::monteCarloSweep()
 vector<double> Phi1D::getConfiguration()
 {
 	vector<double> v;
-	double avgPhi = getMax();
 	for (int i = 0; i < this->lattice.latticeSize; i++) {
-		v.push_back(this->lattice[{i}]/avgPhi);
+		v.push_back(this->lattice[{i}]);
 	}
 	return v;
 }
@@ -290,6 +289,6 @@ double Phi1D::getCorrelationLength(int distance)
 	for (int i = 0; i < lattice.dimensions[0]; i++) {
 		corrLength += lattice[{i}] * lattice[{i + distance}];
 	}
-	return corrLength / lattice.dimensions[0];
+	return corrLength / (lattice.dimensions[0]);
 }
 

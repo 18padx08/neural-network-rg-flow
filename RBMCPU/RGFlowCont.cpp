@@ -74,16 +74,20 @@ namespace ct {
 #pragma omp parallel for
 				for (int i = 0; i < xDim / 2; i++) {
 					//for our case of the crbm we have to draw the new values from a gaussian distribution
-					//with mean = 4k/Ah *v_i and sigma of sqrt(Ah)
+					//with mean = 2k/Ah *v_i and sigma of 1/sqrt(Ah)
 					auto val1 = inputTensor[{2 * i}];
 					auto val2 = inputTensor[{2 * i + 2}];
 					auto tmp1 = NormalDist(2 * kappa / Ah * val1, sqrt(1.0/abs(Ah)));
+					//std::cout << "val=" << val1 << "   " << "x0=" << 2 * kappa / Ah * val1 << " sigma=" << "1" << "  " << tmp1 << std::endl;
 					auto tmp2 = NormalDist(2 * kappa / Ah * val2, sqrt(1.0/abs(Ah)));
 					auto tmp3 = NormalDist(2 *1.05* kappa / Ah * val1, sqrt(1.0/abs(Ah)));
 					auto tmp4 = NormalDist(2 * 1.05* kappa / Ah * val2, sqrt(1.0/abs(Ah)));
 					//std::cout << tmp1 << " " << tmp2 << " " << tmp3 << " " << tmp4 << std::endl;
-					tens[{i, s, 0}] = tmp1 * tmp2 / ((3.14159)/Ah );
-					tens[{i, s, 1}] = tmp3 * tmp4  /((3.14159)/Ah);
+					if (isfinite(tmp1) && isfinite(tmp2) && isfinite(tmp1*tmp1*tmp2*tmp2)) {
+						tens[{i, s, 0}] = (tmp1 + tmp2) / 2.0; /// ((2.0 * 3.14159) / Ah);
+						tens[{i, s, 1}] = tmp3 * tmp4 / ((3.14159 * 2) / Ah);
+					}
+					
 				}
 			}
 			return make_shared<Tensor>(tens);
@@ -98,12 +102,14 @@ namespace ct {
 					if (i % 2 == 0) {
 						auto val1 = inputTensor[{i / 2 - 1}];
 						auto val2 = inputTensor[{i / 2}];
-						auto tmp1 = NormalDist(2 * kappa / Av * val1, sqrt(1.0/abs(Av)));
-						auto tmp2 = NormalDist(2 * kappa / Av * val2, sqrt(1.0/abs(Av)));
+						auto tmp1 = NormalDist(2* (kappa) / Av * val1, sqrt(1.0/abs(Av)));
+						auto tmp2 = NormalDist(2 * (kappa) / Av * val2, sqrt(1.0/abs(Av)));
 						auto tmp3 = NormalDist(2 * 1.05* kappa / Av * val1, sqrt(1.0/abs(Av)));
 						auto tmp4 = NormalDist(2 * 1.05* kappa / Av * val2, sqrt(1.0/abs(Av)));
-						tens[{i, s, 0}] = tmp1 * tmp2 /((3.14159)/Av);
-						tens[{i, s, 1}] = tmp3 * tmp4 / ((3.14159)/Av);
+						if (isfinite(tmp1) && isfinite(tmp2) && isfinite(tmp1*tmp1*tmp2*tmp2)) {
+							tens[{i, s, 0}] = (tmp1 + tmp2)/2.0;// ((2.0 * 3.14159) / (Av));
+							tens[{i, s, 1}] = tmp3 * tmp4 / ((2 * 3.14159) / Av);
+						}
 					}
 					else {
 						tens[{i, s, 0}] = 0;

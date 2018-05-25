@@ -32,7 +32,7 @@ namespace ct {
 
 		auto storeVisible_raw= make_shared<Storage>(Storage(negative, "visibles_raw"));
 		auto visible = make_shared<ProbPooling>(ProbPooling(storeVisible_raw));
-		auto graph = shared_ptr<Graph>(new Graph(visible));
+		auto graph = shared_ptr<Graph>(new Graph(storeVisible_raw));
 		return graph;
 	}
 }

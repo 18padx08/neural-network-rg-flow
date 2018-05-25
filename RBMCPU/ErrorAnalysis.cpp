@@ -22,7 +22,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 	int batchsize = bs;
 	int spinChainSize = 512;
 	//we need a ising model
-	Phi1D ising(spinChainSize, beta, 0.0, 0, beta);
+	Phi1D ising(spinChainSize, beta, 0.0, 0, 0);
 	//thermalize the ising model
 	/*for (int i = 0; i < 25000; i++) {
 		ising.monteCarloStep();
@@ -35,7 +35,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 	Session session(graph);
 	optimizers::ContrastiveDivergence cd(graph, 0.08, 0);
 	optimizers::ContrastiveDivergence newCd(graph, 0.01, 0);
-
+	ising.fftUpdate();
 	for (int trial = 0; trial < 200; trial++) {
 		//we need a batch
 		vector<double> samples(spinChainSize * batchsize);
@@ -45,27 +45,15 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		vector<int> dims = { spinChainSize, batchsize };
 		std::ofstream of("data/error_gauss_mc_bj=" + std::to_string(beta) + "_" + std::to_string(trial)+"_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize)  + ".csv");
 		for (int sam = 0; sam < batchsize; sam++) {
-			auto t = ising.getConfiguration();
-			maximum += ising.getMax();
-			double tmpCorr = 0;
-			double tmpSecondCorr = 0;
+			auto chain = ising.getConfiguration();
 			for (int i = 0; i < spinChainSize; i++) {
-				samples[i + sam * spinChainSize] = t[i] ;
-				tmpCorr += (t[i]) * (t[(i + 1) % spinChainSize] );
-				tmpSecondCorr += (t[i] ) * (t[(i + 2) % spinChainSize] );
-				corr += (t[i] ) * (t[(i + 1) % spinChainSize] );
-				secondCorr += (t[i] ) * (t[(i + 2) % spinChainSize] );
-				
+				samples[i + spinChainSize * sam] = chain[i];
 			}
-			of << (double)tmpSecondCorr/spinChainSize << std::endl;
-			/*for (int i = 0; i < 3000; i++) {
-				ising.monteCarloStep();
-			}*/
+			double tmpSecondCorr = ising.getCorrelationLength(2);
+			secondCorr += tmpSecondCorr;
 			ising.fftUpdate();
 		}
-		maximum /= batchsize;
-		corr /= batchsize * spinChainSize /maximum;
-		secondCorr /= batchsize * spinChainSize /maximum;
+		secondCorr /= batchsize;
 		auto betaj = atanh(corr);
 		auto mcError = betaj - beta;
 
@@ -82,7 +70,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		auto castNode = graph->getVarForName("kappa");
 		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { beta }));
 		auto Ah = graph->getVarForName("Ah");
-		Ah->value = make_shared<Tensor>(Tensor({ 1 }, { 1.0-2*beta*beta }));
+		Ah->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
 		auto Av = graph->getVarForName("Av");
 		Av->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));;
 		
@@ -142,7 +130,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		//initialize not so random random state
 		for (int theBatch = 0; theBatch < batchsize; theBatch++) {
 			for (int i = 0; i < spinChainSize; i++) {
-				samples[i + theBatch * spinChainSize] = i % 2 == 0 ? -1 : 1;
+				samples[i + theBatch * spinChainSize] = i % 2 == 0 ? 0 : 0;
 			}
 		}
 		std::cout << "Batch initialized, lets Gibbs Sample" << std::endl;

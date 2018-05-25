@@ -39,7 +39,7 @@ using namespace ct;
 int main()
 {
 	TestLoop loop;
-	loop.run();
+	//loop.run();
 	//TestFFTUpdate test;
 	//test.runFFTCompareToNewHidden();
 	/*std::cout << "-- beta = 0.6 --" << std::endl;
@@ -60,7 +60,7 @@ int main()
 	//test.cheatTest(1.4);
 	///test.plotRGFlow(1.0);
 	vector<double> couplings = { 0.4,0.3,0.4 };
-	vector<double> bs = { 40,20,40,80 };
+	vector<double> bs = { 20,20,40,80 };
 	/*for (auto c : couplings) {
 		for (int i = 10; i <= 80; i *= 2) {
 			std::cout << std::endl <<  "-- bs=" << i << " --" << std::endl;
@@ -70,13 +70,13 @@ int main()
 	}*/
 	//Phi4Test test;
 	//test.run();
-	/*for (int i = 0; i < couplings.size(); i++) {
+	for (int i = 0; i < couplings.size(); i++) {
 		for (int j = 0; j < bs.size(); j++) {
 			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
 			ErrorAnalysis analysis;
 			analysis.plotErrorOnTraining(couplings[i], bs[j]);
 		}
-	}*/
+	}
 
 	/*srand(time(NULL));
 	TIRBMTest tTest;

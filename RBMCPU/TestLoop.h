@@ -30,5 +30,6 @@ public:
 	TestLoop();
 	~TestLoop();
 	void run();
+	void runLoop();
 };
 

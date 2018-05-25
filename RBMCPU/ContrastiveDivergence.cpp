@@ -50,12 +50,15 @@ namespace ct {
 			double exp_visn = 0;
 			double vishid0 = 0;
 			double vishidn = 0;
+			double testCorr = 0;
+			
+		
 #pragma omp parallel for reduction(+:delta, vishid0, vishidn,exp_vis0,exp_visn, exp_hid0, exp_hidn)
 			for (int s = 0; s < samples; s++) {
 #pragma omp parallel for reduction(+:delta,vishid0, vishidn,exp_vis0,exp_visn, exp_hid0, exp_hidn)
 				for (int i = 0; i < hidDimx; i++) {
-					auto corrNNN = vis_0[{2 * i,s}] * hid_0[{i,s}];
-					auto corrNNN_n = vis_n[{2 * i,s}] * hid_n[{i,s}];
+					auto corrNNN = vis_0[{2 * i,s}] * vis_0[{2*i+2,s}];
+					auto corrNNN_n = vis_n[{2 * i,s}] * vis_n[{2*i+2,s}];
 					//auto corrNNN_n_delta = vis_n[{2 * i, s,1}] * vis_n[{(2 * i + 2) % visDimx, s,1}];
 					delta += (corrNNN - corrNNN_n);
 					vishidn += corrNNN_n;
@@ -80,9 +83,9 @@ namespace ct {
 			auto Ah = theGraph->getVarForName("Ah");
 			auto Av = theGraph->getVarForName("Av");
 		
-			*kappa->value = *kappa->value + Tensor({1}, {learningRate * 2*(vishid0 - vishidn)});
-			*Av->value = *Av->value + Tensor({ 1 }, { -learningRate*(exp_vis0 - exp_visn) });
-			*Ah->value = *Ah->value + Tensor({ 1 }, { -learningRate*(exp_hid0 - exp_hidn) });
+			*kappa->value = *kappa->value + Tensor({1}, {learningRate *(vishid0-vishidn)});
+			//*Av->value = *Av->value + Tensor({ 1 }, { -learningRate*(exp_vis0 - exp_visn) });
+			//*Ah->value = *Ah->value + Tensor({ 1 }, { -learningRate*(exp_hid0 - exp_hidn) });
 			kappa.reset();
 			Av.reset();
 			Ah.reset();
