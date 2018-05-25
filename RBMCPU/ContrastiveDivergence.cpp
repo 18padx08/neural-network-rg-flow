@@ -83,7 +83,7 @@ namespace ct {
 			auto Ah = theGraph->getVarForName("Ah");
 			auto Av = theGraph->getVarForName("Av");
 		
-			*kappa->value = *kappa->value + Tensor({1}, {learningRate *(vishid0-vishidn)});
+			*kappa->value = *kappa->value + Tensor({1}, {learningRate *(delta)});
 			//*Av->value = *Av->value + Tensor({ 1 }, { -learningRate*(exp_vis0 - exp_visn) });
 			//*Ah->value = *Ah->value + Tensor({ 1 }, { -learningRate*(exp_hid0 - exp_hidn) });
 			kappa.reset();

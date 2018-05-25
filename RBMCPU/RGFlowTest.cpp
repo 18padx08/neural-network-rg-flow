@@ -1,5 +1,5 @@
 #include "RGFlowTest.h"
-
+#include "Phi1D.h"
 using namespace ct;
 
 RGFlowTest::RGFlowTest()
@@ -298,7 +298,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 	int num_steps = 1500;
 	int max_iterations = 400;
 	int spinChainSize = 512;
-	Ising1D ising(spinChainSize, startingBeta, 1);
+	Phi1D ising(spinChainSize, startingBeta,0,0,0);
 	auto samples = vector<double>(spinChainSize * batchSize);
 	vector<int> dims = { spinChainSize,batchSize };
 	vector<int> thermDims = { spinChainSize,batchSize };
@@ -307,14 +307,16 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 
 	//the optimizers
 	vector<optimizers::ContrastiveDivergence> cds;
-
+	double oldBeta = startingBeta;
 	for (int i = 0; i < num_layers; i++) {
 		//different layers
 		shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
-		auto castNode = dynamic_pointer_cast<Variable>(graph->variables[0]);
-		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { -2 * startingBeta / (i + 1) }));
+		auto castNode = graph->getVarForName("kappa");
+		auto newBeta = oldBeta * oldBeta / (1.0 - 2.0 *oldBeta *oldBeta);
+		oldBeta = newBeta;
+		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { newBeta }));
 		auto session = Session(graph);
-		cds.push_back(optimizers::ContrastiveDivergence(graph, 0.08, 0));
+		cds.push_back(optimizers::ContrastiveDivergence(graph, 0.01, 0));
 		graphList.push_back(graph);
 		sessions.push_back(session);
 	}
@@ -323,10 +325,8 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 	/*for (int i = 0; i < 25000; i++) {
 		ising.monteCarloStep();
 	}*/
-	ising.useWolff = true;
-	for (int i = 0; i < 1000; i++) {
-		ising.monteCarloSweep();
-	}
+	
+	ising.fftUpdate();
 
 	//create one batch of data
 	vector<double> thermSamps(batchSize  * spinChainSize);
@@ -335,42 +335,11 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 		for (int i = 0; i < t.size(); i++) {
 			thermSamps[i + sam * t.size()] = t[i] <= 0 ? -1 : 1;
 		}
-		/*for (int j = 0; j < 1500; j++) {
-			ising.monteCarloStep();
-		}*/
-		ising.monteCarloSweep();
+		ising.fftUpdate();
 	}
 	//use this batch to thermalize through the layer
 	feedDic = { { "x", make_shared<Tensor>(Tensor(thermDims, thermSamps)) } };
 
-	/*
-		for (int it = 0; it < max_iterations*10; it++) {
-			if (it % 10 == 0) {
-				std::cout << "\r" << "                                                                                                         ";
-				std::cout << "\r" << "Coupling: ";
-			}
-			for (int layer = 0; layer < num_layers; layer++) {
-				feedDic = { { "x", make_shared<Tensor>(Tensor(thermDims, thermSamps)) } };
-
-			if (layer > 0) {
-				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_pooled"])->storage[1]);
-				feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
-			}
-			sessions[layer].run(feedDic, true, 1);
-
-
-			if (it > 5 * (max_iterations*10) / 6) {
-				cds[layer].optimize(1, 10, true);
-			}
-			else {
-				cds[layer].optimize(1, 10, false);
-			}
-			if (it % 10 == 0) {
-				auto var = dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
-				std::cout << " " << (double)*(var->value) / 2.0 << " ";
-			}
-		}
-	}*/
 	int counter = 0;
 	int events = 0;
 	double gradient = 0;
@@ -379,7 +348,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 	int loops = 0;
 	for (int layer = 0; layer < num_layers; layer++) {
 		bool run = true;
-		auto var = dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
+		auto var = graphList[layer]->getVarForName("kappa");//dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
 		counter = 0;
 		lastAverage = 0;
 		double lastEpsilon = 0;
@@ -388,7 +357,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 		do {
 			if (counter % averageCount == 0 && counter != 0) {
 				//check if average is smaller
-				var->value = make_shared<Tensor>(Tensor({ 1 }, { 2 * average }));
+				var->value = make_shared<Tensor>(Tensor({ 1 }, { average }));
 				auto diff = abs(average - lastAverage);
 				lastEpsilon = epsilon;
 				epsilon = abs((1.0 / sqrt(batchSize)) * average);
@@ -407,17 +376,17 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 				loops++;
 			}
 			if (layer > 0) {
-				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_pooled"])->storage[1]);
+				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_raw"])->storage[1]);
 				feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
 			}
 			sessions[layer].run(feedDic, true, 1);
 			cds[layer].optimize(1, 1.0, true);
 			//of << (double)*castNode->value << std::endl;
 			std::cout << "\r" << "                                                                                ";
-			std::cout << "\r" << "Layer: " << layer << " " << (double)*var->value / 2.0;
+			std::cout << "\r" << "Layer: " << layer << " " << (double)*var->value;
 			counter++;
 
-			average += (double)*var->value / 2.0 / averageCount;
+			average += (double)*var->value / averageCount;
 
 		} while (run);
 	}
@@ -432,10 +401,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 				for (int i = 0; i < t.size(); i++) {
 					samples[i + sam * t.size()] = t[i] <= 0 ? -1 : 1;
 				}
-				/*for (int j = 0; j < 1500; j++) {
-					ising.monteCarloStep();
-				}*/
-				ising.monteCarloSweep();
+				ising.fftUpdate();
 			}
 			//propagate the batch through the layer
 			if (it % 10 == 0) {
@@ -447,7 +413,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 			for (int i = 0; i <= layer; i++) {
 				if (i > 0) {
 					//if not the first layer take the output from the last layer
-					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_pooled"])->storage[1]);
+					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"])->storage[1]);
 					feedDic = { { "x", make_shared<Tensor>(*vals) } };
 				}
 				sessions[i].run(feedDic, true, 1);
@@ -455,12 +421,12 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 					cds[layer].optimize(1, 10, true);
 				}
 			}
-			auto var = dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
+			auto var = graphList[layer]->getVarForName("kappa");//dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
 			if (it % 10 == 0) {
-				std::cout << " " << (double)*(var->value) / 2.0 << " ";
+				std::cout << " " << (double)*(var->value) << " ";
 			}
 			if (it > 200) {
-				output << (double) *(var->value) / 2.0 << ",";
+				output << (double) *(var->value) << ",";
 			}
 		}
 		output << std::endl;

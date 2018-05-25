@@ -36,6 +36,8 @@
 #include "TestLoop.h"
 
 using namespace ct;
+void runPhi4();
+
 int main()
 {
 	TestLoop loop;
@@ -59,25 +61,16 @@ int main()
 	//test.testGibbsConvergence();
 	//test.cheatTest(1.4);
 	///test.plotRGFlow(1.0);
-	vector<double> couplings = { 0.4,0.3,0.4 };
-	vector<double> bs = { 20,20,40,80 };
-	/*for (auto c : couplings) {
-		for (int i = 10; i <= 80; i *= 2) {
-			std::cout << std::endl <<  "-- bs=" << i << " --" << std::endl;
+	/*vector<double> couplings = { 0.4,0.45,0.5,0.6, 0.65 };
+	
+	for (auto c : couplings) {
+		for (int i = 10; i <= 10; i *= 2) {
+			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
 			RGFlowTest test;
 			test.plotRGFlowNew(c, i);
 		}
 	}*/
-	//Phi4Test test;
-	//test.run();
-	for (int i = 0; i < couplings.size(); i++) {
-		for (int j = 0; j < bs.size(); j++) {
-			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
-			ErrorAnalysis analysis;
-			analysis.plotErrorOnTraining(couplings[i], bs[j]);
-		}
-	}
-
+	runPhi4();
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();
@@ -108,4 +101,25 @@ int main()
 	}
 	output.close();*/
 	return 0;
+}
+
+void runPhi4() {
+	vector<double> couplings = { 0.1,0.3,0.4,0.45,0.5 };
+	vector<double> bs = { 10,20,40,80 };
+	for (auto c : couplings) {
+		for (int i = 10; i <= 80; i *= 2) {
+			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
+			RGFlowTest test;
+			test.plotRGFlowNew(c, i);
+		}
+	}
+	//Phi4Test test;
+	//test.run();
+	for (int i = 0; i < couplings.size(); i++) {
+		for (int j = 0; j < bs.size(); j++) {
+			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
+			ErrorAnalysis analysis;
+			analysis.plotErrorOnTraining(couplings[i], bs[j]);
+		}
+	}
 }
