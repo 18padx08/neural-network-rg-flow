@@ -96,6 +96,9 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			session.run(feedDic, true, 10);
 			cd.optimize(10, 1.0, true);
 			next = *castNode->value;
+			if (next < 0) {
+				*castNode->value = Tensor({ 1 }, { 0 });
+			}
 			//of << (double)*castNode->value << std::endl;
 			std::cout << "\r" << "                                              ";
 			std::cout << "\r kappa=" << (double)*castNode->value << "; Ah="  << (double)*Ah->value << ";Av=" << (double)*Av->value ;
@@ -118,8 +121,13 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		for (int batch = 0; batch < batchsize; batch++) {
 			session.run(feedDic, true, 10);
 			newCd.optimize(10, 5, true);
-			av += abs(*castNode->value);
-			newOf << (double)*castNode->value << std::endl;
+			if (*castNode->value < 0) {
+				av += 0;
+			}
+			else {
+				av += abs(*castNode->value);
+			}
+			newOf << ((double)*castNode->value <0? 0 : (double)*castNode->value) << std::endl;
 		}
 		newOf.close();
 		error_scatter <<av / (batchsize) - beta << ", " << mcError << std::endl;

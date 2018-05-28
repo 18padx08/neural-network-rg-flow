@@ -316,7 +316,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 		oldBeta = newBeta;
 		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { newBeta }));
 		auto session = Session(graph);
-		cds.push_back(optimizers::ContrastiveDivergence(graph, 0.01, 0));
+		cds.push_back(optimizers::ContrastiveDivergence(graph, 0.05, 0));
 		graphList.push_back(graph);
 		sessions.push_back(session);
 	}
@@ -360,7 +360,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 				var->value = make_shared<Tensor>(Tensor({ 1 }, { average }));
 				auto diff = abs(average - lastAverage);
 				lastEpsilon = epsilon;
-				epsilon = abs((1.0 / sqrt(batchSize)) * average);
+				epsilon = abs((1.0 / sqrt(batchSize)) * average)*0.1;
 				if ((diff < epsilon) || abs(average) < 10e-6)
 				{
 					lastAverage = 0;
@@ -385,8 +385,13 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 			std::cout << "\r" << "                                                                                ";
 			std::cout << "\r" << "Layer: " << layer << " " << (double)*var->value;
 			counter++;
-
-			average += (double)*var->value / averageCount;
+			if ((double)*var->value > 0) {
+				average += (double)*var->value / averageCount;
+			}
+			else {
+				*var->value = Tensor({ 1 }, { 0 });
+			}
+			
 
 		} while (run);
 	}
@@ -416,12 +421,15 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"])->storage[1]);
 					feedDic = { { "x", make_shared<Tensor>(*vals) } };
 				}
-				sessions[i].run(feedDic, true, 1);
+				sessions[i].run(feedDic, true, 5);
 				if (i == layer) {
-					cds[layer].optimize(1, 10, true);
+					cds[layer].optimize(5, 10, true);
 				}
 			}
 			auto var = graphList[layer]->getVarForName("kappa");//dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
+			if (*var->value < 0) {
+				*var->value = Tensor({ 1 }, { 0 });
+			}
 			if (it % 10 == 0) {
 				std::cout << " " << (double)*(var->value) << " ";
 			}
