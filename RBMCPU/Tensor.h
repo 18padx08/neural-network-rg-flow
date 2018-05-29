@@ -20,7 +20,7 @@ namespace ct {
 		double& operator[](std::initializer_list<int> list);
 		double*  getPointer(std::initializer_list<int> list);
 		operator double&();
-
+		void rescale(double factor);
 		//tensor operations
 		Tensor operator+(Tensor a);
 		Tensor elementWise(std::function<double(double)> lambda);

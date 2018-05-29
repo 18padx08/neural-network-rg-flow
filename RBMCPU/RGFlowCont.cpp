@@ -84,7 +84,7 @@ namespace ct {
 					auto tmp4 = NormalDist(2 * 1.05* kappa / Ah * val2, sqrt(1.0/abs(Ah)));
 					//std::cout << tmp1 << " " << tmp2 << " " << tmp3 << " " << tmp4 << std::endl;
 					if (isfinite(tmp1) && isfinite(tmp2) && isfinite(tmp1*tmp1*tmp2*tmp2)) {
-						tens[{i, s, 0}] = (tmp1 + tmp2) / 2.0; /// ((2.0 * 3.14159) / Ah);
+						tens[{i, s, 0}] = (tmp1 + tmp2) / 2.0 ; /// ((2.0 * 3.14159) / Ah);
 						tens[{i, s, 1}] = tmp3 * tmp4 / ((3.14159 * 2) / Ah);
 					}
 					

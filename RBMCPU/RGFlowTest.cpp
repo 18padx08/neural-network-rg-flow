@@ -312,11 +312,12 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 		//different layers
 		shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 		auto castNode = graph->getVarForName("kappa");
+		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { oldBeta }));
 		auto newBeta = oldBeta * oldBeta / (1.0 - 2.0 *oldBeta *oldBeta);
 		oldBeta = newBeta;
-		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { newBeta }));
+		//castNode->value = make_shared<Tensor>(Tensor({ 1 }, { newBeta }));
 		auto session = Session(graph);
-		cds.push_back(optimizers::ContrastiveDivergence(graph, 0.05, 0));
+		cds.push_back(optimizers::ContrastiveDivergence(graph, 0.01, 0));
 		graphList.push_back(graph);
 		sessions.push_back(session);
 	}
@@ -333,7 +334,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 	for (int sam = 0; sam < batchSize; sam++) {
 		auto t = ising.getConfiguration();
 		for (int i = 0; i < t.size(); i++) {
-			thermSamps[i + sam * t.size()] = t[i] <= 0 ? -1 : 1;
+			thermSamps[i + sam * t.size()] = t[i];
 		}
 		ising.fftUpdate();
 	}
@@ -357,7 +358,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 		do {
 			if (counter % averageCount == 0 && counter != 0) {
 				//check if average is smaller
-				var->value = make_shared<Tensor>(Tensor({ 1 }, { average }));
+				//var->value = make_shared<Tensor>(Tensor({ 1 }, { average }));
 				auto diff = abs(average - lastAverage);
 				lastEpsilon = epsilon;
 				epsilon = abs((1.0 / sqrt(batchSize)) * average)*0.1;
@@ -377,6 +378,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 			}
 			if (layer > 0) {
 				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_raw"])->storage[1]);
+				vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
 				feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
 			}
 			sessions[layer].run(feedDic, true, 1);
@@ -404,7 +406,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 			for (int sam = 0; sam < batchSize; sam++) {
 				auto t = ising.getConfiguration();
 				for (int i = 0; i < t.size(); i++) {
-					samples[i + sam * t.size()] = t[i] <= 0 ? -1 : 1;
+					samples[i + sam * t.size()] = t[i];
 				}
 				ising.fftUpdate();
 			}
@@ -414,19 +416,21 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 				std::cout << "\r" << "Coupling [" << it << " of " << max_iterations << "]: ";
 			}
 
-			feedDic = { { "x", make_shared<Tensor>(Tensor(dims, samples)) } };
+			feedDic = { { "x", make_shared<Tensor>(Tensor(dims, samples)) } };	
+			auto var = graphList[layer]->getVarForName("kappa");
 			for (int i = 0; i <= layer; i++) {
 				if (i > 0) {
 					//if not the first layer take the output from the last layer
 					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"])->storage[1]);
+					vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
 					feedDic = { { "x", make_shared<Tensor>(*vals) } };
 				}
-				sessions[i].run(feedDic, true, 5);
+				sessions[i].run(feedDic, true, 1);
 				if (i == layer) {
-					cds[layer].optimize(5, 10, true);
+					cds[layer].optimize(1, 10, true);
 				}
 			}
-			auto var = graphList[layer]->getVarForName("kappa");//dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
+		//dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
 			if (*var->value < 0) {
 				*var->value = Tensor({ 1 }, { 0 });
 			}

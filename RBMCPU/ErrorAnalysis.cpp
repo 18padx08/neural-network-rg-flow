@@ -49,12 +49,15 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			for (int i = 0; i < spinChainSize; i++) {
 				samples[i + spinChainSize * sam] = chain[i];
 			}
+			of << ising.getCorrelationLength(1) << "," << ising.getCorrelationLength(2);
 			double tmpSecondCorr = ising.getCorrelationLength(2);
+			corr += ising.getCorrelationLength(1);
 			secondCorr += tmpSecondCorr;
 			ising.fftUpdate();
 		}
+		corr /= batchsize;
 		secondCorr /= batchsize;
-		auto betaj = atanh(corr);
+		auto betaj = corr;
 		auto mcError = betaj - beta;
 
 		//get a rbm comp tree
@@ -82,6 +85,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		double gradient = 0;
 		double average = 0;
 		double lastAverage = 0;
+		int overalCounter = 0;
 		int loops = 0;
 		do {
 			if (counter % 50 == 0 && counter != 0) {
@@ -93,8 +97,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 				loops++;
 			}
 			prev = *castNode->value;
-			session.run(feedDic, true, 10);
-			cd.optimize(10, 1.0, true);
+			session.run(feedDic, true, 1);
+			cd.optimize(1, 1.0, true);
 			next = *castNode->value;
 			if (next < 0) {
 				*castNode->value = Tensor({ 1 }, { 0 });
@@ -103,9 +107,9 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			std::cout << "\r" << "                                              ";
 			std::cout << "\r kappa=" << (double)*castNode->value << "; Ah="  << (double)*Ah->value << ";Av=" << (double)*Av->value ;
 			counter++;
-
+			overalCounter++;
 			average += (double)*castNode->value / 50;
-		} while (true);
+		} while (true || overalCounter > 1000);
 		//of.close();
 		/*for (int i = 0; i < 1000; i++) {
 			session.run(feedDic, true, 1);
@@ -119,8 +123,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		std::ofstream newOf("data/error_gauss_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize) + ".csv");
 		double av = 0;
 		for (int batch = 0; batch < batchsize; batch++) {
-			session.run(feedDic, true, 10);
-			newCd.optimize(10, 5, true);
+			session.run(feedDic, true, 5);
+			newCd.optimize(5, 5, true);
 			if (*castNode->value < 0) {
 				av += 0;
 			}
@@ -144,14 +148,14 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		std::cout << "Batch initialized, lets Gibbs Sample" << std::endl;
 		feedDic.clear();
 		feedDic = { { "x", make_shared<Tensor>(dims,samples) } };
-		session.run(feedDic, true, 100);
+		session.run(feedDic, true, 10);
 		std::cout << "Gibbs sampling finished, calculate mean" << std::endl;
 		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
 		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"]);
 		double trainedCorr = 0;
 		double trainedHidden = 0;
-		auto chains = (*storageNode->storage[100]);
-		auto hiddenChain = (*hiddenStorage->storage[100]);
+		auto chains = (*storageNode->storage[10]);
+		auto hiddenChain = (*hiddenStorage->storage[10]);
 		std::ofstream gauss("data/error_gauss_nn_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
 		int counter2 = 0;
 		for (int s = 0; s < batchsize; s++) {
@@ -170,7 +174,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		
 		trainedCorr /= counter2;
 		trainedHidden /= counter2;
-		responseError << -beta*beta/(1.0-2*beta*beta) + trainedCorr << "," << -beta * beta / (1.0 - 2 * beta*beta) + secondCorr << "," << trainedHidden - beta * beta / (1.0 - 2 * beta*beta) << std::endl;
+		responseError << -secondCorr+ trainedCorr << "," << -secondCorr  + trainedHidden << std::endl;
 		std::cout << std::endl;
 		std::cout << "correlation network " << trainedCorr << std::endl;
 		std::cout << "correlation mc " << secondCorr << std::endl;
