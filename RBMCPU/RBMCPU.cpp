@@ -107,7 +107,7 @@ int main()
 
 void runPhi4() {
 	vector<double> couplings = { 0.2,0.3,0.4,0.48 };
-	vector<double> bs = { 40 };
+	vector<double> bs = { 20 };
 	/*for (auto c : couplings) {
 		for (int i = 40; i <= 40; i *= 2) {
 			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
