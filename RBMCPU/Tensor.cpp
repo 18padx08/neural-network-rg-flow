@@ -99,13 +99,7 @@ namespace ct {
 			throw exception("Cannot cast tensor to scalar");
 		}
 	}
-	void Tensor::rescale(double factor)
-	{
-#pragma omp parallel for
-		for (int i = 0; i < size; i++) {
-			this->elements[i] = factor * this->elements[i];
-		}
-	}
+
 	Tensor Tensor::operator+(Tensor a)
 	{
 		Tensor newT(this->dimensions, this->elements);
@@ -130,5 +124,11 @@ namespace ct {
 		return t;
 	}
 	
+	 void Tensor::rescale(double factor) {
+#pragma omp parallel for
+		 for (int i = 0; i < size; i++) {
+			 this->elements[i] = factor * this->elements[i];
+		 }
+	 }
 	
 }

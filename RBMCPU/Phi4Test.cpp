@@ -61,52 +61,56 @@ void Phi4Test::run()
 
 void Phi4Test::runCorrTest()
 {
-	double kappa = 0.3;
-	Phi1D phi(2048, kappa, 0, 0, 0);
-	double difference = 0;
-	double quotient = 0;
-	int trials = 1000;
-	double corrLength = 0;
-	phi.useWolff = true;
-	//phi.thermalize();
-	//phi.thermalize();
-	double slope = 0;
-	
-	for (int i = 0; i < trials; i++) {
-		phi.fftUpdate();
-		slope += log(phi.getCorrelationLength(1)) - log(abs(phi.getCorrelationLength(2)));
-		corrLength += phi.getCorrelationLength(1);
-	}
-	double m = sqrt(1.0 / kappa - 2);
-	double scale = (corrLength / trials) / exp(-m);
-	std::cout << "Results" << std::endl;
+	for (int m = 0; m < 1000; m++) 
+	{
+		double kappa = 0.3;
+		Phi1D phi(512, kappa, 0, 0, 0);
+		double difference = 0;
+		double quotient = 0;
+		int trials = 1000;
+		double corrLength = 0;
+		phi.useWolff = true;
+		//phi.thermalize();
+		//phi.thermalize();
+		double slope = 0;
+
+		for (int i = 0; i < trials; i++) {
+			phi.fftUpdate();
+			slope += log(phi.getCorrelationLength(1)) - log(abs(phi.getCorrelationLength(2)));
+			corrLength += phi.getCorrelationLength(1);
+		}
+		double m = sqrt(1.0 / kappa - 2);
+		double scale = (corrLength / trials) / exp(-m);
+		difference = corrLength / trials - exp(-m);
+		std::cout << "Results" << std::endl;
 	std:cout << "Quotient requirement: " << quotient / trials << std::endl;
-	std::cout << "Difference requirement: " << difference / trials << std::endl;
-	std::cout << "Correlation length: " << corrLength / trials << " | " << exp(-m) << " -- " << scale <<std::endl;
-	std::cout << "m: " << m << "  slope: " << slope/trials <<std::endl;
-	std::cout << "Coefficient: " << log(pow(1.0/(corrLength/trials), 1.0/m)) <<std::endl;
-	std::cout << (abs(difference / trials) < 1.0 / sqrt(trials) && abs(quotient / trials) < 1.0 / sqrt(trials) ? "PASSED" : "FAILED") << std::endl;
+		std::cout << "Difference requirement: " << difference << std::endl;
+		std::cout << "Correlation length: " << corrLength / trials << " | " << exp(-m) << " -- " << scale << std::endl;
+		std::cout << "m: " << m << "  slope: " << slope / trials << std::endl;
+		std::cout << "Coefficient: " << log(pow(1.0 / (corrLength / trials), 1.0 / m)) << std::endl;
+		std::cout << (abs(difference) < 1.0 / sqrt(trials) && abs(quotient / trials) < 1.0 / sqrt(trials) ? "PASSED" : "FAILED") << std::endl;
 
-	std::cout << std::endl << std::endl;
-	
-	corrLength = 0;
-	slope = 0;
+		std::cout << std::endl << std::endl;
 
-	for (int i = 0; i < trials; i++) {
-		phi.fftUpdate();
-		phi.rescaleFields(sqrt(1.0 / scale));
-		slope += log(phi.getCorrelationLength(1)) - log(abs(phi.getCorrelationLength(2)));
-		corrLength += phi.getCorrelationLength(1);
+		corrLength = 0;
+		slope = 0;
+
+		for (int i = 0; i < trials; i++) {
+			phi.fftUpdate();
+			phi.rescaleFields(sqrt(1.0 / scale));
+			slope += log(phi.getCorrelationLength(1)) - log(abs(phi.getCorrelationLength(2)));
+			corrLength += phi.getCorrelationLength(1);
+		}
+		m = sqrt(1.0 / kappa - 2);
+		scale = (corrLength / trials) / exp(-m);
+		difference = corrLength / trials - exp(-m);
+		std::cout << "Results" << std::endl;
+		std::cout << "Quotient requirement: " << quotient / trials << std::endl;
+		std::cout << "Difference requirement: " << difference << std::endl;
+		std::cout << "Correlation length: " << corrLength / trials << " | " << exp(-m) << " -- " << scale << std::endl;
+		std::cout << "m: " << m << "  slope: " << slope / trials << std::endl;
+		std::cout << "Coefficient: " << log(pow(1.0 / (corrLength / trials), 1.0 / m)) << std::endl;
+		std::cout << (abs(difference ) < 1.0 / sqrt(trials) && abs(quotient / trials) < 1.0 / sqrt(trials) ? "PASSED" : "FAILED") << std::endl;
+		std::cout << "----" << std::endl << std::endl;
 	}
-	m = sqrt(1.0 / kappa - 2);
-	scale = (corrLength / trials) / exp(-m);
-	std::cout << "Results" << std::endl;
-	std::cout << "Quotient requirement: " << quotient / trials << std::endl;
-	std::cout << "Difference requirement: " << difference / trials << std::endl;
-	std::cout << "Correlation length: " << corrLength / trials << " | " << exp(-m) << " -- " << scale << std::endl;
-	std::cout << "m: " << m << "  slope: " << slope / trials << std::endl;
-	std::cout << "Coefficient: " << log(pow(1.0 / (corrLength / trials), 1.0 / m)) << std::endl;
-	std::cout << (abs(difference / trials) < 1.0 / sqrt(trials) && abs(quotient / trials) < 1.0 / sqrt(trials) ? "PASSED" : "FAILED") << std::endl;
-
-
 }

@@ -148,7 +148,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			newOf << ((double)*castNode->value <0? 0 : (double)*castNode->value) << std::endl;
 		}
 		newOf.close();
-		error_scatter <<av / (batchsize) - beta << ", " << mcError << std::endl;
+		error_scatter <<beta - av / (batchsize) << ", " << mcError << std::endl;
 		std::cout << "network error naive: " << av / (batchsize) - beta << std::endl;
 		std::cout << "mc error: " << mcError << std::endl;
 		std::cout << std::endl << "network was trained, now check network response" << std::endl;
@@ -162,17 +162,49 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		std::cout << "Batch initialized, lets Gibbs Sample" << std::endl;
 		feedDic.clear();
 		feedDic = { { "x", make_shared<Tensor>(dims,samples) } };
-		session.run(feedDic, true, 10);
+		session.run(feedDic, true, 5);
 		std::cout << "Gibbs sampling finished, calculate mean" << std::endl;
 		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
 		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"]);
 		double trainedCorr = 0;
 		double trainedHidden = 0;
-		auto chains = (*storageNode->storage[10]);
-		auto hiddenChain = (*hiddenStorage->storage[10]);
+		//now we have a valid configuration which is arbitarily normalized -> we need to normalize and run the loop once again to get accurate results
+		auto chains = (*storageNode->storage[5]);
+		auto hiddenChain = (*hiddenStorage->storage[5]);
+		double averageScaling = 0;
+		for (int s = 0; s < batchsize; s++) {
+			double tmpCorr = 0;
+			double tmpHidden = 0;
+			for (int i = 0; i < spinChainSize / 2; i++) {
+				tmpCorr += chains[{2 * i, s, 0}] * chains[{(2 * i + 2) % spinChainSize, s, 0}];
+				tmpHidden += hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1) % (spinChainSize / 2), s, 0}];
+				trainedCorr += chains[{2 * i, s, 0}] * chains[{(2 * i + 2) % spinChainSize, s, 0}];
+				trainedHidden += hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1) % (spinChainSize / 2), s, 0}];
+				
+			}
+			double m = sqrt(1.0 / beta - 2);
+			tmpCorr /= spinChainSize / 2.0;
+			double scaleFactor = 1.0 / (tmpCorr / exp(-2 * m));
+			//current value for visible corr ,hidden corr
+			std::cout << scaleFactor << std::endl;
+			averageScaling += sqrt(abs(scaleFactor));
+		}
+		
+		averageScaling /= batchsize;
+		std::cout << "Average scaling: " << averageScaling <<std::endl;
+		//the network preserves the scaling (almost) so feed it again through the loop
+		chains.rescale(averageScaling);
+		
+		feedDic = { {"x" , make_shared<Tensor>(chains)} };
+		session.run(feedDic, true, 10);
+		chains = (*storageNode->storage[10]);
+		hiddenChain = (*hiddenStorage->storage[10]);
+
 		std::ofstream gauss("data/error_gauss_nn_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
 		int counter2 = 0;
 		double normalization = 0;
+		trainedCorr = 0;
+		trainedHidden = 0;
 		for (int s = 0; s < batchsize; s++) {
 			double tmpCorr = 0;
 			double tmpHidden = 0;
@@ -187,22 +219,23 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			tmpCorr /= spinChainSize / 2.0;
 			double scaleFactor = 1.0 / (tmpCorr / exp(-2 * m));
 			//current value for visible corr ,hidden corr
-			gauss << tmpCorr /scaleFactor << "," << tmpHidden /scaleFactor << std::endl;
+			gauss << tmpCorr  << "," << tmpHidden  << std::endl;
+			averageScaling += scaleFactor;
 		}
 		trainedCorr /= counter2;
 		trainedHidden /= counter2;
+		averageScaling /= batchsize;
 		double m = sqrt(1.0 / beta - 2);
-		double scaleFactor = 1.0 / (trainedCorr / exp(-2 * m));
-		trainedCorr /= scaleFactor;
-		trainedHidden /= scaleFactor;
+
 		//error in visible layer, error in hidden layer, error of monte carlo
-		responseError <<  exp(-(1.0/beta -2)) - trainedCorr << "," << exp(-(1.0 / beta - 2)) - trainedHidden << "," << mcError << "," << trainedCorr << "," << trainedHidden << ","<<secondCorr << std::endl;
+		responseError <<  exp(-2*m) - trainedCorr << "," << exp(-2*m) - trainedHidden << "," << mcError << "," << trainedCorr << "," << trainedHidden << ","<<secondCorr << std::endl;
 		std::cout << std::endl;
 		std::cout << "correlation network " << trainedCorr << std::endl;
 		std::cout << "correlation mc " << secondCorr << std::endl;
 		std::cout << "hidden network" << trainedHidden << std::endl;
 		std::cout << "correlation theoretical: " << exp(-2*m) << std::endl;
-		std::cout << "scaleFactor: " << scaleFactor << std::endl;
+		std::cout << "scaleFactor: " << averageScaling << std::endl;
+		std::cout << "diff: " << exp(-2 * m) - exp(-(1.0 / beta - 2)) << std::endl;
 		std::cout << "theory - visible : " << exp(-2*m) - trainedCorr << " theory - hidden" << exp(-2*m) -  trainedHidden << " theory - mc" << exp(-2*m) - secondCorr <<std::endl;
 		std::cout << std::endl;
 		std::cout << "============" << std::endl;
