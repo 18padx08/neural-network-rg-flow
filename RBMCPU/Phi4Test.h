@@ -5,5 +5,6 @@ public:
 	Phi4Test();
 	~Phi4Test();
 	void run();
+	void runCorrTest();
 };
 

@@ -378,7 +378,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 			}
 			if (layer > 0) {
 				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_raw"])->storage[1]);
-				vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
+				//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
 				feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
 			}
 			sessions[layer].run(feedDic, true, 1);
@@ -418,11 +418,12 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 
 			feedDic = { { "x", make_shared<Tensor>(Tensor(dims, samples)) } };	
 			auto var = graphList[layer]->getVarForName("kappa");
+			auto renorm = graphList[layer]->getVarForName("Av");
 			for (int i = 0; i <= layer; i++) {
 				if (i > 0) {
 					//if not the first layer take the output from the last layer
 					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"])->storage[1]);
-					vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
+					//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
 					feedDic = { { "x", make_shared<Tensor>(*vals) } };
 				}
 				sessions[i].run(feedDic, true, 1);
@@ -435,7 +436,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 				*var->value = Tensor({ 1 }, { 0 });
 			}
 			if (it % 10 == 0) {
-				std::cout << " " << (double)*(var->value) << " ";
+				std::cout << " " << (double)*(var->value) << " " << (double)*(renorm->value) << " ";
 			}
 			if (it > 200) {
 				output << (double) *(var->value) << ",";

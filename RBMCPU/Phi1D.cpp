@@ -292,3 +292,14 @@ double Phi1D::getCorrelationLength(int distance)
 	return corrLength / (lattice.dimensions[0]);
 }
 
+void Phi1D::normalize()
+{
+	double totalsum = 0;
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+		totalsum += lattice[{i}]* lattice[{i}];
+	}
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+		lattice[{i}] = lattice[{i}];
+	}
+}
+

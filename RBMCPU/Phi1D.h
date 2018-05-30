@@ -47,5 +47,6 @@ public:
 	double getMagnetization();
 	void rescaleFields(double scaling);
 	double getCorrelationLength(int distance = 1);
+	void normalize();
 };
 

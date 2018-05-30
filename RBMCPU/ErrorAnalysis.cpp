@@ -28,7 +28,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		ising.monteCarloStep();
 	}*/
 	double maximum = 0.0;
-	
+	double totalCorr = 0;
+
 	std::ofstream error_scatter("data/error_scatter_" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) +".csv");
 	std::ofstream responseError("data/response_error" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) + ".csv");
 	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
@@ -36,6 +37,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 	optimizers::ContrastiveDivergence cd(graph, 0.08, 0);
 	optimizers::ContrastiveDivergence newCd(graph, 0.01, 0);
 	ising.fftUpdate();
+	ising.normalize();
 	for (int trial = 0; trial < 200; trial++) {
 		//we need a batch
 		vector<double> samples(spinChainSize * batchsize);
@@ -43,23 +45,34 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		double corr = 0;
 		double secondCorr = 0;
 		vector<int> dims = { spinChainSize, batchsize };
+		double slope = 0;
 		std::ofstream of("data/error_gauss_mc_bj=" + std::to_string(beta) + "_" + std::to_string(trial)+"_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize)  + ".csv");
 		for (int sam = 0; sam < batchsize; sam++) {
+			double m = sqrt(1.0 / beta - 2);
+			auto scaleFactor = 1.0 / sqrt(ising.getCorrelationLength(1) / exp(-m));
+			ising.rescaleFields(scaleFactor);
 			auto chain = ising.getConfiguration();
 			for (int i = 0; i < spinChainSize; i++) {
 				samples[i + spinChainSize * sam] = chain[i];
 			}
-			of << ising.getCorrelationLength(1) << "," << ising.getCorrelationLength(2);
+			//rescaled ising correlations
+			of << ising.getCorrelationLength(1) << "," << ising.getCorrelationLength(2) <<std::endl;
 			double tmpSecondCorr = ising.getCorrelationLength(2);
 			corr += ising.getCorrelationLength(1);
 			secondCorr += tmpSecondCorr;
+			
+			slope += log(abs(ising.getCorrelationLength(1))) - log(abs(tmpSecondCorr));
 			ising.fftUpdate();
+			
 		}
 		corr /= batchsize;
 		secondCorr /= batchsize;
-		auto betaj = corr;
-		auto mcError = betaj - beta;
-
+		slope /= batchsize;
+		
+		auto betaj =  corr;
+		auto mcError = beta - 1.0/(pow(slope,2)+2);
+		auto secondMcError = beta - 1 / (log(betaj) + 2);
+		totalCorr += secondCorr;
 		//get a rbm comp tree
 
 
@@ -131,6 +144,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			else {
 				av += abs(*castNode->value);
 			}
+			//current value for kappa
 			newOf << ((double)*castNode->value <0? 0 : (double)*castNode->value) << std::endl;
 		}
 		newOf.close();
@@ -158,6 +172,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		auto hiddenChain = (*hiddenStorage->storage[10]);
 		std::ofstream gauss("data/error_gauss_nn_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
 		int counter2 = 0;
+		double normalization = 0;
 		for (int s = 0; s < batchsize; s++) {
 			double tmpCorr = 0;
 			double tmpHidden = 0;
@@ -165,26 +180,37 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 				tmpCorr+= chains[{2*i, s, 0}] * chains[{(2*i + 2) % spinChainSize, s, 0}];
 				tmpHidden += hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1) % (spinChainSize / 2), s, 0}];
 				trainedCorr += chains[{2*i, s, 0}] * chains[{(2*i+2)%spinChainSize,s,0}];
-				//std::cout << hiddenChain[{i, s, 0}] << std::endl;
 				trainedHidden += hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1) % (spinChainSize/2), s, 0}];
 				counter2++;
 			}
-			gauss << tmpCorr /( spinChainSize / 2.0) << "," << tmpHidden / (spinChainSize / 2.0) << std::endl;
+			double m = sqrt(1.0 / beta - 2);
+			tmpCorr /= spinChainSize / 2.0;
+			double scaleFactor = 1.0 / (tmpCorr / exp(-2 * m));
+			//current value for visible corr ,hidden corr
+			gauss << tmpCorr /scaleFactor << "," << tmpHidden /scaleFactor << std::endl;
 		}
-		
 		trainedCorr /= counter2;
 		trainedHidden /= counter2;
-		responseError << -secondCorr+ trainedCorr << "," << -secondCorr  + trainedHidden << std::endl;
+		double m = sqrt(1.0 / beta - 2);
+		double scaleFactor = 1.0 / (trainedCorr / exp(-2 * m));
+		trainedCorr /= scaleFactor;
+		trainedHidden /= scaleFactor;
+		//error in visible layer, error in hidden layer, error of monte carlo
+		responseError <<  exp(-(1.0/beta -2)) - trainedCorr << "," << exp(-(1.0 / beta - 2)) - trainedHidden << "," << mcError << "," << trainedCorr << "," << trainedHidden << ","<<secondCorr << std::endl;
 		std::cout << std::endl;
 		std::cout << "correlation network " << trainedCorr << std::endl;
 		std::cout << "correlation mc " << secondCorr << std::endl;
 		std::cout << "hidden network" << trainedHidden << std::endl;
-		std::cout << " mc error - visible : " << -trainedCorr + secondCorr << " mc - hidden " <<  - trainedHidden + secondCorr <<std::endl;
+		std::cout << "correlation theoretical: " << exp(-2*m) << std::endl;
+		std::cout << "scaleFactor: " << scaleFactor << std::endl;
+		std::cout << "theory - visible : " << exp(-2*m) - trainedCorr << " theory - hidden" << exp(-2*m) -  trainedHidden << " theory - mc" << mcError <<std::endl;
 		std::cout << std::endl;
 		std::cout << "============" << std::endl;
 		responseError.flush();
 		error_scatter.flush();
 	}
+	totalCorr /= 200;
+	std::cout << "Final Value for the correlation: " << totalCorr;
 	error_scatter.close();
 }
 

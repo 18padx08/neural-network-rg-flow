@@ -84,8 +84,9 @@ namespace ct {
 			auto Av = theGraph->getVarForName("Av");
 		
 			*kappa->value = *kappa->value + Tensor({1}, {learningRate *(delta)});
-			//*Av->value = *Av->value + Tensor({ 1 }, { -learningRate*(exp_vis0 - exp_visn) });
-			//*Ah->value = *Ah->value + Tensor({ 1 }, { -learningRate*(exp_hid0 - exp_hidn) });
+			auto newValue = *Av->value + Tensor({ 1 }, { -learningRate * (exp_vis0 - exp_visn + exp_hid0 - exp_hidn) });
+			//*Av->value = newValue;
+			//*Ah->value = newValue;
 			kappa.reset();
 			Av.reset();
 			Ah.reset();

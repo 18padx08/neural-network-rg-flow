@@ -71,6 +71,8 @@ int main()
 		}
 	}*/
 	runPhi4();
+	//Phi4Test phitest;
+	//phitest.runCorrTest();
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();
@@ -104,7 +106,7 @@ int main()
 }
 
 void runPhi4() {
-	vector<double> couplings = { 0.2,0.3,0.4,0.5 };
+	vector<double> couplings = { 0.2,0.3,0.4,0.48 };
 	vector<double> bs = { 40 };
 	/*for (auto c : couplings) {
 		for (int i = 40; i <= 40; i *= 2) {
@@ -120,6 +122,7 @@ void runPhi4() {
 			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
 			ErrorAnalysis analysis;
 			analysis.plotErrorOnTraining(couplings[i], bs[j]);
+			analysis.~ErrorAnalysis();
 		}
 	}
 }
