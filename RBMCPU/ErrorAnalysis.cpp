@@ -20,7 +20,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 {
 	//batchsize
 	int batchsize = bs;
-	int spinChainSize = 512;
+	int spinChainSize = 2048;
 	//we need a ising model
 	Phi1D ising(spinChainSize, beta, 0.0, 0, 0);
 	//thermalize the ising model
@@ -34,8 +34,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 	std::ofstream responseError("data/response_error" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) + ".csv");
 	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	Session session(graph);
-	optimizers::ContrastiveDivergence cd(graph, 0.08, 0);
-	optimizers::ContrastiveDivergence newCd(graph, 0.01, 0);
+	optimizers::ContrastiveDivergence cd(graph, 0.053, 0);
+	optimizers::ContrastiveDivergence newCd(graph, 0.0003, 0);
 	ising.fftUpdate();
 	ising.normalize();
 	for (int trial = 0; trial < 200; trial++) {
@@ -49,7 +49,9 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		std::ofstream of("data/error_gauss_mc_bj=" + std::to_string(beta) + "_" + std::to_string(trial)+"_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize)  + ".csv");
 		for (int sam = 0; sam < batchsize; sam++) {
 			double m = sqrt(1.0 / beta - 2);
+			double estm = (log(abs(ising.getCorrelationLength(1))) - log(abs(ising.getCorrelationLength(2))));
 			auto scaleFactor = 1.0 / sqrt(ising.getCorrelationLength(1) / exp(-m));
+			//std::cout << scaleFactor << std::endl;
 			ising.rescaleFields(scaleFactor);
 			auto chain = ising.getConfiguration();
 			for (int i = 0; i < spinChainSize; i++) {
@@ -162,70 +164,55 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		std::cout << "Batch initialized, lets Gibbs Sample" << std::endl;
 		feedDic.clear();
 		feedDic = { { "x", make_shared<Tensor>(dims,samples) } };
-		session.run(feedDic, true, 5);
+		
 		std::cout << "Gibbs sampling finished, calculate mean" << std::endl;
 		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
 		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"]);
 		double trainedCorr = 0;
 		double trainedHidden = 0;
-		//now we have a valid configuration which is arbitarily normalized -> we need to normalize and run the loop once again to get accurate results
-		auto chains = (*storageNode->storage[5]);
-		auto hiddenChain = (*hiddenStorage->storage[5]);
-		double averageScaling = 0;
-		for (int s = 0; s < batchsize; s++) {
-			double tmpCorr = 0;
-			double tmpHidden = 0;
-			for (int i = 0; i < spinChainSize / 2; i++) {
-				tmpCorr += chains[{2 * i, s, 0}] * chains[{(2 * i + 2) % spinChainSize, s, 0}];
-				tmpHidden += hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1) % (spinChainSize / 2), s, 0}];
-				trainedCorr += chains[{2 * i, s, 0}] * chains[{(2 * i + 2) % spinChainSize, s, 0}];
-				trainedHidden += hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1) % (spinChainSize / 2), s, 0}];
-				
-			}
-			double m = sqrt(1.0 / beta - 2);
-			tmpCorr /= spinChainSize / 2.0;
-			double scaleFactor = 1.0 / (tmpCorr / exp(-2 * m));
-			//current value for visible corr ,hidden corr
-			std::cout << scaleFactor << std::endl;
-			averageScaling += sqrt(abs(scaleFactor));
-		}
-		
-		averageScaling /= batchsize;
-		std::cout << "Average scaling: " << averageScaling <<std::endl;
-		//the network preserves the scaling (almost) so feed it again through the loop
-		chains.rescale(averageScaling);
-		
-		feedDic = { {"x" , make_shared<Tensor>(chains)} };
 		session.run(feedDic, true, 10);
-		chains = (*storageNode->storage[10]);
-		hiddenChain = (*hiddenStorage->storage[10]);
-
+		auto chains = (*storageNode->storage[10]);
+		auto hiddenChain = (*hiddenStorage->storage[10]);
+	
 		std::ofstream gauss("data/error_gauss_nn_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
 		int counter2 = 0;
 		double normalization = 0;
 		trainedCorr = 0;
 		trainedHidden = 0;
+		double trainedCorr2 = 0;
 		for (int s = 0; s < batchsize; s++) {
 			double tmpCorr = 0;
 			double tmpHidden = 0;
-			for (int i = 0; i < spinChainSize/2; i++) {
-				tmpCorr+= chains[{2*i, s, 0}] * chains[{(2*i + 2) % spinChainSize, s, 0}];
-				tmpHidden += hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1) % (spinChainSize / 2), s, 0}];
-				trainedCorr += chains[{2*i, s, 0}] * chains[{(2*i+2)%spinChainSize,s,0}];
-				trainedHidden += hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1) % (spinChainSize/2), s, 0}];
+			
+			for (int i = 0; i < spinChainSize / 2; i++) {
+				double nnv = 0;
+				double nnh = 0;
+				nnv = chains[{2 * i, s, 0}] * chains[{(2 * i + 2), s, 0}];
+				nnh = hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1), s, 0}];
+			
+				tmpCorr += nnv;
+				trainedCorr2 += chains[{2 * i, s, 0}] * chains[{(2 * i + 4), s, 0}];
+				tmpHidden += nnh;
+				trainedCorr += nnv;
+				trainedHidden += nnh;
 				counter2++;
 			}
-			double m = sqrt(1.0 / beta - 2);
-			tmpCorr /= spinChainSize / 2.0;
-			double scaleFactor = 1.0 / (tmpCorr / exp(-2 * m));
-			//current value for visible corr ,hidden corr
-			gauss << tmpCorr  << "," << tmpHidden  << std::endl;
-			averageScaling += scaleFactor;
+			
+			tmpCorr /= spinChainSize/2.0 ;
+			tmpHidden /= spinChainSize/2.0;
+			gauss << tmpCorr << "," << tmpHidden << std::endl;
 		}
+		session.run(feedDic, true, 3);
+		chains = (*storageNode->storage[3]);
+		hiddenChain = (*hiddenStorage->storage[3]);
 		trainedCorr /= counter2;
-		trainedHidden /= counter2;
-		averageScaling /= batchsize;
+		trainedHidden /= counter2 ;
+		trainedCorr2 /= counter2 ;
+		double calcM = (log(abs(trainedCorr)) - log(abs(trainedCorr2))) / 2.0;
 		double m = sqrt(1.0 / beta - 2);
+		double scale = exp(-2 * calcM) / trainedCorr;
+		trainedCorr *= scale;
+		trainedHidden *= scale;
 
 		//error in visible layer, error in hidden layer, error of monte carlo
 		responseError <<  exp(-2*m) - trainedCorr << "," << exp(-2*m) - trainedHidden << "," << mcError << "," << trainedCorr << "," << trainedHidden << ","<<secondCorr << std::endl;
@@ -234,8 +221,6 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		std::cout << "correlation mc " << secondCorr << std::endl;
 		std::cout << "hidden network" << trainedHidden << std::endl;
 		std::cout << "correlation theoretical: " << exp(-2*m) << std::endl;
-		std::cout << "scaleFactor: " << averageScaling << std::endl;
-		std::cout << "diff: " << exp(-2 * m) - exp(-(1.0 / beta - 2)) << std::endl;
 		std::cout << "theory - visible : " << exp(-2*m) - trainedCorr << " theory - hidden" << exp(-2*m) -  trainedHidden << " theory - mc" << exp(-2*m) - secondCorr <<std::endl;
 		std::cout << std::endl;
 		std::cout << "============" << std::endl;

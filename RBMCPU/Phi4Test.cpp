@@ -61,6 +61,7 @@ void Phi4Test::run()
 
 void Phi4Test::runCorrTest()
 {
+	std::ofstream output("scaling_test.csv");
 	for (int m = 0; m < 1000; m++) 
 	{
 		double kappa = 0.3;
@@ -82,6 +83,7 @@ void Phi4Test::runCorrTest()
 		double m = sqrt(1.0 / kappa - 2);
 		double scale = (corrLength / trials) / exp(-m);
 		difference = corrLength / trials - exp(-m);
+		output << corrLength << ",";
 		std::cout << "Results" << std::endl;
 	std:cout << "Quotient requirement: " << quotient / trials << std::endl;
 		std::cout << "Difference requirement: " << difference << std::endl;
@@ -98,12 +100,14 @@ void Phi4Test::runCorrTest()
 		for (int i = 0; i < trials; i++) {
 			phi.fftUpdate();
 			phi.rescaleFields(sqrt(1.0 / scale));
+			//phi.normalize();
 			slope += log(phi.getCorrelationLength(1)) - log(abs(phi.getCorrelationLength(2)));
 			corrLength += phi.getCorrelationLength(1);
 		}
 		m = sqrt(1.0 / kappa - 2);
 		scale = (corrLength / trials) / exp(-m);
 		difference = corrLength / trials - exp(-m);
+		output << difference << std::endl;
 		std::cout << "Results" << std::endl;
 		std::cout << "Quotient requirement: " << quotient / trials << std::endl;
 		std::cout << "Difference requirement: " << difference << std::endl;
@@ -113,4 +117,9 @@ void Phi4Test::runCorrTest()
 		std::cout << (abs(difference ) < 1.0 / sqrt(trials) && abs(quotient / trials) < 1.0 / sqrt(trials) ? "PASSED" : "FAILED") << std::endl;
 		std::cout << "----" << std::endl << std::endl;
 	}
+	output.close();
+}
+
+void Phi4Test::runNetworkTest()
+{
 }

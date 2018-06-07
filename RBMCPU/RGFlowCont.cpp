@@ -4,14 +4,17 @@
 #include <ctime>
 #include <cmath>
 #include <limits>
+#include <chrono>
 #include <iostream>
 
 std::uniform_real_distribution<double> dist(0, 1);
 std::normal_distribution<double> normal(0, 1);
-std::default_random_engine engine(time(NULL));
+
 
 double NormalDist(double mu, double sigma)
 {
+	static unsigned seed = std::chrono::system_clock::now().time_since_epoch().count() + rand();
+	static std::default_random_engine engine(seed);
 	std::normal_distribution<double> n(mu, sigma);
 	return n(engine);
 }
@@ -20,6 +23,7 @@ namespace ct {
 
 	ct::RGFlowCont::RGFlowCont(shared_ptr<Node> input, shared_ptr<Variable> kappa, shared_ptr<Variable> Av, shared_ptr<Variable> Ah,  bool isInverse) : isInverse(isInverse)
 	{
+		srand(time(NULL));
 		this->inputs.push_back(input);
 		this->inputs.push_back(kappa);
 		this->inputs.push_back(Av);
@@ -52,6 +56,7 @@ namespace ct {
 	}
 	shared_ptr<Tensor> ct::RGFlowCont::compute(std::vector<shared_ptr<Tensor>> input)
 	{
+		static double thesquareroot = sqrt(2);
 		auto inputTensor = *(this->inputs[0]->output);
 		
 		int xDim = inputTensor.dimensions[0];
@@ -77,19 +82,18 @@ namespace ct {
 					//with mean = 2k/Ah *v_i and sigma of 1/sqrt(Ah)
 					auto val1 = inputTensor[{2 * i}];
 					auto val2 = inputTensor[{2 * i + 2}];
-					auto tmp1 = NormalDist(2 * kappa / Ah * val1, sqrt(1.0/abs(Ah)));
-					auto tmp5 = NormalDist(kappa / Ah * (val1 + val2), sqrt(1.0 / abs(Ah)) / sqrt(2.0));
+					//auto tmp1 = NormalDist(2 * kappa / Ah * val1, sqrt(1.0/abs(Ah)));
+					auto tmp5 = NormalDist(kappa / Ah * (val1 + val2), 1.0/ thesquareroot);
 
 					//std::cout << "val=" << val1 << "   " << "x0=" << 2 * kappa / Ah * val1 << " sigma=" << "1" << "  " << tmp1 << std::endl;
-					auto tmp2 = NormalDist(2 * kappa / Ah * val2, sqrt(1.0/abs(Ah)));
-					auto tmp3 = NormalDist(2 *1.05* kappa / Ah * val1, sqrt(1.0/abs(Ah)));
-					auto tmp4 = NormalDist(2 * 1.05* kappa / Ah * val2, sqrt(1.0/abs(Ah)));
+					//auto tmp2 = NormalDist(2 * kappa / Ah * val2, sqrt(1.0/abs(Ah)));
+					//auto tmp3 = NormalDist(2 *1.05* kappa / Ah * val1, sqrt(1.0/abs(Ah)));
+					//auto tmp4 = NormalDist(2 * 1.05* kappa / Ah * val2, sqrt(1.0/abs(Ah)));
 					//std::cout << tmp1 << " " << tmp2 << " " << tmp3 << " " << tmp4 << std::endl;
-					if (isfinite(tmp1) && isfinite(tmp2) && isfinite(tmp1*tmp1*tmp2*tmp2)) {
-						//std::cout << "gauss prod: " << tmp5/2 << " -> " << (tmp1 + tmp2) / 2.0 << std::endl;
-						tens[{i, s, 0}] = tmp5 ; /// ((2.0 * 3.14159) / Ah);
-						tens[{i, s, 1}] = tmp3 * tmp4 / ((3.14159 * 2) / Ah);
-					}
+					
+					//std::cout << "gauss prod: " << tmp5/2 << " -> " << (tmp1 + tmp2) / 2.0 << std::endl;
+					tens[{i, s, 0}] = tmp5; /// ((2.0 * 3.14159) / Ah);
+					//tens[{i, s, 1}] = tmp3 * tmp4 / ((3.14159 * 2) / Ah);
 					
 				}
 			}
@@ -105,15 +109,15 @@ namespace ct {
 					if (i % 2 == 0) {
 						auto val1 = inputTensor[{i / 2 - 1}];
 						auto val2 = inputTensor[{i / 2}];
-						auto tmp1 = NormalDist(2* (kappa) / Av * val1, sqrt(1.0/abs(Av)));
-						auto tmp2 = NormalDist(2 * (kappa) / Av * val2, sqrt(1.0/abs(Av)));
-						auto tmp3 = NormalDist(2 * 1.05* kappa / Av * val1, sqrt(1.0/abs(Av)));
-						auto tmp4 = NormalDist(2 * 1.05* kappa / Av * val2, sqrt(1.0/abs(Av)));
-						auto tmp5 = NormalDist(kappa / Ah * (val1 + val2), sqrt(1.0 / abs(Ah)) / sqrt(2.0));
-						if (isfinite(tmp1) && isfinite(tmp2) && isfinite(tmp1*tmp1*tmp2*tmp2)) {
-							tens[{i, s, 0}] = tmp5;// ((2.0 * 3.14159) / (Av));
-							tens[{i, s, 1}] = tmp3 * tmp4 / ((2 * 3.14159) / Av);
-						}
+						//auto tmp1 = NormalDist(2* (kappa) / Av * val1, sqrt(1.0/abs(Av)));
+						//auto tmp2 = NormalDist(2 * (kappa) / Av * val2, sqrt(1.0/abs(Av)));
+						//auto tmp3 = NormalDist(2 * 1.05* kappa / Av * val1, sqrt(1.0/abs(Av)));
+						//auto tmp4 = NormalDist(2 * 1.05* kappa / Av * val2, sqrt(1.0/abs(Av)));
+						auto tmp5 = NormalDist(kappa / Ah * (val1 + val2), 1.0 / thesquareroot);
+						
+						tens[{i, s, 0}] = tmp5;// ((2.0 * 3.14159) / (Av));
+						//tens[{i, s, 1}] = tmp3 * tmp4 / ((2 * 3.14159) / Av);
+						
 					}
 					else {
 						tens[{i, s, 0}] = 0;

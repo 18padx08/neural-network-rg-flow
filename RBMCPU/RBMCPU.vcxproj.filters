@@ -186,6 +186,9 @@
     <ClInclude Include="TestLoop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NormalizationTests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -315,6 +318,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TestLoop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NormalizationTests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

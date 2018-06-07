@@ -6,5 +6,6 @@ public:
 	~Phi4Test();
 	void run();
 	void runCorrTest();
+	void runNetworkTest();
 };
 

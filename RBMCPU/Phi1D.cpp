@@ -86,7 +86,7 @@ void Phi1D::flipCluster()
 }
 
 
-Phi1D::Phi1D(int size, double kappa, double lambda, double m, double beta) : dist_for_fft(size), beta(beta), lattice({ size }), kappa(kappa), lambda(lambda), m(m), dist(0, size - 1), generator(time(NULL))
+Phi1D::Phi1D(int size, double kappa, double lambda, double m, double beta) : dist_for_fft(size), beta(beta), lattice({ size }), kappa(kappa), lambda(lambda), m(m), dist(0, size - 1), generator(time(NULL)+102030)
 {
 	for (int i = 0; i < lattice.dimensions[0]; i++) {
 		uniform_real_distribution<double> deltaDist(-1.5, 1.5);
@@ -296,10 +296,15 @@ void Phi1D::normalize()
 {
 	double totalsum = 0;
 	for (int i = 0; i < lattice.dimensions[0]; i++) {
-		totalsum += lattice[{i}]* lattice[{i}];
+		totalsum += lattice[{i}] * lattice[{i}];
 	}
 	for (int i = 0; i < lattice.dimensions[0]; i++) {
-		lattice[{i}] = lattice[{i}];
+		lattice[{i}] = lattice[{i}]/sqrt(totalsum);
 	}
+	totalsum = 0;
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+		totalsum += lattice[{i}] *lattice[{i}];
+	}
+	std::cout << "Normalization: " << totalsum << std::endl;
 }
 

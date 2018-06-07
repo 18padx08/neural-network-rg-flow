@@ -175,6 +175,7 @@
     <ClInclude Include="MNISTTest.h" />
     <ClInclude Include="ModCD.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="NormalizationTests.h" />
     <ClInclude Include="Operation.h" />
     <ClInclude Include="OptPlaceholder.h" />
     <ClInclude Include="Phi1D.h" />
@@ -221,6 +222,7 @@
     <ClCompile Include="MNISTTest.cpp" />
     <ClCompile Include="ModCD.cpp" />
     <ClCompile Include="Node.cpp" />
+    <ClCompile Include="NormalizationTests.cpp" />
     <ClCompile Include="Operation.cpp" />
     <ClCompile Include="OptPlaceholder.cpp" />
     <ClCompile Include="Phi1D.cpp" />
