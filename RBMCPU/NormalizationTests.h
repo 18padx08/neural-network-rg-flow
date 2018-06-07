@@ -32,5 +32,6 @@ public:
 	void run();
 	void runConvTest();
 	void compareLatticeAndNN();
+	void compareNormOverVariousKappa();
 };
 

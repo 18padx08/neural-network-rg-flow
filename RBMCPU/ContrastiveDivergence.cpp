@@ -27,8 +27,8 @@ namespace ct {
 		}
 		void ContrastiveDivergence::optimize(int k, double betaJ, bool useLR)
 		{
-			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"]))->storage[0]);
-			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[0]);
+			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"]))->storage[2]);
+			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[2]);
 			auto vis_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_raw"]))->storage[k]);
 			auto hid_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"]))->storage[k]);
 
@@ -57,8 +57,8 @@ namespace ct {
 			for (int s = 0; s < samples; s++) {
 #pragma omp parallel for reduction(+:delta,vishid0, vishidn,exp_vis0,exp_visn, exp_hid0, exp_hidn)
 				for (int i = 0; i < hidDimx; i++) {
-					auto corrNNN = vis_0[{2 * i,s}] * vis_0[{2*i+2,s}];
-					auto corrNNN_n = vis_n[{2 * i,s}] * vis_n[{2*i+2,s}];
+					auto corrNNN = vis_0[{2 * i,s}] * hid_0[{i,s}];
+					auto corrNNN_n = vis_n[{2 * i,s}] * hid_n[{i,s}];
 					//auto corrNNN_n_delta = vis_n[{2 * i, s,1}] * vis_n[{(2 * i + 2) % visDimx, s,1}];
 					delta += (corrNNN - corrNNN_n);
 					vishidn += corrNNN_n;
@@ -84,9 +84,10 @@ namespace ct {
 			auto Av = theGraph->getVarForName("Av");
 		
 			*kappa->value = *kappa->value + Tensor({1}, {learningRate *(delta)});
-			auto newValue = *Av->value + Tensor({ 1 }, { -learningRate * (exp_vis0 - exp_visn + exp_hid0 - exp_hidn) });
-			//*Av->value = newValue;
-			//*Ah->value = newValue;
+			auto newValue = *Av->value + Tensor({ 1 }, { -learningRate * (exp_vis0 - exp_visn ) });
+			auto newValue2 = *Ah->value + Tensor({ 1 }, {- learningRate * (exp_hid0 - exp_hidn) });
+			*Av->value = newValue;
+			*Ah->value = newValue2;
 			kappa.reset();
 			Av.reset();
 			Ah.reset();

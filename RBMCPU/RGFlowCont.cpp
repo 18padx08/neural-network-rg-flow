@@ -83,16 +83,16 @@ namespace ct {
 					auto val1 = inputTensor[{2 * i}];
 					auto val2 = inputTensor[{2 * i + 2}];
 					//auto tmp1 = NormalDist(2 * kappa / Ah * val1, sqrt(1.0/abs(Ah)));
-					auto tmp5 = NormalDist(kappa / Ah * (val1 + val2), 1.0/ thesquareroot);
-
+					auto tmp5 = NormalDist(kappa  * (1.0/Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0/ thesquareroot);
+					
 					//std::cout << "val=" << val1 << "   " << "x0=" << 2 * kappa / Ah * val1 << " sigma=" << "1" << "  " << tmp1 << std::endl;
 					//auto tmp2 = NormalDist(2 * kappa / Ah * val2, sqrt(1.0/abs(Ah)));
 					//auto tmp3 = NormalDist(2 *1.05* kappa / Ah * val1, sqrt(1.0/abs(Ah)));
 					//auto tmp4 = NormalDist(2 * 1.05* kappa / Ah * val2, sqrt(1.0/abs(Ah)));
 					//std::cout << tmp1 << " " << tmp2 << " " << tmp3 << " " << tmp4 << std::endl;
-					
+
 					//std::cout << "gauss prod: " << tmp5/2 << " -> " << (tmp1 + tmp2) / 2.0 << std::endl;
-					tens[{i, s, 0}] = tmp5; /// ((2.0 * 3.14159) / Ah);
+					tens[{i, s, 0}] = tmp5 ; /// ((2.0 * 3.14159) / Ah);
 					//tens[{i, s, 1}] = tmp3 * tmp4 / ((3.14159 * 2) / Ah);
 					
 				}
@@ -113,9 +113,9 @@ namespace ct {
 						//auto tmp2 = NormalDist(2 * (kappa) / Av * val2, sqrt(1.0/abs(Av)));
 						//auto tmp3 = NormalDist(2 * 1.05* kappa / Av * val1, sqrt(1.0/abs(Av)));
 						//auto tmp4 = NormalDist(2 * 1.05* kappa / Av * val2, sqrt(1.0/abs(Av)));
-						auto tmp5 = NormalDist(kappa / Ah * (val1 + val2), 1.0 / thesquareroot);
+						auto tmp5 = NormalDist(kappa  * (1.0/Av) * (val1 + val2), sqrt(1.0 / abs(Av)) *1.0 / thesquareroot);
 						
-						tens[{i, s, 0}] = tmp5;// ((2.0 * 3.14159) / (Av));
+						tens[{i, s, 0}] = tmp5 ;// ((2.0 * 3.14159) / (Av));
 						//tens[{i, s, 1}] = tmp3 * tmp4 / ((2 * 3.14159) / Av);
 						
 					}

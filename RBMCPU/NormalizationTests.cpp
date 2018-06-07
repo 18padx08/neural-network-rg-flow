@@ -1,4 +1,6 @@
 #include "NormalizationTests.h"
+#include <iomanip>
+#include <sstream>
 
 using namespace ct;
 
@@ -13,8 +15,8 @@ NormalizationTests::~NormalizationTests()
 
 void NormalizationTests::run()
 {
-	int chainSize = 2048;
-	double kappa = 0.3;
+	int chainSize = 1024;
+	double kappa = 0.4;
 	//we need some MC reference
 	Phi1D phi4(chainSize, kappa, 0, 0, 0);
 	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
@@ -148,4 +150,63 @@ void NormalizationTests::runConvTest()
 
 void NormalizationTests::compareLatticeAndNN()
 {
+}
+
+static int totalChar = 40;
+void printProgress(int now, int total) {
+	std::cout << "\r                                                                        ";
+	std::cout << "\r" << round((double)now/(double)total * 100) << "% [";
+
+	double howMuchPercent = (double)now / (double)total;
+	int howManyCharacters = (int)floor(howMuchPercent * totalChar);
+	for (int i = 0; i < howManyCharacters; i++) {
+		std::cout << "=";
+	}
+	for (int i = howManyCharacters; i < totalChar; i++) {
+		std::cout << " ";
+	}
+	std::cout << "]";
+}
+
+void NormalizationTests::compareNormOverVariousKappa()
+{
+	std::ofstream scalings("scaling_test.csv");
+	for (double kappa : {0.1,0.14,0.15,0.16,0.17,0.18,0.19,0.2,0.25,0.3,0.35,0.4,0.41,0.42,0.43,0.44,0.45,0.46,0.47, 0.48, 0.49})
+	{
+		//create a lattice
+		Phi1D phi(1024,kappa,0,0,0);
+		auto graph = RBMCompTree::getRBMGraph();
+		auto kappaVar = graph->getVarForName("kappa");
+		kappaVar->value = make_shared<Tensor>(Tensor({1}, {kappa}));
+		Session session(graph);
+		double averageMC = 0;
+		double averageNNNMC = 0;
+		double averageNN = 0;
+		double averageNNN = 0;
+		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
+		
+		map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor({ 1024 },phi.getConfiguration())) } };
+		for (int trials = 0; trials < 500; trials++) {
+			phi.fftUpdate();
+			averageMC += phi.getCorrelationLength(2);
+			averageNNNMC += phi.getCorrelationLength(4);
+			session.run(feedDic, true, 5);
+			auto chain = (*storageNode->storage[5]);
+			for (int i = 0; i < chain.dimensions[0]/2.0; i++) {
+				averageNN += (chain[{2 * i}] * chain[{2 * i + 2}] ) / (chain.dimensions[0]/2.0);
+				averageNNN += (chain[{2 * i}] * chain[{2 * i + 4}]) / (chain.dimensions[0] / 2.0);
+			}
+			printProgress(trials, 500);
+		}
+		averageMC /= 500;
+		averageNNNMC /= 500;
+		averageNN /= 500;
+		averageNNN /= 500;
+		double theoreticalCorr = exp(-2 * sqrt(1.0 / kappa - 2));
+		double scorr = exp(-4 * sqrt(1.0 / kappa - 2));
+		scalings << averageMC / averageNN << "," << averageMC / theoreticalCorr << "," << averageNN / theoreticalCorr << "," << averageNNNMC / scorr << "," << averageNNN / scorr  << std::endl;
+		std::cout << std::endl << "kappa[" << kappa << "]: " << "(MC/NN,NNNMC/NNN)" << ",\t" << "(MC/Th,NNNMC/NNN)" << ",\t" << "(NN/Th,NNNMC/NNN)" <<std::endl;
+		std::cout << "kappa[" <<kappa << "]: "<< fixed << setprecision(2)  << "("<< abs(averageMC / averageNN) << "," << abs(averageNNNMC/averageNNN)<<"),\t(" << abs(averageMC / theoreticalCorr) <<"," << abs(averageNNNMC/scorr) << "),\t(" << abs(averageNN / theoreticalCorr) <<"," << abs(averageNNN/scorr) << ")" << std::endl;
+	}	std::cout << std::endl << std::endl;
+	scalings.close();
 }

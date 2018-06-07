@@ -112,8 +112,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 				loops++;
 			}
 			prev = *castNode->value;
-			session.run(feedDic, true, 1);
-			cd.optimize(1, 1.0, true);
+			session.run(feedDic, true, 3);
+			cd.optimize(3, 1.0, true);
 			next = *castNode->value;
 			if (next < 0) {
 				*castNode->value = Tensor({ 1 }, { 0 });
@@ -170,9 +170,9 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"]);
 		double trainedCorr = 0;
 		double trainedHidden = 0;
-		session.run(feedDic, true, 10);
-		auto chains = (*storageNode->storage[10]);
-		auto hiddenChain = (*hiddenStorage->storage[10]);
+		session.run(feedDic, true, 100);
+		auto chains = (*storageNode->storage[100]);
+		auto hiddenChain = (*hiddenStorage->storage[100]);
 	
 		std::ofstream gauss("data/error_gauss_nn_bj=" + to_string(beta) + "_" + to_string(trial) + "_bs=" + std::to_string(batchsize) + "_cs=" + std::to_string(spinChainSize) + ".csv");
 		int counter2 = 0;
@@ -202,21 +202,22 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			tmpHidden /= spinChainSize/2.0;
 			gauss << tmpCorr << "," << tmpHidden << std::endl;
 		}
-		session.run(feedDic, true, 3);
-		chains = (*storageNode->storage[3]);
-		hiddenChain = (*hiddenStorage->storage[3]);
+		//session.run(feedDic, true, 100);
+		//chains = (*storageNode->storage[100]);
+		//hiddenChain = (*hiddenStorage->storage[100]);
 		trainedCorr /= counter2;
 		trainedHidden /= counter2 ;
 		trainedCorr2 /= counter2 ;
 		double calcM = (log(abs(trainedCorr)) - log(abs(trainedCorr2))) / 2.0;
 		double m = sqrt(1.0 / beta - 2);
 		double scale = exp(-2 * calcM) / trainedCorr;
-		trainedCorr *= scale;
-		trainedHidden *= scale;
+		//trainedCorr *= scale;
+		//trainedHidden *= scale;
 
 		//error in visible layer, error in hidden layer, error of monte carlo
 		responseError <<  exp(-2*m) - trainedCorr << "," << exp(-2*m) - trainedHidden << "," << mcError << "," << trainedCorr << "," << trainedHidden << ","<<secondCorr << std::endl;
 		std::cout << std::endl;
+		std::cout << "mass: " << m << " - " << calcM << " = " << m - calcM << std::endl;
 		std::cout << "correlation network " << trainedCorr << std::endl;
 		std::cout << "correlation mc " << secondCorr << std::endl;
 		std::cout << "hidden network" << trainedHidden << std::endl;
