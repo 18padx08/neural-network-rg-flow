@@ -223,6 +223,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		std::cout << "hidden network" << trainedHidden << std::endl;
 		std::cout << "correlation theoretical: " << exp(-2*m) << std::endl;
 		std::cout << "theory - visible : " << exp(-2*m) - trainedCorr << " theory - hidden" << exp(-2*m) -  trainedHidden << " theory - mc" << exp(-2*m) - secondCorr <<std::endl;
+		std::cout << trainedCorr << " / " << trainedCorr2 << "  = " << trainedCorr / trainedCorr2 << std::endl;
 		std::cout << std::endl;
 		std::cout << "============" << std::endl;
 		responseError.flush();

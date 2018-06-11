@@ -109,23 +109,23 @@ int main()
 }
 
 void runPhi4() {
-	vector<double> couplings = { 0.1 };
+	vector<double> couplings = { 0.1,0.2,0.3,0.35,0.4,0.42,0.43,0.45,0.46,0.47,0.48,0.49,0.5 };
 	vector<double> bs = { 20 };
-	/*for (auto c : couplings) {
-		for (int i = 40; i <= 40; i *= 2) {
+	for (auto c : couplings) {
+		for (int i = 20; i <= 20; i *= 2) {
 			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
 			RGFlowTest test;
 			test.plotRGFlowNew(c, i);
 		}
-	}*/
+	}
 	//Phi4Test test;
 	//test.run();
-	for (int i = 0; i < couplings.size(); i++) {
+	/*for (int i = 0; i < couplings.size(); i++) {
 		for (int j = 0; j < bs.size(); j++) {
 			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
 			ErrorAnalysis analysis;
 			analysis.plotErrorOnTraining(couplings[i], bs[j]);
 			analysis.~ErrorAnalysis();
 		}
-	}
+	}*/
 }

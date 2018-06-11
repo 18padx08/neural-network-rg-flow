@@ -381,8 +381,8 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 				//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
 				feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
 			}
-			sessions[layer].run(feedDic, true, 1);
-			cds[layer].optimize(1, 1.0, true);
+			sessions[layer].run(feedDic, true, 3);
+			cds[layer].optimize(3, 1.0, true);
 			//of << (double)*castNode->value << std::endl;
 			std::cout << "\r" << "                                                                                ";
 			std::cout << "\r" << "Layer: " << layer << " " << (double)*var->value;
@@ -426,9 +426,9 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 					//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
 					feedDic = { { "x", make_shared<Tensor>(*vals) } };
 				}
-				sessions[i].run(feedDic, true, 1);
+				sessions[i].run(feedDic, true, 3);
 				if (i == layer) {
-					cds[layer].optimize(1, 10, true);
+					cds[layer].optimize(3, 10, true);
 				}
 			}
 		//dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
