@@ -18,6 +18,12 @@ double NormalDist(double mu, double sigma)
 	std::normal_distribution<double> n(mu, sigma);
 	return n(engine);
 }
+double UniformDist(double min, double max) {
+	static unsigned seed = std::chrono::system_clock::now().time_since_epoch().count() + rand();
+	static std::default_random_engine engine(seed);
+	std::uniform_real_distribution<double> dist(min, max);
+	return dist(engine);
+}
 
 namespace ct {
 
@@ -54,6 +60,13 @@ namespace ct {
 		}
 		return nullptr;
 	}
+
+	double gauss(double x, double mean,double var) {
+		return exp(- (1.0/(2*var*var))* pow((x - mean), 2));
+	}
+	double nongauss(double x, double lambda, double mean, double var) {
+		return exp(-(1.0 / (2 * var*var))* pow((x - mean), 2) - lambda * pow((x*x -1),2)) ;
+	}
 	shared_ptr<Tensor> ct::RGFlowCont::compute(std::vector<shared_ptr<Tensor>> input)
 	{
 		static double thesquareroot = sqrt(2);
@@ -64,10 +77,13 @@ namespace ct {
 		double kappa = 0;
 		double Ah = 0;
 		double Av = 0;
-		
+		double lambda = 0;
 		kappa = (double)*getVarForName("kappa", this->inputs)->value;
 		Ah = (double)*getVarForName("Ah", this->inputs)->value;
 		Av = (double)*getVarForName("Av", this->inputs)->value;
+		if ( getVarForName("lambda", this->inputs)!= nullptr) {
+			lambda = *getVarForName("lambda", this->inputs)->value;
+		}
 		
 		//first only 1D
 		//this means we couple every second spin
@@ -84,6 +100,16 @@ namespace ct {
 					auto val2 = inputTensor[{2 * i + 2}];
 					//auto tmp1 = NormalDist(2 * kappa / Ah * val1, sqrt(1.0/abs(Ah)));
 					auto tmp5 = NormalDist(kappa  * (1.0/Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0/ thesquareroot);
+					if (lambda != 0) {
+						double p = UniformDist(0,1);
+						double acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot));
+						while (p > acceptance) {
+							tmp5 = NormalDist(kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot);
+							p = UniformDist(0, 1);
+							acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot));
+						}
+
+					}
 					
 					//std::cout << "val=" << val1 << "   " << "x0=" << 2 * kappa / Ah * val1 << " sigma=" << "1" << "  " << tmp1 << std::endl;
 					//auto tmp2 = NormalDist(2 * kappa / Ah * val2, sqrt(1.0/abs(Ah)));
@@ -114,7 +140,18 @@ namespace ct {
 						//auto tmp3 = NormalDist(2 * 1.05* kappa / Av * val1, sqrt(1.0/abs(Av)));
 						//auto tmp4 = NormalDist(2 * 1.05* kappa / Av * val2, sqrt(1.0/abs(Av)));
 						auto tmp5 = NormalDist(kappa  * (1.0/Av) * (val1 + val2), sqrt(1.0 / abs(Av)) *1.0 / thesquareroot);
-						
+
+						if (lambda != 0) {
+							double p = UniformDist(0, 1);
+							double acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot));
+							while (p > acceptance) {
+								tmp5 = NormalDist(kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot);
+								p = UniformDist(0, 1);
+								acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot));
+							}
+
+						}
+
 						tens[{i, s, 0}] = tmp5 ;// ((2.0 * 3.14159) / (Av));
 						//tens[{i, s, 1}] = tmp3 * tmp4 / ((2 * 3.14159) / Av);
 						
