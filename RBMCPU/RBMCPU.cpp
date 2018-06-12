@@ -71,11 +71,11 @@ int main()
 			test.plotRGFlowNew(c, i);
 		}
 	}*/
-	runPhi4();
+	//runPhi4();
 	//NormalizationTests test;
 	//test.compareNormOverVariousKappa();
-	//Phi4Test phitest;
-	//phitest.runCorrTest();
+	Phi4Test phitest;
+	phitest.runMassTest(0.45);
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();

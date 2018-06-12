@@ -7,5 +7,6 @@ public:
 	void run();
 	void runCorrTest();
 	void runNetworkTest();
+	void runMassTest(double kappa = 0.35);
 };
 

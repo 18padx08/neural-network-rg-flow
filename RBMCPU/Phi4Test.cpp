@@ -123,3 +123,18 @@ void Phi4Test::runCorrTest()
 void Phi4Test::runNetworkTest()
 {
 }
+
+void Phi4Test::runMassTest(double kappa)
+{
+	Phi1D phi4(4096, kappa, 0, 0, 0);
+	std::ofstream of("mass_test.csv");
+	for (int trial = 0; trial < 1000; trial++) {
+		phi4.fftUpdate();
+		for (int i = 1; i < 20; i++) {
+			of << phi4.getCorrelationLength(i) << ",";
+		}
+		of << std::endl;
+		std::cout << "\r                                                              ";
+		std::cout << "trial: " << trial;
+	}
+}
