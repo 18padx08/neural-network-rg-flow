@@ -251,3 +251,158 @@ void ErrorAnalysis::plotErrorOfResponse(double beta)
 
 
 }
+
+void ErrorAnalysis::plotNonZeroLamTests(double kappa, double lambda)
+{
+	int batchsize = 20;
+	int chainsize = 1024;
+	Phi1D phi4(chainsize, kappa, lambda, 0, 0);
+	phi4.useWolff = true;
+	//thermalize since we cannot use the fourier update
+	phi4.thermalize();
+
+	//setup the neural network
+	auto graph = RBMCompTree::getRBMGraph();
+	auto cd = make_shared<ct::optimizers::ContrastiveDivergence>(ct::optimizers::ContrastiveDivergence(graph,0.1));
+	auto session = make_shared<Session>(Session(graph));
+	auto lambdaNN = graph->getVarForName("lambda");
+	auto kappaNN = graph->getVarForName("kappa");
+	auto Ah = graph->getVarForName("Ah");
+	auto Av = graph->getVarForName("Av");
+	lambdaNN->value = make_shared<Tensor>(Tensor({ 1 }, { lambda }));
+	kappaNN->value = make_shared<Tensor>(Tensor({ 1 }, { kappa }));
+	Ah->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
+	Av->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
+
+	map<string, shared_ptr<Tensor>> feedDic;
+	vector<int> dims = { chainsize, batchsize };
+	vector<double> samples(batchsize * chainsize);
+	for (int trials = 0; trials < 200; trials++) {
+		//generate samples
+		double secondCorr = 0;
+		lambdaNN->value = make_shared<Tensor>(Tensor({ 1 }, { lambda }));
+		kappaNN->value = make_shared<Tensor>(Tensor({ 1 }, { kappa }));
+		Ah->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
+		Av->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
+		for (int i = 0; i < batchsize; i++) {
+			phi4.monteCarloSweep();
+			auto tmp = phi4.getConfiguration();
+			secondCorr += phi4.getCorrelationLength(2);
+			for (int j = 0; j < chainsize; j++) {
+				samples[j + i * chainsize] = tmp[j];
+			}
+		}
+		secondCorr /= batchsize;
+		//setup the feeddic
+		feedDic = { { "x", make_shared<Tensor>(dims, samples) } };
+		int overalCounter = 0;
+		int loops = 0;
+		double average = 0;
+		int counter = 0;
+		double lastAverage = 0;
+		do {
+			if (counter % 50 == 0 && counter != 0) {
+				//check if average is smaller
+				if (abs(average - lastAverage) < 0.1*abs(average) * (1.0 / sqrt(batchsize))) break;
+				lastAverage = average;
+				average = 0;
+				counter = 0;
+				loops++;
+			}
+			//prev = *castNode->value;
+			session->run(feedDic, true, 3);
+			cd->optimize(3, 1.0, true);
+			//next = *castNode->value;
+			/*if (next < 0) {
+				*castNode->value = Tensor({ 1 }, { 0 });
+			}*/
+			//of << (double)*castNode->value << std::endl;
+			std::cout << "\r" << "                                              ";
+			std::cout << "\r kappa=" << (double)*kappaNN->value << "; lambda=" << (double)*lambdaNN->value << ", Ah=" << (double)*Ah->value << ", Av="<<(double)*Av->value;
+			counter++;
+			overalCounter++;
+			average += (double)*kappaNN->value / 50;
+		} while (true && overalCounter < 100);
+
+		std::cout << std::endl;
+		std::cout << "Thermalized" << std::endl;
+
+		//do some measurements
+		std::cout << "Batch initialized, lets Gibbs Sample" << std::endl;
+		feedDic.clear();
+		feedDic = { { "x", make_shared<Tensor>(dims,samples) } };
+
+		std::cout << "Gibbs sampling finished, calculate mean" << std::endl;
+		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
+		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"]);
+		double trainedCorr = 0;
+		double trainedHidden = 0;
+		session->run(feedDic, true, 100);
+		auto chains = (*storageNode->storage[100]);
+		auto hiddenChain = (*hiddenStorage->storage[100]);
+
+		int counter2 = 0;
+		double normalization = 0;
+		trainedCorr = 0;
+		trainedHidden = 0;
+		double trainedCorr2 = 0;
+		double averageSquared = 0;
+		double averageV = 0;
+		for (int s = 0; s < batchsize; s++) {
+			double tmpCorr = 0;
+			double tmpHidden = 0;
+
+			for (int i = 0; i < chainsize / 2; i++) {
+				double nnv = 0;
+				double nnh = 0;
+				double tmpA = chains[{2 * i, s, 0}];
+				nnv = tmpA * chains[{(2 * i + 2), s, 0}];
+				nnh = hiddenChain[{i, s, 0}] * hiddenChain[{(i + 1), s, 0}];
+				averageSquared += pow(tmpA,2);
+				averageV += tmpA;
+				tmpCorr += nnv;
+				trainedCorr2 += chains[{2 * i, s, 0}] * chains[{(2 * i + 4), s, 0}];
+				tmpHidden += nnh;
+				trainedCorr += nnv;
+				trainedHidden += nnh;
+				counter2++;
+				
+			}
+			
+
+			tmpCorr /= chainsize / 2.0;
+			tmpHidden /= chainsize / 2.0;
+			//gauss << tmpCorr << "," << tmpHidden << std::endl;
+		}
+		//session.run(feedDic, true, 100);
+		//chains = (*storageNode->storage[100]);
+		//hiddenChain = (*hiddenStorage->storage[100]);
+		trainedCorr /= counter2;
+		trainedHidden /= counter2;
+		trainedCorr2 /= counter2;
+		averageV /= counter2;
+		averageSquared /= counter2;
+		double calcM = (log(abs(trainedCorr)) - log(abs(trainedCorr2))) / 2.0;
+		double m = sqrt( abs((1.0 - 2.0*lambda) / kappa - 2.0));
+		double scale = exp(-2 * calcM) / trainedCorr;
+		//trainedCorr *= scale;
+		//trainedHidden *= scale;
+
+		//error in visible layer, error in hidden layer, error of monte carlo
+		//responseError << exp(-2 * m) - trainedCorr << "," << exp(-2 * m) - trainedHidden << "," << mcError << "," << trainedCorr << "," << trainedHidden << "," << secondCorr << std::endl;
+		std::cout << std::endl;
+		std::cout << "average squared: " << averageSquared << " " << phi4.squaredVolumeAverage() << std::endl;
+		std::cout << "average: " << averageV << "  " << phi4.volumeAverage() << std::endl;
+		std::cout << "mass: " << m << " - " << calcM << " = " << m - calcM << std::endl;
+		std::cout << "correlation network " << trainedCorr << std::endl;
+		std::cout << "correlation mc " << secondCorr << std::endl;
+		std::cout << "hidden network" << trainedHidden << std::endl;
+		std::cout << "correlation theoretical: " << exp(-2 * m) << std::endl;
+		std::cout << "theory - visible : " << exp(-2 * m) - trainedCorr << " theory - hidden" << exp(-2 * m) - trainedHidden << " theory - mc" << exp(-2 * m) - secondCorr << std::endl;
+		std::cout << trainedCorr << " / " << trainedCorr2 << "  = " << trainedCorr / trainedCorr2 << std::endl;
+		std::cout << std::endl;
+		std::cout << "============" << std::endl;
+	}
+	
+
+}

@@ -42,5 +42,8 @@ public:
 	//use a pretrained network (e.g. calculate the parameter analytically) and check the response error
 	void plotErrorOfResponse(double beta = 1.0);
 
+	//lambda != 0 tests
+	void plotNonZeroLamTests(double kappa = 0.4, double lambda = 1);
+
 };
 

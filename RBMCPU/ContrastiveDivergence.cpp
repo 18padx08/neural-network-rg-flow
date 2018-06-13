@@ -82,12 +82,19 @@ namespace ct {
 			auto kappa = theGraph->getVarForName("kappa");
 			auto Ah = theGraph->getVarForName("Ah");
 			auto Av = theGraph->getVarForName("Av");
+			auto lambda = theGraph->getVarForName("lambda");
 		
 			*kappa->value = *kappa->value + Tensor({1}, {learningRate *(delta)});
 			auto newValue = *Av->value + Tensor({ 1 }, { -learningRate * (exp_vis0 - exp_visn ) });
 			auto newValue2 = *Ah->value + Tensor({ 1 }, {- learningRate * (exp_hid0 - exp_hidn) });
 			*Av->value = newValue;
 			*Ah->value = newValue2;
+
+			if (lambda != nullptr) {
+				*lambda->value = *lambda->value + Tensor({ 1 }, { -learningRate * ( (exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) });
+			}
+
+			lambda.reset();
 			kappa.reset();
 			Av.reset();
 			Ah.reset();

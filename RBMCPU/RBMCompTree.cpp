@@ -24,11 +24,14 @@ namespace ct {
 		auto Ah = make_shared<Variable>(Variable());
 		Ah->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
 		Ah->name = "Ah";
-		auto positive = make_shared<RGFlowCont>(RGFlowCont(storeVisible, kappa, Av, Ah, false));
+		auto lambda = make_shared<Variable>(Variable());
+		lambda->value = make_shared<Tensor>(Tensor({ 1 }, { 0 }));
+		lambda->name = "lambda";
+		auto positive = make_shared<RGFlowCont>(RGFlowCont(storeVisible, kappa, Av, Ah, lambda, false));
 
 		auto storeHidden_raw = make_shared<Storage>(Storage(positive, "hiddens_raw"));
 
-		auto negative = make_shared<RGFlowCont>(RGFlowCont(storeHidden_raw, kappa, Av, Ah, true));
+		auto negative = make_shared<RGFlowCont>(RGFlowCont(storeHidden_raw, kappa, Av, Ah, lambda, true));
 
 		auto storeVisible_raw= make_shared<Storage>(Storage(negative, "visibles_raw"));
 		auto visible = make_shared<ProbPooling>(ProbPooling(storeVisible_raw));

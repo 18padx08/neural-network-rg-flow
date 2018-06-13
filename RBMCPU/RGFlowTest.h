@@ -33,6 +33,7 @@ public:
 	void plotError(vector<int> num_samples);
 	void plotRGFlow(double startingBeta);
 	void plotRGFlowNew(double startingBeta, int batch_size);
+	void plotRGFlowLamNeq0(double startingBeta, double startingLam, int batch_size);
 
 	void modTest(double startingBeta);
 	void testGibbsConvergence();

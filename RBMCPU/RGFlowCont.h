@@ -8,7 +8,7 @@ namespace ct {
 		bool isInverse = false;
 		shared_ptr<Variable> getVarForName(string name, std::vector<shared_ptr<Node>> input);
 	public:
-		RGFlowCont(shared_ptr<Node> input, shared_ptr<Variable> kappa, shared_ptr<Variable> Av, shared_ptr<Variable> Ah, bool isInverse);
+		RGFlowCont(shared_ptr<Node> input, shared_ptr<Variable> kappa, shared_ptr<Variable> Av, shared_ptr<Variable> Ah, shared_ptr<Variable> lambda, bool isInverse);
 		~RGFlowCont();
 
 		// Inherited via Operation

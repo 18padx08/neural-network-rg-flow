@@ -27,13 +27,14 @@ double UniformDist(double min, double max) {
 
 namespace ct {
 
-	ct::RGFlowCont::RGFlowCont(shared_ptr<Node> input, shared_ptr<Variable> kappa, shared_ptr<Variable> Av, shared_ptr<Variable> Ah,  bool isInverse) : isInverse(isInverse)
+	ct::RGFlowCont::RGFlowCont(shared_ptr<Node> input, shared_ptr<Variable> kappa, shared_ptr<Variable> Av, shared_ptr<Variable> Ah, shared_ptr<Variable> lambda,  bool isInverse) : isInverse(isInverse)
 	{
 		srand(time(NULL));
 		this->inputs.push_back(input);
 		this->inputs.push_back(kappa);
 		this->inputs.push_back(Av);
 		this->inputs.push_back(Ah);
+		this->inputs.push_back(lambda);
 	}
 
 
@@ -83,6 +84,9 @@ namespace ct {
 		Av = (double)*getVarForName("Av", this->inputs)->value;
 		if ( getVarForName("lambda", this->inputs)!= nullptr) {
 			lambda = *getVarForName("lambda", this->inputs)->value;
+			if (abs(lambda) < 1e-6) {
+				lambda = 0;
+			}
 		}
 		
 		//first only 1D
@@ -102,7 +106,7 @@ namespace ct {
 					auto tmp5 = NormalDist(kappa  * (1.0/Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0/ thesquareroot);
 					if (lambda != 0) {
 						double p = UniformDist(0,1);
-						double acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot));
+						double acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot)/gauss(tmp5, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot));
 						while (p > acceptance) {
 							tmp5 = NormalDist(kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot);
 							p = UniformDist(0, 1);
@@ -143,11 +147,11 @@ namespace ct {
 
 						if (lambda != 0) {
 							double p = UniformDist(0, 1);
-							double acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot));
+							double acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Av)*(val1 + val2), sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot)/gauss(tmp5, kappa  * (1.0 / Av)*(val1 + val2), sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot));
 							while (p > acceptance) {
-								tmp5 = NormalDist(kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot);
+								tmp5 = NormalDist(kappa  * (1.0 / Av)*(val1 + val2), sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot);
 								p = UniformDist(0, 1);
-								acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot));
+								acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Av)*(val1 + val2), sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot));
 							}
 
 						}

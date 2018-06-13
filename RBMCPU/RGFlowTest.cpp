@@ -447,6 +447,183 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 	output.close();
 }
 
+void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int batch_size)
+{
+	//constants
+	int chainsize = 512;
+	int layers = 10;
+	int max_iterations = 400;
+	map<string, shared_ptr<Tensor>> feedDic;
+
+	//setup MC for training
+	Phi1D phi4(chainsize, startingBeta, startingLam, 0, 0);
+	phi4.thermalize();
+
+	//setup for neural network
+	auto samples = vector<double>(chainsize * batch_size);
+	vector<int> dims = { chainsize,batch_size };
+	vector<int> thermDims = { chainsize,batch_size };
+	vector<shared_ptr<Graph>> graphList;
+	vector<shared_ptr<Session>> sessions;
+	vector<shared_ptr<optimizers::ContrastiveDivergence>> cds;
+	vector<shared_ptr<optimizers::ContrastiveDivergence>> newcds;
+	//setup layers
+	for (int layer = 0; layer < layers; layer++) {
+		auto tmpGraph = RBMCompTree::getRBMGraph();
+		//set initial values
+		auto kappa = tmpGraph->getVarForName("kappa");
+		auto Av = tmpGraph->getVarForName("Av");
+		auto Ah = tmpGraph->getVarForName("Ah");
+		auto lambda = tmpGraph->getVarForName("lambda");
+
+		kappa->value = make_shared<Tensor>(Tensor({ 1 }, {startingBeta}));
+		lambda->value = make_shared<Tensor>(Tensor({ 1 }, { startingLam }));
+		Ah->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
+		Av->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
+
+		//wire up session and cd
+		auto tmpCd = make_shared<optimizers::ContrastiveDivergence>(optimizers::ContrastiveDivergence(tmpGraph, 0.1));
+		auto newTmpCd = make_shared<optimizers::ContrastiveDivergence>(optimizers::ContrastiveDivergence(tmpGraph, 0.01));
+		auto tmpSession = make_shared<Session>(Session(tmpGraph));
+
+		//add to graph list
+		graphList.push_back(tmpGraph);
+		sessions.push_back(tmpSession);
+		cds.push_back(tmpCd);
+		newcds.push_back(newTmpCd);
+	}
+
+	//we need our thermalization batch
+	for (int b = 0; b < batch_size; b++) {
+		phi4.monteCarloSweep();
+		auto tmp = phi4.getConfiguration();
+		for (int i = 0; i < chainsize; i++) {
+			samples[i + b * chainsize] = tmp[i];
+		}
+	}
+
+	feedDic = { {"x", make_shared<Tensor>(thermDims, samples)} };
+
+	//start thermalizing
+	int counter = 0;
+	int events = 0;
+	double gradient = 0;
+	double average = 0;
+	double lastAverage = 0;
+	int loops = 0;
+	for (int layer = 0; layer < layers; layer++) {
+		bool run = true;
+		auto var = graphList[layer]->getVarForName("kappa");//dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
+		auto lam = graphList[layer]->getVarForName("lambda");
+		counter = 0;
+		lastAverage = 0;
+		double lastEpsilon = 0;
+		double epsilon = 0;
+		int averageCount = 20 * pow(1, layer);
+		do {
+			if (counter % averageCount == 0 && counter != 0) {
+				//check if average is smaller
+				var->value = make_shared<Tensor>(Tensor({ 1 }, { average }));
+				auto diff = abs(average - lastAverage);
+				lastEpsilon = epsilon;
+				epsilon = abs((1.0 / sqrt(batch_size)) * average)*0.1;
+				if ((diff < epsilon) || abs(average) < 10e-6)
+				{
+					lastAverage = 0;
+					average = 0;
+					counter = 0;
+					loops = 0;
+					//run = false;
+					break;
+				}
+				lastAverage = average;
+				average = 0;
+				counter = 0;
+				loops++;
+			}
+			if (layer > 0) {
+				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_raw"])->storage[3]);
+				//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
+				feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
+			}
+			sessions[layer]->run(feedDic, true, 3);
+			cds[layer]->optimize(3, 1.0, true);
+			//of << (double)*castNode->value << std::endl;
+			std::cout << "\r" << "                                                                                ";
+			std::cout << "\r" << "Layer: " << layer << " " << (double)*var->value << " " << (double)*lam->value;
+			counter++;
+			if ((double)*var->value > 0) {
+				average += (double)*var->value / averageCount;
+			}
+			else {
+				*var->value = Tensor({ 1 }, { 0 });
+			}
+			if ((double)*lam->value < 0) {
+				*lam->value = Tensor({ 1 }, { 0 });
+			}
+			
+
+		} while (run);
+	}
+	std::cout << std::endl;
+	std::cout << "== Thermalized ==" << std::endl;
+
+	//we should now be thermalized
+	//start doing measurments
+	std::ofstream kappa("rg_flow_comb_kappa=" + std::to_string(startingBeta) + "_bs=" + std::to_string(batch_size) + "_cs=" + std::to_string(chainsize) + "_withLam=" + to_string(startingLam) + ".csv");
+	std::ofstream lambda("rg_flow_comb_lambda=" + std::to_string(startingLam) + "_bs=" + std::to_string(batch_size) + "_cs=" + std::to_string(chainsize) + "_withKappa=" + to_string(startingBeta)+ ".csv");
+
+	for (int layer = 0; layer < layers; layer++) {
+		for (int it = 0; it < max_iterations; it++) {
+			//each iterations needs a new batch
+			for (int sam = 0; sam < batch_size; sam++) {
+				auto t = phi4.getConfiguration();
+				for (int i = 0; i < t.size(); i++) {
+					samples[i + sam * chainsize] = t[i];
+				}
+				phi4.monteCarloSweep();
+			}
+			//propagate the batch through the layer
+			if (it % 10 == 0) {
+				std::cout << "\r" << "                                                                                                                       ";
+				std::cout << "\r" << "Coupling [" << it << " of " << max_iterations << "]: ";
+			}
+
+			feedDic = { { "x", make_shared<Tensor>(Tensor(dims, samples)) } };
+			auto var = graphList[layer]->getVarForName("kappa");
+			auto lam = graphList[layer]->getVarForName("lambda");
+			auto renorm = graphList[layer]->getVarForName("Av");
+			for (int i = 0; i <= layer; i++) {
+				if (i > 0) {
+					//if not the first layer take the output from the last layer
+					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"])->storage[3]);
+					//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
+					feedDic = { { "x", make_shared<Tensor>(*vals) } };
+				}
+				sessions[i]->run(feedDic, true, 3);
+				if (i == layer) {
+					newcds[layer]->optimize(3, 10, true);
+				}
+			}
+			//dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
+			if (*var->value < 0) {
+				*var->value = Tensor({ 1 }, { 0 });
+			}
+			if (it % 10 == 0) {
+				std::cout << " kappa " << (double)*(var->value) << " " << (double)*(lam->value) << " ";
+			}
+			if (it > 200) {
+				kappa << (double) *(var->value) << ",";
+				lambda << (double) *(lam->value) << ",";
+			}
+		}
+		kappa << std::endl;
+		lambda << std::endl;
+	}
+	kappa.close();
+	lambda.close();
+}
+
 void RGFlowTest::modTest(double startingBeta)
 {
 	//first layer setup

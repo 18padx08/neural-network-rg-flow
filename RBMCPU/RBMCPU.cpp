@@ -35,9 +35,11 @@
 #include "TestFFTUpdate.h"
 #include "TestLoop.h"
 #include "NormalizationTests.h"
+#include "Config.h"
 
 using namespace ct;
 void runPhi4();
+void readConfig(string filename);
 
 int main()
 {
@@ -72,10 +74,11 @@ int main()
 		}
 	}*/
 	//runPhi4();
+	readConfig("default_config");
 	//NormalizationTests test;
 	//test.compareNormOverVariousKappa();
-	Phi4Test phitest;
-	phitest.runMassTest(0.45);
+	//Phi4Test phitest;
+	//phitest.runMassTest(0.45);
 	/*srand(time(NULL));
 	TIRBMTest tTest;
 	tTest.runTest();
@@ -108,14 +111,22 @@ int main()
 	return 0;
 }
 
+void readConfig(string filename) {
+	Config config(filename);
+	config.load();
+	config.run();
+}
+
 void runPhi4() {
-	vector<double> couplings = { 0.1,0.2,0.3,0.35,0.4,0.42,0.43,0.45,0.46,0.47,0.48,0.49,0.5 };
-	vector<double> bs = { 20 };
-	for (auto c : couplings) {
-		for (int i = 20; i <= 20; i *= 2) {
-			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
-			RGFlowTest test;
-			test.plotRGFlowNew(c, i);
+	vector<double> kappa = {0.1,0.2,0.3};
+	vector<double> lambda = { 0.5,0.4,0.3,0.2,0.1 };
+	for (auto c : kappa) {
+		for (auto l : lambda) {
+			for (int i = 20; i <= 20; i *= 2) {
+				std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
+				RGFlowTest test;
+				test.plotRGFlowLamNeq0(c, l, 40);
+			}
 		}
 	}
 	//Phi4Test test;
@@ -124,7 +135,7 @@ void runPhi4() {
 		for (int j = 0; j < bs.size(); j++) {
 			std::cout << std::endl << "-- bs=" << i << " --" << std::endl;
 			ErrorAnalysis analysis;
-			analysis.plotErrorOnTraining(couplings[i], bs[j]);
+			analysis.plotNonZeroLamTests(couplings[i], bs[j]);
 			analysis.~ErrorAnalysis();
 		}
 	}*/
