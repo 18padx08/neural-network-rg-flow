@@ -5,13 +5,17 @@
 #include <ctime>
 #include "ErrorAnalysis.h"
 #include "RGFlowTest.h"
+#include "NormalizationTests.h"
+#include "Phi4Test.h"
 #include <regex>
 using namespace std;
 
  enum REGISTERED_TESTS {
 	 None,
 	 plotRGFlowLamNeq0,
-	 plotNonZeroLamTests
+	 plotNonZeroLamTests,
+	 compareNormOverVariousKappa,
+	 massTest
 };
 
 

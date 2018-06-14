@@ -32,6 +32,6 @@ public:
 	void run();
 	void runConvTest();
 	void compareLatticeAndNN();
-	void compareNormOverVariousKappa();
+	void compareNormOverVariousKappa(vector<double> kappas, int chainsize);
 };
 

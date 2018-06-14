@@ -450,8 +450,8 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int batch_size)
 {
 	//constants
-	int chainsize = 512;
-	int layers = 10;
+	int chainsize = 256;
+	int layers = 8;
 	int max_iterations = 400;
 	map<string, shared_ptr<Tensor>> feedDic;
 

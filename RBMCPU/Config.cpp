@@ -10,6 +10,12 @@ REGISTERED_TESTS Config::enumFromString(string str)
 	else if (str == "plotNonZeroLamTests") {
 		return REGISTERED_TESTS::plotNonZeroLamTests;
 	}
+	else if (str == "compareNormOverVariousKappa") {
+		return REGISTERED_TESTS::compareNormOverVariousKappa;
+	}
+	else if (str == "massTest") {
+		return REGISTERED_TESTS::massTest;
+	}
 	return REGISTERED_TESTS::None;
 }
 
@@ -63,12 +69,53 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 		break;
 	case REGISTERED_TESTS::plotNonZeroLamTests:
 		f = [=] {
-			if (num_vars.find("kappa") == num_vars.end()) return;
-			if (num_vars.find("lambda") == num_vars.end()) return;
-			double kappa = num_vars.at("kappa");
-			double lambda = num_vars.at("lambda");
-			ErrorAnalysis test;
-			test.plotNonZeroLamTests(kappa, lambda);
+			if (list_vars.size() <= 0) {
+				if (num_vars.find("kappa") == num_vars.end()) return;
+				if (num_vars.find("lambda") == num_vars.end()) return;
+				double kappa = num_vars.at("kappa");
+				double lambda = num_vars.at("lambda");
+				ErrorAnalysis test;
+				test.plotNonZeroLamTests(kappa, lambda);
+			}
+			else {
+				if (list_vars.find("kappa") == list_vars.end()) return;
+				if (list_vars.find("lambda") == list_vars.end()) return;
+
+				vector<double> kappas = list_vars.at("kappa");
+				vector<double> lambdas = list_vars.at("lambda");
+				for (auto k : kappas) {
+					for (auto l : lambdas) {
+						ErrorAnalysis test;
+						test.plotNonZeroLamTests(k,l);
+					}
+				}
+			}
+		};
+		break;
+	case REGISTERED_TESTS::compareNormOverVariousKappa:
+		f = [=] {
+			if (list_vars.find("kappa") == list_vars.end()) return;
+			if (num_vars.find("chainsize") == num_vars.end()) return;
+
+			auto kappas = list_vars.at("kappa");
+			auto chainsize = num_vars.at("chainsize");
+			NormalizationTests test;
+			test.compareNormOverVariousKappa(kappas, chainsize);
+		};
+		break;
+	case REGISTERED_TESTS::massTest:
+		f = [=] {
+			if (list_vars.find("kappa") == list_vars.end()) return;
+			if (list_vars.find("chainsize") == list_vars.end()) return;
+
+			auto kappas = list_vars.at("kappa");
+			auto cs = list_vars.at("chainsize");
+			for (auto k : kappas) {
+				for (auto c : cs) {
+					Phi4Test test;
+					test.runMassTest(k, c);
+				}
+			}
 		};
 		break;
 	}

@@ -124,10 +124,10 @@ void Phi4Test::runNetworkTest()
 {
 }
 
-void Phi4Test::runMassTest(double kappa)
+void Phi4Test::runMassTest(double kappa, int chainsize)
 {
-	Phi1D phi4(4096, kappa, 0, 0, 0);
-	std::ofstream of("mass_test.csv");
+	Phi1D phi4(chainsize, kappa, 0, 0, 0);
+	std::ofstream of("mass_test_cs="+to_string(chainsize) + "_kappa=" + to_string(kappa) +  ".csv");
 	for (int trial = 0; trial < 1000; trial++) {
 		phi4.fftUpdate();
 		for (int i = 1; i < 20; i++) {

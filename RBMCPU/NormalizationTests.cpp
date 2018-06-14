@@ -168,13 +168,13 @@ void printProgress(int now, int total) {
 	std::cout << "]";
 }
 
-void NormalizationTests::compareNormOverVariousKappa()
+void NormalizationTests::compareNormOverVariousKappa(vector<double> kappas, int chainsize)
 {
 	std::ofstream scalings("scaling_test.csv");
-	for (double kappa : {0.1,0.14,0.15,0.16,0.17,0.18,0.19,0.2,0.25,0.3,0.35,0.4,0.41,0.42,0.43,0.44,0.45,0.46,0.47, 0.48, 0.49})
+	for (double kappa : kappas)
 	{
 		//create a lattice
-		Phi1D phi(1024,kappa,0,0,0);
+		Phi1D phi(chainsize,kappa,0,0,0);
 		auto graph = RBMCompTree::getRBMGraph();
 		auto kappaVar = graph->getVarForName("kappa");
 		kappaVar->value = make_shared<Tensor>(Tensor({1}, {kappa}));
