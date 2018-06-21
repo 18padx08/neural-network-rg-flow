@@ -56,6 +56,8 @@ namespace ct {
 
 	Tensor::~Tensor()
 	{
+		elements.clear();
+		dimensions.clear();
 	}
 	double & Tensor::operator[](std::initializer_list<int> list)
 	{

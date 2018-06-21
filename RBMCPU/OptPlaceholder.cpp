@@ -13,12 +13,12 @@ namespace ct {
 		consumers.clear();
 	}
 
-	shared_ptr<Tensor> ct::OptPlaceholder::compute(std::initializer_list<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> ct::OptPlaceholder::compute(std::initializer_list<weak_ptr<Tensor>> input)
 	{
 		return shared_ptr<Tensor>();
 	}
 
-	shared_ptr<Tensor> ct::OptPlaceholder::compute(std::vector<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> ct::OptPlaceholder::compute(std::vector<weak_ptr<Tensor>> input)
 	{
 		return shared_ptr<Tensor>();
 	}

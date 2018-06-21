@@ -12,16 +12,16 @@ namespace ct {
 	{
 	}
 
-	shared_ptr<Tensor> ct::Sigmoid::compute(std::initializer_list<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> ct::Sigmoid::compute(std::initializer_list<weak_ptr<Tensor>> input)
 	{
-		vector<shared_ptr<Tensor>> blub(input.begin(), input.end());
+		vector<weak_ptr<Tensor>> blub(input.begin(), input.end());
 		compute(blub);
 	}
 
-	shared_ptr<Tensor> ct::Sigmoid::compute(std::vector<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> ct::Sigmoid::compute(std::vector<weak_ptr<Tensor>> input)
 	{
 		auto functor = [](double arg) { return 2.0 / (1.0 + std::exp(-arg)) -1.0; };
 		//blub[0] = make_shared<Tensor>(blub[0]->elementWise(functor));
-		return make_shared<Tensor>(input[0]->elementWise(functor));
+		return make_shared<Tensor>(input[0].lock()->elementWise(functor));
 	}
 }

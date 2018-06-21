@@ -9,7 +9,7 @@ namespace ct {
 	class Session
 	{
 	private:
-		map<string, shared_ptr<Tensor>> feedDict;
+		map<string, weak_ptr<Tensor>> feedDict;
 		shared_ptr<Graph> graph;
 	public:
 		Session(shared_ptr<Graph> graph);

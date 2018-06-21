@@ -23,9 +23,11 @@
 #include "ContrastiveDivergence.h"
 #include "ModCD.h"
 #include "CheatCD.h"
+#include "TestBase.h"
 
-class RGFlowTest
+class RGFlowTest : public TestBase
 {
+
 public:
 	RGFlowTest();
 	~RGFlowTest();
@@ -33,10 +35,15 @@ public:
 	void plotError(vector<int> num_samples);
 	void plotRGFlow(double startingBeta);
 	void plotRGFlowNew(double startingBeta, int batch_size);
-	void plotRGFlowLamNeq0(double startingBeta, double startingLam, int batch_size);
+	void plotRGFlowLamNeq0(double startingBeta, double startingLam, int batch_size, int chain_size=512, int layer_size=8, int maxiterations=400);
 
 	void modTest(double startingBeta);
 	void testGibbsConvergence();
 	void cheatTest(double startingBeta);
+	
+
+	// Inherited via TestBase
+	virtual void operator()(string name, map<string, double> num_vars, map<string, string> str_vars, map<string, vector<double>> list_vars) override;
+
 };
 

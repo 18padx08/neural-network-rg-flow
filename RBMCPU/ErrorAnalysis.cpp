@@ -166,8 +166,8 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 		feedDic = { { "x", make_shared<Tensor>(dims,samples) } };
 		
 		std::cout << "Gibbs sampling finished, calculate mean" << std::endl;
-		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
-		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"]);
+		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"].lock());
+		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"].lock());
 		double trainedCorr = 0;
 		double trainedHidden = 0;
 		session.run(feedDic, true, 100);
@@ -244,7 +244,7 @@ void ErrorAnalysis::plotErrorOfResponse(double beta)
 	//we need a (trained) network
 	//get a rbm comp tree
 	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
-	auto variable = dynamic_pointer_cast<Variable>(graph->variables[0]);
+	auto variable = dynamic_pointer_cast<Variable>(graph->variables[0].lock());
 	//set network parameter to theoretical value
 	variable->value = make_shared<Tensor>(Tensor({ 1 }, { -2*beta }));
 	Session session(graph);
@@ -333,8 +333,8 @@ void ErrorAnalysis::plotNonZeroLamTests(double kappa, double lambda)
 		feedDic = { { "x", make_shared<Tensor>(dims,samples) } };
 
 		std::cout << "Gibbs sampling finished, calculate mean" << std::endl;
-		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
-		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"]);
+		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"].lock());
+		auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"].lock());
 		double trainedCorr = 0;
 		double trainedHidden = 0;
 		session->run(feedDic, true, 100);

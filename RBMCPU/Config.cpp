@@ -26,45 +26,8 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 	case REGISTERED_TESTS::plotRGFlowLamNeq0:
 		f = [=] 
 		{
-			if (list_vars.size() <= 0) {
-				if (num_vars.find("kappa") == num_vars.end()) return;
-				if (num_vars.find("lambda") == num_vars.end()) return;
-				if (num_vars.find("batchsize") == num_vars.end()) return;
-
-				RGFlowTest test;
-				double kappa = num_vars.at("kappa");
-				double lambda = num_vars.at("lambda");
-				int batch_size = num_vars.at("batchsize");
-				std::cout << "Start running plotRGFlowLamNeq0 with" << std::endl;
-				std::cout << "kappa = " << kappa << std::endl;
-				std::cout << "lambda = " << lambda << std::endl;
-				std::cout << "batchsize = " << batch_size << std::endl;
-				test.plotRGFlowLamNeq0(kappa, lambda, batch_size);
-			}
-			else {
-				if (list_vars.find("kappa") == list_vars.end()) return;
-				if (list_vars.find("lambda") == list_vars.end()) return;
-				if (list_vars.find("batchsize") == list_vars.end()) return;
-
-				vector<double> kappas = list_vars.at("kappa");
-				vector<double> lambdas = list_vars.at("lambda");
-				vector<int> batchsizes;
-				for (auto t : list_vars.at("batchsize")) {
-					batchsizes.push_back((int)t);
-				}
-				for (auto bs : batchsizes) {
-					for (auto k : kappas) {
-						for (auto l : lambdas) {
-							std::cout << "Start plotRGFlowLamNeq0 with parameters" << std::endl;
-							std::cout << "kappa: " << k <<std::endl;
-							std::cout << "lambda: " << l << std::endl;
-							std::cout << "batchsize: " << bs << std::endl << std::endl;;
-							RGFlowTest test;
-							test.plotRGFlowLamNeq0(k, l, bs);
-						}
-					}
-				}
-			}
+			RGFlowTest test;
+			test("plotRGFlowLamNeq0", num_vars, str_vars, list_vars);
 		};
 		break;
 	case REGISTERED_TESTS::plotNonZeroLamTests:

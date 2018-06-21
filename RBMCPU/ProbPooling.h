@@ -14,7 +14,7 @@ namespace ct {
 		std::default_random_engine engine;
 
 		// Inherited via Operation
-		virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) override;
-		virtual shared_ptr<Tensor> compute(std::vector<shared_ptr<Tensor>> input) override;
+		virtual shared_ptr<Tensor> compute(std::initializer_list<weak_ptr<Tensor>> input) override;
+		virtual shared_ptr<Tensor> compute(std::vector<weak_ptr<Tensor>> input) override;
 	};
 }

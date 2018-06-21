@@ -197,6 +197,7 @@
     <ClInclude Include="SymmetryTest.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Tensor.h" />
+    <ClInclude Include="TestBase.h" />
     <ClInclude Include="TestFFTUpdate.h" />
     <ClInclude Include="TestLoop.h" />
     <ClInclude Include="TIRBM.h" />
@@ -251,6 +252,9 @@
     <ClCompile Include="TranslationSymmetry.cpp" />
     <ClCompile Include="Variable.cpp" />
     <ClCompile Include="Z2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="default_config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

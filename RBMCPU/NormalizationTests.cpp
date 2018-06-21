@@ -53,7 +53,7 @@ void NormalizationTests::run()
 			map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor({ chainSize },randomState)) } };
 			
 				session.run(feedDic, true, 5);
-				auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
+				auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"].lock());
 				auto chain = (*storageNode->storage[5]);
 				double tmpCorrNN = 0;
 				double tmpCorr2NN = 0;
@@ -122,7 +122,7 @@ void NormalizationTests::runConvTest()
 		int count = 0;
 		for (int counter = 0; counter < 1000; counter++) {
 			session.run(feedDic, true, 1);
-			auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
+			auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"].lock());
 			auto chain = (*storageNode->storage[1]);
 			double tmpCorrNN = 0;
 			double tmpCorr2NN = 0;
@@ -183,7 +183,7 @@ void NormalizationTests::compareNormOverVariousKappa(vector<double> kappas, int 
 		double averageNNNMC = 0;
 		double averageNN = 0;
 		double averageNNN = 0;
-		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
+		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"].lock());
 		
 		map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor({ 1024 },phi.getConfiguration())) } };
 		for (int trials = 0; trials < 500; trials++) {

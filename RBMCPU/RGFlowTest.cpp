@@ -28,7 +28,7 @@ void RGFlowTest::plotConvergence(double beta)
 	}
 
 	map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
-	auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
+	auto var = dynamic_pointer_cast<Variable>(graph->variables[0].lock());
 	double average = 0;
 	int counter = 1;
 	auto correlationNN = ising.calcExpectationValue(1);
@@ -70,7 +70,7 @@ void RGFlowTest::plotConvergence(double beta)
 	int val = 0;
 	std::uniform_int_distribution<int> dist(0, 249);
 	auto engine = std::default_random_engine(time(NULL));
-	auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"]);
+	auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"].lock());
 	for (int i = 0; i < 5000; i++) {
 		auto index = dist(engine);
 		session->run(feedDic, true, 5);
@@ -115,7 +115,7 @@ void RGFlowTest::plotError(vector<int> num_samples)
 	}
 
 	map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
-	auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
+	auto var = dynamic_pointer_cast<Variable>(graph->variables[0].lock());
 	double average = 0;
 	int counter = 1;
 	auto correlationNN = ising.calcExpectationValue(1);
@@ -157,7 +157,7 @@ void RGFlowTest::plotError(vector<int> num_samples)
 	int val = 0;
 	std::uniform_int_distribution<int> dist(0, 249);
 	auto engine = std::default_random_engine(time(NULL));
-	auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"]);
+	auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"].lock());
 
 	for (int some = 0; some < 5; some++) {
 		for (int s = 0; s < num_samples.size(); s++) {
@@ -209,7 +209,7 @@ void RGFlowTest::plotRGFlow(double startingBeta)
 	for (int i = 0; i < num_layers; i++) {
 		//different layers
 		shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
-		auto castNode = dynamic_pointer_cast<Variable>(graph->variables[0]);
+		auto castNode = dynamic_pointer_cast<Variable>(graph->variables[0].lock());
 		castNode->value = make_shared<Tensor>(Tensor({ 1 }, { -1 }));
 		auto session = Session(graph);
 		graphList.push_back(graph);
@@ -247,14 +247,14 @@ void RGFlowTest::plotRGFlow(double startingBeta)
 					{
 						//go step by step through the layers
 						if (i > 0) {
-							auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_pooled"])->storage[1]);
+							auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_pooled"].lock())->storage[1]);
 							feedDic = { { "x", make_shared<Tensor>(*vals) } };
 						}
 						sessions[i].run(feedDic, true, 1);
 						if (i == layer) {
 							optimizers::ContrastiveDivergence cd(graphList[i], 0.1, 0);
 							cd.optimize(1, 1.0);
-							auto var = dynamic_pointer_cast<Variable>(graphList[i]->variables[0]);
+							auto var = dynamic_pointer_cast<Variable>(graphList[i]->variables[0].lock());
 							std::cout << "\r" << "                                                                                                         ";
 							std::cout << "\r" << "Coupling: " << (double)*(var->value) / 2.0 << " (avg. " << average / counter / 2.0 << ")";
 						}
@@ -269,7 +269,7 @@ void RGFlowTest::plotRGFlow(double startingBeta)
 				{
 					//go step by step through the layers
 					if (i > 0) {
-						auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_pooled"])->storage[1]);
+						auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_pooled"].lock())->storage[1]);
 
 						feedDic = { {"x", make_shared<Tensor>(*vals)} };
 					}
@@ -277,7 +277,7 @@ void RGFlowTest::plotRGFlow(double startingBeta)
 					if (i == layer) {
 						optimizers::ContrastiveDivergence cd(graphList[i], 0.1, 0);
 						cd.optimize(1, 1);
-						auto var = dynamic_pointer_cast<Variable>(graphList[i]->variables[0]);
+						auto var = dynamic_pointer_cast<Variable>(graphList[i]->variables[0].lock());
 						std::cout << "\r" << "                                                                                                         ";
 						std::cout << "\r" << "Coupling: " << (double)*(var->value) / 2.0 << " (avg. " << average / counter / 2.0 << ")";
 						of << std::endl << (double)*(var->value) / 2.0 << std::endl;
@@ -377,7 +377,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 				loops++;
 			}
 			if (layer > 0) {
-				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_raw"])->storage[1]);
+				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_raw"].lock())->storage[1]);
 				//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
 				feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
 			}
@@ -422,7 +422,7 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 			for (int i = 0; i <= layer; i++) {
 				if (i > 0) {
 					//if not the first layer take the output from the last layer
-					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"])->storage[1]);
+					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"].lock())->storage[1]);
 					//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
 					feedDic = { { "x", make_shared<Tensor>(*vals) } };
 				}
@@ -447,16 +447,17 @@ void RGFlowTest::plotRGFlowNew(double startingBeta, int batch_size)
 	output.close();
 }
 
-void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int batch_size)
+void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int batch_size, int chain_size, int layer_size, int maxiterations)
 {
 	//constants
-	int chainsize = 256;
-	int layers = 8;
-	int max_iterations = 400;
+	int chainsize = chain_size;
+	int layers = layer_size;
+	int max_iterations = maxiterations;
 	map<string, shared_ptr<Tensor>> feedDic;
 
 	//setup MC for training
 	Phi1D phi4(chainsize, startingBeta, startingLam, 0, 0);
+	phi4.useWolff = true;
 	phi4.thermalize();
 
 	//setup for neural network
@@ -476,14 +477,14 @@ void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int 
 		auto Ah = tmpGraph->getVarForName("Ah");
 		auto lambda = tmpGraph->getVarForName("lambda");
 
-		kappa->value = make_shared<Tensor>(Tensor({ 1 }, {startingBeta}));
-		lambda->value = make_shared<Tensor>(Tensor({ 1 }, { startingLam }));
+		kappa->value = make_shared<Tensor>(Tensor({ 1 }, { startingBeta}));
+		lambda->value = make_shared<Tensor>(Tensor({ 1 }, {startingLam }));
 		Ah->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
 		Av->value = make_shared<Tensor>(Tensor({ 1 }, { 1 }));
 
 		//wire up session and cd
-		auto tmpCd = make_shared<optimizers::ContrastiveDivergence>(optimizers::ContrastiveDivergence(tmpGraph, 0.1));
-		auto newTmpCd = make_shared<optimizers::ContrastiveDivergence>(optimizers::ContrastiveDivergence(tmpGraph, 0.01));
+		auto tmpCd = make_shared<optimizers::ContrastiveDivergence>(optimizers::ContrastiveDivergence(tmpGraph, 0.08));
+		auto newTmpCd = make_shared<optimizers::ContrastiveDivergence>(optimizers::ContrastiveDivergence(tmpGraph, 0.05));
 		auto tmpSession = make_shared<Session>(Session(tmpGraph));
 
 		//add to graph list
@@ -494,14 +495,19 @@ void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int 
 	}
 
 	//we need our thermalization batch
+	double beta = 0;
 	for (int b = 0; b < batch_size; b++) {
 		phi4.monteCarloSweep();
 		auto tmp = phi4.getConfiguration();
+		beta += 1.0 / (pow(log(abs(phi4.getCorrelationLength(1))) - log(abs(phi4.getCorrelationLength(2))),2) +2);
+		
 		for (int i = 0; i < chainsize; i++) {
 			samples[i + b * chainsize] = tmp[i];
 		}
 	}
-
+	beta /= batch_size;
+	std::cout << beta << std::endl;
+	feedDic.clear();
 	feedDic = { {"x", make_shared<Tensor>(thermDims, samples)} };
 
 	//start thermalizing
@@ -510,47 +516,83 @@ void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int 
 	double gradient = 0;
 	double average = 0;
 	double lastAverage = 0;
-	int loops = 0;
+	
+	double lastKappa = 0;
+	double lastLambda = 0;
+	ofstream log("gauss_logs.csv");
 	for (int layer = 0; layer < layers; layer++) {
+		int loops = 0;
 		bool run = true;
 		auto var = graphList[layer]->getVarForName("kappa");//dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
 		auto lam = graphList[layer]->getVarForName("lambda");
+		auto Ah = graphList[layer]->getVarForName("Ah");
+		auto Av = graphList[layer]->getVarForName("Av");
+		auto gausses = dynamic_pointer_cast<RGFlowCont>(graphList[layer]->getOperationForType("rg_flow_cont"));
 		counter = 0;
 		lastAverage = 0;
+		double totalCounter = 0;
+		bool updateNorms = false;
 		double lastEpsilon = 0;
 		double epsilon = 0;
-		int averageCount = 20 * pow(1, layer);
+		int averageCount = 40 * pow(1, layer);
+		bool startedLayer = true;
+		double lamAverage = 0;
 		do {
 			if (counter % averageCount == 0 && counter != 0) {
 				//check if average is smaller
-				var->value = make_shared<Tensor>(Tensor({ 1 }, { average }));
+				//var->value = make_shared<Tensor>(Tensor({ 1 }, { average }));
 				auto diff = abs(average - lastAverage);
 				lastEpsilon = epsilon;
-				epsilon = abs((1.0 / sqrt(batch_size)) * average)*0.1;
+				epsilon = abs((1.0 / sqrt(batch_size)) * average)*0.03;
+				lastAverage = average;
 				if ((diff < epsilon) || abs(average) < 10e-6)
 				{
-					lastAverage = 0;
+					//lastAverage = 0;
 					average = 0;
 					counter = 0;
 					loops = 0;
 					//run = false;
-					break;
+					//break;
 				}
-				lastAverage = average;
-				average = 0;
-				counter = 0;
-				loops++;
+				
+				
+				if (totalCounter+1 < 1000) {
+					lamAverage = 0;
+					average = 0;
+					counter = 0;
+					loops++;
+				}
 			}
 			if (layer > 0) {
-				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_raw"])->storage[3]);
-				//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
-				feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
+				if (startedLayer) {
+					var->value = make_shared<Tensor>(Tensor({ 1 }, { lastKappa }));
+					lam->value = make_shared<Tensor>(Tensor({ 1 }, { lastLambda }));
+					startedLayer = false;
+				}
+				for (int i = 0; i < layer; i++) {
+					if (i > 0) {
+						auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"].lock())->storage[5]);
+						//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
+						feedDic = { { "x", make_shared<Tensor>(Tensor(*vals)) } };
+					}
+					else {
+						feedDic = { {"x", make_shared<Tensor>(Tensor(dims, samples))} };
+						sessions[i]->run(feedDic, true, 5);
+					}
+				}
 			}
-			sessions[layer]->run(feedDic, true, 3);
-			cds[layer]->optimize(3, 1.0, true);
+			if (layer > 0) {
+				auto vals = (dynamic_pointer_cast<Storage>(graphList[layer - 1]->storages["hiddens_raw"].lock())->storage[5]);
+
+				//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
+				feedDic = { { "x", shared_ptr<Tensor>(vals) } };
+			}
+			sessions[layer]->run(feedDic, true, 5);
+			gausses->printGaussNumbers(log);
+			cds[layer]->optimize(5, 1.0, true, updateNorms);
 			//of << (double)*castNode->value << std::endl;
 			std::cout << "\r" << "                                                                                ";
-			std::cout << "\r" << "Layer: " << layer << " " << (double)*var->value << " " << (double)*lam->value;
+			std::cout << "\r" << "Layer: " << layer << " kappa: " << (double)*var->value << " (" << lastAverage << ") " << " lam: " << (double)*lam->value << "  Ah: " << *Ah->value << " Av:" << *Av->value;
 			counter++;
 			if ((double)*var->value > 0) {
 				average += (double)*var->value / averageCount;
@@ -561,9 +603,16 @@ void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int 
 			if ((double)*lam->value < 0) {
 				*lam->value = Tensor({ 1 }, { 0 });
 			}
-			
-
-		} while (run);
+			else {
+				lamAverage += *lam->value /averageCount;
+			}
+			if (totalCounter > 900) {
+				updateNorms = true;
+			}
+			totalCounter++;
+		} while (totalCounter < 1000);
+		lastKappa = lastAverage;
+		lastLambda = lamAverage;
 	}
 	std::cout << std::endl;
 	std::cout << "== Thermalized ==" << std::endl;
@@ -596,7 +645,7 @@ void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int 
 			for (int i = 0; i <= layer; i++) {
 				if (i > 0) {
 					//if not the first layer take the output from the last layer
-					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"])->storage[3]);
+					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"].lock())->storage[3]);
 					//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
 					feedDic = { { "x", make_shared<Tensor>(*vals) } };
 				}
@@ -641,7 +690,7 @@ void RGFlowTest::modTest(double startingBeta)
 	}
 
 	map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
-	auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
+	auto var = dynamic_pointer_cast<Variable>(graph->variables[0].lock());
 	double average = 0;
 	int counter = 0;
 	auto correlationNN = ising.calcExpectationValue(1);
@@ -690,7 +739,7 @@ void RGFlowTest::modTest(double startingBeta)
 	int val = 0;
 	std::uniform_int_distribution<int> dist(0, 249);
 	auto engine = std::default_random_engine(time(NULL));
-	auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"]);
+	auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"].lock());
 	for (int i = 0; i < 5000; i++) {
 		auto index = dist(engine);
 		session->run(feedDic, true, 50);
@@ -725,7 +774,7 @@ void RGFlowTest::testGibbsConvergence()
 
 	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	auto session = make_shared<Session>(Session(graph));
-	auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
+	auto var = dynamic_pointer_cast<Variable>(graph->variables[0].lock());
 	var->value = make_shared<Tensor>(Tensor({ 1 }, { -2 }));
 	vector<double> values(500 * 500);
 	vector<int> dims = { 500,500 };
@@ -741,7 +790,7 @@ void RGFlowTest::testGibbsConvergence()
 	double average = 0;
 	for (int i = 0; i < 100; i++) {
 		session->run(feedDic, true, i);
-		auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"]);
+		auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"].lock());
 		double val = 0;
 		for (int s = 0; s < 50; s++) {
 			for (int j = 0; j < 500; j++) {
@@ -778,7 +827,7 @@ void RGFlowTest::cheatTest(double startingBeta)
 	}
 
 	map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor(dims,values)) } };
-	auto var = dynamic_pointer_cast<Variable>(graph->variables[0]);
+	auto var = dynamic_pointer_cast<Variable>(graph->variables[0].lock());
 	double average = 0;
 	int counter = 0;
 	auto correlationNN = ising.calcExpectationValue(1);
@@ -825,7 +874,7 @@ void RGFlowTest::cheatTest(double startingBeta)
 	int val = 0;
 	std::uniform_int_distribution<int> dist(0, 249);
 	auto engine = std::default_random_engine(time(NULL));
-	auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"]);
+	auto castNode = dynamic_pointer_cast<Storage>(graph->storages["hiddens_pooled"].lock());
 	for (int i = 0; i < 500; i++) {
 		auto index = dist(engine);
 		session->run(feedDic, true, 20);
@@ -851,4 +900,67 @@ void RGFlowTest::cheatTest(double startingBeta)
 	std::cout << "<v_i v_{i+1}> ~ " << correlationNN << "  exact => " << tanh(startingBeta * 1) << " error: " << abs(correlationNN - tanh(startingBeta)) << std::endl;
 	std::cout << "<v_i v_{i+2}> ~ " << correlationNNN << " exact => " << pow(tanh(startingBeta * 1), 2) << " error: " << abs(correlationNNN - pow(tanh(startingBeta), 2)) << std::endl;
 	std::cout << "<h_i h_{i+1}> = " << corrNNN << " error: " << abs(corrNNN - pow(tanh(startingBeta), 2)) << std::endl;
+}
+
+vector<double> getDoubleVector(string name, map<string, double> num_vars, map<string, vector<double>> list_vars) {
+	vector<double> tmp;
+	if (list_vars.find(name) == list_vars.end()) {
+		if (num_vars.find(name) == num_vars.end()) {
+			return vector<double>();
+		}
+		tmp.push_back(num_vars.at(name));
+	}
+	else {
+		tmp = list_vars.at(name);
+	}
+	return tmp;
+}
+
+vector<int> getIntVector(string name, map<string, double> num_vars, map<string, vector<double>> list_vars) {
+	vector<int> tmp;
+	if (list_vars.find(name) == list_vars.end()) {
+		if (num_vars.find(name) == num_vars.end()) {
+			return vector<int>();
+		}
+		tmp.push_back(num_vars.at(name));
+	}
+	else {
+		auto tmp2 = list_vars.at(name);
+		for (auto t : tmp2) {
+			tmp.push_back(t);
+		}
+	}
+	return tmp;
+}
+
+
+void RGFlowTest::operator()(string name, map<string, double> num_vars, map<string, string> str_vars, map<string, vector<double>> list_vars)
+{
+	if (name == "plotRGFlowLamNeq0") {
+		//required arguments
+		//double startingBeta, double startingLam, int batch_size
+		vector<double> startingBeta = getDoubleVector("kappa", num_vars, list_vars);
+		vector<double> startingLam = getDoubleVector("lambda", num_vars, list_vars);;
+		vector<int>  batch_size = getIntVector("batchsize", num_vars, list_vars);
+
+		//optional int chain_size, int layer_size, int maxiterations
+		int chain_size = num_vars.find("chainsize") == num_vars.end()? 256 : num_vars.at("chainsize");
+		int layer_size = num_vars.find("layersize") == num_vars.end() ? 8 : num_vars.at("layersize");
+		int maxiterations = num_vars.find("max_iterations") == num_vars.end() ? 400 : num_vars.at("max_iterations");
+
+		for (auto beta : startingBeta) {
+			for (auto lambda : startingLam) {
+				for (auto bs : batch_size) {
+					std::cout << "Start plotRGFlowLamNeq0 with parameters" << std::endl;
+					std::cout << "kappa: " << beta << std::endl;
+					std::cout << "lambda: " << lambda << std::endl;
+					std::cout << "batchsize: " << bs << std::endl;
+					std::cout << "chainSize: " << chain_size << std::endl;
+					std::cout << "layerSize: " << layer_size << std::endl;
+					std::cout << "max_iterations: " << maxiterations << std::endl << std::endl;
+					this->plotRGFlowLamNeq0(beta, lambda, bs, chain_size, layer_size, maxiterations);
+				}
+			}
+		}
+	}
 }

@@ -12,8 +12,8 @@ namespace ct {
 		std::string name;
 
 		// Inherited via Node
-		virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) override;
-		virtual shared_ptr<Tensor> compute(std::vector<shared_ptr<Tensor>> input) override;
+		virtual shared_ptr<Tensor> compute(std::initializer_list<weak_ptr<Tensor>> input) override;
+		virtual shared_ptr<Tensor> compute(std::vector<weak_ptr<Tensor>> input) override;
 		virtual string type() override;
 	};
 }

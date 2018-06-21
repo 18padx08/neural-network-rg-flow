@@ -12,13 +12,13 @@ namespace ct {
 
 	}
 
-	shared_ptr<Tensor> ct::ProbPooling::compute(std::initializer_list<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> ct::ProbPooling::compute(std::initializer_list<weak_ptr<Tensor>> input)
 	{
-		std::vector<shared_ptr<Tensor>> inputs(input.begin(), input.end());
+		std::vector<weak_ptr<Tensor>> inputs(input.begin(), input.end());
 		return compute(inputs);
 	}
 
-	shared_ptr<Tensor> ct::ProbPooling::compute(std::vector<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> ct::ProbPooling::compute(std::vector<weak_ptr<Tensor>> input)
 	{
 
 		auto functor = [this](double arg)
@@ -32,7 +32,7 @@ namespace ct {
 			return -1;
 		};
 		//blub[0] = make_shared<Tensor>(blub[0]->elementWise(functor));
-		Tensor t(*input[0]);
+		Tensor t(*input[0].lock());
 		auto samples = t.dimensions.size() > 1 ? t.dimensions[1] : 1;
 #pragma omp parallel for 
 		for (int s = 0; s < samples; s++) {

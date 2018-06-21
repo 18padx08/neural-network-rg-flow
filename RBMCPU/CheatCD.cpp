@@ -10,18 +10,18 @@ namespace ct {
 		CheatCD::~CheatCD()
 		{
 		}
-		shared_ptr<Tensor> CheatCD::compute(std::initializer_list<shared_ptr<Tensor>> input)
+		shared_ptr<Tensor> CheatCD::compute(std::initializer_list<weak_ptr<Tensor>> input)
 		{
 			return shared_ptr<Tensor>();
 		}
-		shared_ptr<Tensor> CheatCD::compute(std::vector<shared_ptr<Tensor>> input)
+		shared_ptr<Tensor> CheatCD::compute(std::vector<weak_ptr<Tensor>> input)
 		{
 			return shared_ptr<Tensor>();
 		}
 		void CheatCD::optimize()
 		{
-			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"]))->storage[0]);
-			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_pooled"]))->storage[0]);
+			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"].lock()))->storage[0]);
+			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_pooled"].lock()))->storage[0]);
 
 			auto visDimx = vis_0.dimensions[0];
 			auto hidDimx = hid_0.dimensions[0];
@@ -51,7 +51,7 @@ namespace ct {
 			delta = std::atanh(std::sqrt(std::abs(delta)));
 			//if (delta > 4.0) return;
 			//update the coupling for now only one
-			auto coupling = dynamic_pointer_cast<Variable>(theGraph->variables[0]);
+			auto coupling = dynamic_pointer_cast<Variable>(theGraph->variables[0].lock());
 			//if (delta - (double)*(coupling->value) > (double)*(coupling->value) * 0.1) return;
 			*(coupling->value) = Tensor({ 1 }, { (double)*(coupling->value) /2.0}) + Tensor({ 1 }, { std::abs(delta) });
 

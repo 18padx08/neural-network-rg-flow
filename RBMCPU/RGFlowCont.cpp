@@ -27,7 +27,7 @@ double UniformDist(double min, double max) {
 
 namespace ct {
 
-	ct::RGFlowCont::RGFlowCont(shared_ptr<Node> input, shared_ptr<Variable> kappa, shared_ptr<Variable> Av, shared_ptr<Variable> Ah, shared_ptr<Variable> lambda,  bool isInverse) : isInverse(isInverse)
+	ct::RGFlowCont::RGFlowCont(weak_ptr<Node> input, weak_ptr<Variable> kappa, weak_ptr<Variable> Av, weak_ptr<Variable> Ah, weak_ptr<Variable> lambda,  bool isInverse) : isInverse(isInverse)
 	{
 		srand(time(NULL));
 		this->inputs.push_back(input);
@@ -42,24 +42,24 @@ namespace ct {
 	{
 	}
 
-	shared_ptr<Tensor> ct::RGFlowCont::compute(std::initializer_list<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> ct::RGFlowCont::compute(std::initializer_list<weak_ptr<Tensor>> input)
 	{
-		std::vector<shared_ptr<Tensor>> vec(input.begin(), input.end());
+		std::vector<weak_ptr<Tensor>> vec(input.begin(), input.end());
 		return compute(vec);
 	}
 
-	shared_ptr<Variable> ct::RGFlowCont::getVarForName(string name, std::vector<shared_ptr<Node>> input) {
+	weak_ptr<Variable> ct::RGFlowCont::getVarForName(string name, std::vector<weak_ptr<Node>> input) {
 		int i = 0;
 		
 		for (auto && ele : input) {
-			shared_ptr<Variable> tmp = dynamic_pointer_cast<Variable>(ele);
+			shared_ptr<Variable> tmp = dynamic_pointer_cast<Variable>(ele.lock());
 			if (!tmp) continue;
 			if (tmp->name == name) {
 				return tmp;
 			}
 			i++;
 		}
-		return nullptr;
+		return weak_ptr<Variable>();
 	}
 
 	double gauss(double x, double mean,double var) {
@@ -68,10 +68,10 @@ namespace ct {
 	double nongauss(double x, double lambda, double mean, double var) {
 		return exp(-(1.0 / (2 * var*var))* pow((x - mean), 2) - lambda * pow((x*x -1),2)) ;
 	}
-	shared_ptr<Tensor> ct::RGFlowCont::compute(std::vector<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> ct::RGFlowCont::compute(std::vector<weak_ptr<Tensor>> input)
 	{
 		static double thesquareroot = sqrt(2);
-		auto inputTensor = *(this->inputs[0]->output);
+		auto inputTensor = *((this->inputs[0].lock())->output);
 		
 		int xDim = inputTensor.dimensions[0];
 		int samples = inputTensor.dimensions.size() > 1 ? inputTensor.dimensions[1] : 1;
@@ -79,11 +79,11 @@ namespace ct {
 		double Ah = 0;
 		double Av = 0;
 		double lambda = 0;
-		kappa = (double)*getVarForName("kappa", this->inputs)->value;
-		Ah = (double)*getVarForName("Ah", this->inputs)->value;
-		Av = (double)*getVarForName("Av", this->inputs)->value;
-		if ( getVarForName("lambda", this->inputs)!= nullptr) {
-			lambda = *getVarForName("lambda", this->inputs)->value;
+		kappa = (double)*(getVarForName("kappa", this->inputs).lock())->value;
+		Ah = (double)*(getVarForName("Ah", this->inputs).lock())->value;
+		Av = (double)*(getVarForName("Av", this->inputs).lock())->value;
+		if ( (getVarForName("lambda", this->inputs).lock())!= nullptr) {
+			lambda = *(getVarForName("lambda", this->inputs).lock())->value;
 			if (abs(lambda) < 1e-6) {
 				lambda = 0;
 			}
@@ -91,7 +91,7 @@ namespace ct {
 		
 		//first only 1D
 		//this means we couple every second spin
-
+		vector<double> theGaus((isInverse? 2*xDim:xDim/2));
 		if (!isInverse) {
 			Tensor tens({ xDim / 2, samples,2 });
 #pragma omp parallel for
@@ -103,17 +103,21 @@ namespace ct {
 					auto val1 = inputTensor[{2 * i}];
 					auto val2 = inputTensor[{2 * i + 2}];
 					//auto tmp1 = NormalDist(2 * kappa / Ah * val1, sqrt(1.0/abs(Ah)));
-					auto tmp5 = NormalDist(kappa  * (1.0/Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0/ thesquareroot);
-					if (lambda != 0) {
-						double p = UniformDist(0,1);
-						double acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot)/gauss(tmp5, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot));
+					auto mean = kappa *(1.0/Av)*(val1 + val2);
+					auto variance = sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot;
+					auto tmp5 = NormalDist(mean, variance);
+					
+					double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/gauss(tmp5, mean, variance));
+					if (acceptance < 1) {
+						double p = UniformDist(0, 1);
 						while (p > acceptance) {
-							tmp5 = NormalDist(kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot);
+							tmp5 = NormalDist(mean, variance);
 							p = UniformDist(0, 1);
-							acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Ah)*(val1 + val2), sqrt(1.0 / abs(Ah)) * 1.0 / thesquareroot));
+							acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/ gauss(tmp5, mean, variance));
 						}
-
 					}
+					theGaus[i] = tmp5;
+					
 					
 					//std::cout << "val=" << val1 << "   " << "x0=" << 2 * kappa / Ah * val1 << " sigma=" << "1" << "  " << tmp1 << std::endl;
 					//auto tmp2 = NormalDist(2 * kappa / Ah * val2, sqrt(1.0/abs(Ah)));
@@ -127,6 +131,7 @@ namespace ct {
 					
 				}
 			}
+			gaussNumbers.push_back(theGaus);
 			return make_shared<Tensor>(tens);
 		}
 		else {
@@ -139,21 +144,22 @@ namespace ct {
 					if (i % 2 == 0) {
 						auto val1 = inputTensor[{i / 2 - 1}];
 						auto val2 = inputTensor[{i / 2}];
+						auto mean = kappa *(1.0/Ah)* (val1 + val2);
+						auto variance = sqrt(1.0 / abs(Ah)) *1.0 / thesquareroot;
 						//auto tmp1 = NormalDist(2* (kappa) / Av * val1, sqrt(1.0/abs(Av)));
 						//auto tmp2 = NormalDist(2 * (kappa) / Av * val2, sqrt(1.0/abs(Av)));
 						//auto tmp3 = NormalDist(2 * 1.05* kappa / Av * val1, sqrt(1.0/abs(Av)));
 						//auto tmp4 = NormalDist(2 * 1.05* kappa / Av * val2, sqrt(1.0/abs(Av)));
-						auto tmp5 = NormalDist(kappa  * (1.0/Av) * (val1 + val2), sqrt(1.0 / abs(Av)) *1.0 / thesquareroot);
-
-						if (lambda != 0) {
+						auto tmp5 = NormalDist(mean, variance);
+						theGaus[i] = tmp5;
+						double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/gauss(tmp5, mean, variance));
+						if (acceptance < 1) {
 							double p = UniformDist(0, 1);
-							double acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Av)*(val1 + val2), sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot)/gauss(tmp5, kappa  * (1.0 / Av)*(val1 + val2), sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot));
 							while (p > acceptance) {
-								tmp5 = NormalDist(kappa  * (1.0 / Av)*(val1 + val2), sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot);
+								tmp5 = NormalDist(mean, variance);
 								p = UniformDist(0, 1);
-								acceptance = min(1.0, nongauss(tmp5, lambda, kappa  * (1.0 / Av)*(val1 + val2), sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot));
+								acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, mean, variance));
 							}
-
 						}
 
 						tens[{i, s, 0}] = tmp5 ;// ((2.0 * 3.14159) / (Av));
@@ -166,8 +172,23 @@ namespace ct {
 					}
 				}
 			}
+			gaussNumbers.push_back(theGaus);
 			return make_shared<Tensor>(tens);
 		}
 		return shared_ptr<Tensor>();
+	}
+	string RGFlowCont::type()
+	{
+		return "rg_flow_cont";
+	}
+	void RGFlowCont::printGaussNumbers(ofstream & log)
+	{
+		for (auto v : gaussNumbers) {
+			for (auto n : v) {
+				log << n << ",";
+			}
+			log << std::endl;
+		}
+		gaussNumbers.clear();
 	}
 }

@@ -16,54 +16,75 @@ namespace ct {
 		int i = 0;
 		int loopCounter = 0;
 		for (auto store : graph->storages) {
-			auto castNode = dynamic_pointer_cast<Storage>(store.second);
+			auto castNode = dynamic_pointer_cast<Storage>(store.second.lock());
 			castNode->storage.clear();
 		}
-		this->graph->optplaceholders[0]->inputs[0]->output = shared_ptr<Tensor>();
+		(this->graph->optplaceholders[0].lock()->inputs[0].lock())->output = shared_ptr<Tensor>();
 		do {
 			if (i >= graph->flat_tree.size()) {
 				i = 0;
 				loopCounter++;
 			}
+			//don't relay on type but rather make dynamic_pointer_casts
+			auto element = graph->flat_tree[i];
+			auto optplaceholder = dynamic_pointer_cast<OptPlaceholder>(element);
+			auto placeholder = dynamic_pointer_cast<Placeholder>(element);
+			auto operation = dynamic_pointer_cast<Operation>(element);
+			auto storage = dynamic_pointer_cast<Storage>(element);
+			auto variable = dynamic_pointer_cast<Variable>(element);
+			element.reset();
 			//gather input
-			if (graph->flat_tree[i]->type() == "optplaceholder") {
-				auto castNode = dynamic_pointer_cast<OptPlaceholder>(graph->flat_tree[i]);
-				if (!castNode->inputs[0]->output ) {
-					castNode->output = feedDict[castNode->name];
+			if (optplaceholder != nullptr) {
+				
+				if (!optplaceholder->inputs[0].lock()->output ) {
+					optplaceholder->output = make_shared<Tensor>(*feedDict[optplaceholder->name].lock());
 				}
 				else {
-					castNode->output = castNode->inputs[0]->output;
+					auto tmpShared = optplaceholder->inputs[0].lock();
+					auto outputcopy = make_shared<Tensor>(*tmpShared->output);
+					optplaceholder->output = outputcopy;
 				}
+				optplaceholder.reset();
 			}
-			else if (graph->flat_tree[i]->type() == "placeholder") {
-				auto castNode = dynamic_pointer_cast<Placeholder>(graph->flat_tree[i]);
-				castNode->output = feedDict[castNode->name];
+			else if (placeholder != nullptr) {
+					placeholder->output = make_shared<Tensor>(*feedDict[placeholder->name].lock());
+					placeholder.reset();
 			}
-			else if (graph->flat_tree[i]->type() == "operation") {
-				vector<shared_ptr<Tensor>> inputs;
-				for (auto t : graph->flat_tree[i]->inputs) {
-					inputs.push_back(t->output);
+			else if (operation != nullptr) {
+				vector<weak_ptr<Tensor>> inputs;
+				for (auto t : operation->inputs) {
+					auto tmp = make_shared<Tensor>(*t.lock()->output);
+					inputs.push_back(tmp);
 				}
-				graph->flat_tree[i]->output = graph->flat_tree[i]->compute(inputs);
+				auto tmp = operation->output;
+				auto output = operation->compute(inputs);
+				
+				operation->output = output;
+				
 			}
-			else if (graph->flat_tree[i]->type() == "storage") {
-				auto castNode = dynamic_pointer_cast<Storage>(graph->flat_tree[i]);
-				castNode->storage.push_back(castNode->inputs[0]->output);
-				castNode->output = make_shared<Tensor>(*castNode->inputs[0]->output);
+			else if (storage != nullptr) {
+				auto storageValue = storage->inputs[0].lock();
+				storage->storage.push_back(make_shared<Tensor>(*storageValue->output));
+				storage->output = make_shared<Tensor>(*storageValue->output);
+				storage.reset();
 			}
-			else if (graph->flat_tree[i]->type() == "variable") {
-				auto castNode = dynamic_pointer_cast<Variable>(graph->flat_tree[i]);
+			else if (variable != nullptr) {
 				//dimension check
-				castNode->output = castNode->value;
+				variable->output = variable->value;
+				variable.reset();
 			}
 			i++;
 			//loopCounter++;
 		} while (i < graph->flat_tree.size() || (isClosed && loopCounter < runs));
-		cachedOutput = graph->flat_tree[i-1]->output;
+
+		//cachedOutput = make_shared<Tensor>(*graph->flat_tree[i-1]->output);
 	}
 	void Session::run(map<string, shared_ptr<Tensor>> f, bool isClosed, int runs)
 	{
-		this->feedDict = f;
+		this->feedDict.clear();
+		for (auto & keyvalue : f) {
+			this->feedDict.insert(keyvalue);
+		}
 		run(isClosed, runs);
 	}
 }

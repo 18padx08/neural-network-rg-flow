@@ -13,19 +13,19 @@ namespace ct {
 	{
 	}
 
-	shared_ptr<Tensor> ct::RGLayer::compute(std::initializer_list<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> ct::RGLayer::compute(std::initializer_list<weak_ptr<Tensor>> input)
 	{
-		std::vector<shared_ptr<Tensor>> vec(input.begin(), input.end());
+		std::vector<weak_ptr<Tensor>> vec(input.begin(), input.end());
 		return compute(vec);
 	}
 
 
-	shared_ptr<Tensor> ct::RGLayer::compute(std::vector<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> ct::RGLayer::compute(std::vector<weak_ptr<Tensor>> input)
 	{
-		auto inputTensor = *(this->inputs[0]->output);
+		auto inputTensor = *((this->inputs[0].lock())->output);
 		int xDim = inputTensor.dimensions[0];
 		int samples = inputTensor.dimensions.size() > 1 ? inputTensor.dimensions[1] : 1;
-		auto coupling = (double)*(dynamic_pointer_cast<Variable>(this->inputs[1])->value);
+		auto coupling = (double)*(dynamic_pointer_cast<Variable>(this->inputs[1].lock())->value);
 		//first only 1D
 		//this means we couple every second spin
 		

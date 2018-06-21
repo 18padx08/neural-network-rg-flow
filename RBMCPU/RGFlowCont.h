@@ -1,19 +1,26 @@
 #pragma once
+#include <iostream>
+#include <fstream>
+
 #include "Operation.h"
 #include "Variable.h"
+
 namespace ct {
 	class RGFlowCont : public Operation
 	{
 	private:
 		bool isInverse = false;
-		shared_ptr<Variable> getVarForName(string name, std::vector<shared_ptr<Node>> input);
-	public:
-		RGFlowCont(shared_ptr<Node> input, shared_ptr<Variable> kappa, shared_ptr<Variable> Av, shared_ptr<Variable> Ah, shared_ptr<Variable> lambda, bool isInverse);
+		weak_ptr<Variable> getVarForName(string name, std::vector<weak_ptr<Node>> input);
+		vector<vector<double>> gaussNumbers;
+	public:		
+		RGFlowCont(weak_ptr<Node> input, weak_ptr<Variable> kappa, weak_ptr<Variable> Av, weak_ptr<Variable> Ah, weak_ptr<Variable> lambda, bool isInverse);
 		~RGFlowCont();
 
 		// Inherited via Operation
-		virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) override;
-		virtual shared_ptr<Tensor> compute(std::vector<shared_ptr<Tensor>> input) override;
+		virtual shared_ptr<Tensor> compute(std::initializer_list<weak_ptr<Tensor>> input) override;
+		virtual shared_ptr<Tensor> compute(std::vector<weak_ptr<Tensor>> input) override;
+		virtual string type() override;
+		void printGaussNumbers(ofstream& log);
 	};
 }
 

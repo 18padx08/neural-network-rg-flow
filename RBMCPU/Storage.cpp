@@ -1,7 +1,7 @@
 #include "Storage.h"
 
 namespace ct {
-	Storage::Storage(shared_ptr<Node> input, string name) : name(name)
+	Storage::Storage(weak_ptr<Node> input, string name) : name(name)
 	{
 		this->inputs.push_back(input);
 	}
@@ -12,7 +12,7 @@ namespace ct {
 		inputs.clear();
 		storage.clear();
 	}
-	shared_ptr<Tensor> Storage::compute(std::initializer_list<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> Storage::compute(std::initializer_list<weak_ptr<Tensor>> input)
 	{
 		return make_shared<Tensor>();
 	}
@@ -20,7 +20,7 @@ namespace ct {
 	{
 		return "storage";
 	}
-	shared_ptr<Tensor> Storage::compute(std::vector<shared_ptr<Tensor>> input)
+	shared_ptr<Tensor> Storage::compute(std::vector<weak_ptr<Tensor>> input)
 	{
 		return shared_ptr<Tensor>();
 	}

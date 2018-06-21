@@ -25,8 +25,8 @@ void TestLoop::run()
 	*graph->getVarForName("Ah")->value = Tensor({ 1 }, { 1 });
 	std::ofstream of("testloop.csv");
 	vector<double> samples(spinChainSize * batchsize);
-	auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
-	auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"]);
+	auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"].lock());
+	auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"].lock());
 	for (int i = 0; i < 5000; i++) {
 		std::cout << "\r                                                                     ";
 		std::cout << "\rStep " << i << " of" << " 500";
@@ -68,8 +68,8 @@ void TestLoop::runLoop()
 	*graph->getVarForName("Av")->value = Tensor({ 1 }, { 1 });
 	*graph->getVarForName("Ah")->value = Tensor({ 1 }, { 1 });
 	vector<double> samples(spinChainSize * batchsize);
-	auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"]);
-	auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"]);
+	auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"].lock());
+	auto hiddenStorage = dynamic_pointer_cast<Storage>(graph->storages["hiddens_raw"].lock());
 
 	phi4.fftUpdate();
 	for (int theBatch = 0; theBatch < batchsize; theBatch++) {
