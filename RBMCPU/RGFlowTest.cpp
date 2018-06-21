@@ -527,7 +527,7 @@ void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int 
 		auto lam = graphList[layer]->getVarForName("lambda");
 		auto Ah = graphList[layer]->getVarForName("Ah");
 		auto Av = graphList[layer]->getVarForName("Av");
-		auto gausses = dynamic_pointer_cast<RGFlowCont>(graphList[layer]->getOperationForType("rg_flow_cont"));
+		//auto gausses = dynamic_pointer_cast<RGFlowCont>(graphList[layer]->getOperationForType("rg_flow_cont"));
 		counter = 0;
 		lastAverage = 0;
 		double totalCounter = 0;
@@ -588,7 +588,7 @@ void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int 
 				feedDic = { { "x", shared_ptr<Tensor>(vals) } };
 			}
 			sessions[layer]->run(feedDic, true, 5);
-			gausses->printGaussNumbers(log);
+			//gausses->printGaussNumbers(log);
 			cds[layer]->optimize(5, 1.0, true, updateNorms);
 			//of << (double)*castNode->value << std::endl;
 			std::cout << "\r" << "                                                                                ";

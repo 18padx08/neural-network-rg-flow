@@ -103,6 +103,7 @@ namespace ct {
 					auto val1 = inputTensor[{2 * i}];
 					auto val2 = inputTensor[{2 * i + 2}];
 					//auto tmp1 = NormalDist(2 * kappa / Ah * val1, sqrt(1.0/abs(Ah)));
+					
 					auto mean = kappa *(1.0/Av)*(val1 + val2);
 					auto variance = sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot;
 					auto tmp5 = NormalDist(mean, variance);
@@ -116,7 +117,7 @@ namespace ct {
 							acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/ gauss(tmp5, mean, variance));
 						}
 					}
-					theGaus[i] = tmp5;
+					//theGaus[i] = tmp5;
 					
 					
 					//std::cout << "val=" << val1 << "   " << "x0=" << 2 * kappa / Ah * val1 << " sigma=" << "1" << "  " << tmp1 << std::endl;
@@ -131,7 +132,7 @@ namespace ct {
 					
 				}
 			}
-			gaussNumbers.push_back(theGaus);
+			//gaussNumbers.push_back(theGaus);
 			return make_shared<Tensor>(tens);
 		}
 		else {
@@ -172,7 +173,7 @@ namespace ct {
 					}
 				}
 			}
-			gaussNumbers.push_back(theGaus);
+			//gaussNumbers.push_back(theGaus);
 			return make_shared<Tensor>(tens);
 		}
 		return shared_ptr<Tensor>();
