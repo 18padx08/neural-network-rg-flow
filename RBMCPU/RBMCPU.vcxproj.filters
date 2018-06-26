@@ -195,6 +195,9 @@
     <ClInclude Include="TestBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TestConvergence.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -330,6 +333,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestConvergence.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

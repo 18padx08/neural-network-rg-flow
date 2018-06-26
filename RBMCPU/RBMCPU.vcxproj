@@ -198,6 +198,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Tensor.h" />
     <ClInclude Include="TestBase.h" />
+    <ClInclude Include="TestConvergence.h" />
     <ClInclude Include="TestFFTUpdate.h" />
     <ClInclude Include="TestLoop.h" />
     <ClInclude Include="TIRBM.h" />
@@ -245,6 +246,7 @@
     <ClCompile Include="SymmetryCombination.cpp" />
     <ClCompile Include="SymmetryTest.cpp" />
     <ClCompile Include="Tensor.cpp" />
+    <ClCompile Include="TestConvergence.cpp" />
     <ClCompile Include="TestFFTUpdate.cpp" />
     <ClCompile Include="TestLoop.cpp" />
     <ClCompile Include="TIRBM.cpp" />

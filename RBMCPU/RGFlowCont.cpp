@@ -66,7 +66,7 @@ namespace ct {
 		return exp(- (1.0/(2*var*var))* pow((x - mean), 2));
 	}
 	double nongauss(double x, double lambda, double mean, double var) {
-		return exp(-(1.0 / (2 * var*var))* pow((x - mean), 2) - lambda * pow((x*x -1),2)) ;
+		return exp(-(1.0 / (2 * var*var))* pow((x - mean), 2) - lambda * pow((x*x -1.0),2)) ;
 	}
 	shared_ptr<Tensor> ct::RGFlowCont::compute(std::vector<weak_ptr<Tensor>> input)
 	{

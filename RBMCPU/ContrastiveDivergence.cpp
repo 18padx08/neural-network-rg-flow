@@ -60,6 +60,7 @@ namespace ct {
 #pragma omp parallel for reduction(+:delta,vishid0, vishidn,exp_vis0,exp_visn, exp_hid0, exp_hidn)
 				for (int i = 0; i < hidDimx; i++) {
 					auto v_01 = vis_0[{2 * i, s}];
+					
 					auto h_01 = hid_0[{i, s}];
 					auto h_02 = hid_0[{i - 1, s}];
 					auto v_n1 = vis_n[{2 * i, s}];
@@ -70,10 +71,10 @@ namespace ct {
 					//auto corrNNN_n_delta = vis_n[{2 * i, s,1}] * vis_n[{(2 * i + 2) % visDimx, s,1}];
 					delta += (corrNNN - corrNNN_n);
 					vishidn += v_n1 * vis_n[{2*i+2,s}];
-					vishid0 += spec_0[{2*i,s}] * spec_0[{2 * i + 2, s}];
+					vishid0 += 0.5 * (v_01 * vis_0[{2 * i + 2, s}] + vis_0[{2 * i + 1, s}]* vis_0[{2 * i + 3, s}]);
 					if (isCont) {
-						exp_vis0 += pow(spec_0[{2 * i, s}], 2);
-						exp_visn += pow(v_n1, 2);
+						exp_vis0 += pow(pow(v_01,2)-1,2);
+						exp_visn += pow(pow(v_n1, 2)-1,2);
 						exp_hid0 += pow(h_01, 2);
 						exp_hidn += pow(h_n1, 2);
 					}
@@ -104,7 +105,8 @@ namespace ct {
 			}
 			
 			if (lambda != nullptr ) {
-				auto tmpLamDelta = abs((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) > 0.2 ? (signbit((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) ? -0.2 : 0.2) : (exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1);
+				auto tmpLamDelta = exp_vis0 - exp_visn;//abs(exp_vis0 - exp_visn) > 0.2? (signbit(exp_vis0 - exp_visn) ? -0.2 : 0.2) : exp_vis0-exp_visn; //abs((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) > 0.2 ? (signbit((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) ? -0.2 : 0.2) : (exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1);
+				//std::cout << tmpLamDelta << std::endl;
 				*lambda->value = *lambda->value + Tensor({ 1 }, { -learningRate * (tmpLamDelta) });
 			}
 

@@ -389,7 +389,7 @@ void ErrorAnalysis::plotNonZeroLamTests(double kappa, double lambda)
 		//trainedHidden *= scale;
 
 		//error in visible layer, error in hidden layer, error of monte carlo
-		//responseError << exp(-2 * m) - trainedCorr << "," << exp(-2 * m) - trainedHidden << "," << mcError << "," << trainedCorr << "," << trainedHidden << "," << secondCorr << std::endl;
+		//responseError << trainedCorr << "," << trainedHidden << "," << mcError << "," << trainedCorr << "," << trainedHidden << "," << secondCorr << std::endl;
 		std::cout << std::endl;
 		std::cout << "average squared: " << averageSquared << " " << phi4.squaredVolumeAverage() << std::endl;
 		std::cout << "average: " << averageV << "  " << phi4.volumeAverage() << std::endl;

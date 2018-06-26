@@ -7,6 +7,7 @@
 #include "RGFlowTest.h"
 #include "NormalizationTests.h"
 #include "Phi4Test.h"
+#include "TestConvergence.h"
 #include <regex>
 using namespace std;
 
@@ -15,7 +16,8 @@ using namespace std;
 	 plotRGFlowLamNeq0,
 	 plotNonZeroLamTests,
 	 compareNormOverVariousKappa,
-	 massTest
+	 massTest,
+	 convergenceTest
 };
 
 

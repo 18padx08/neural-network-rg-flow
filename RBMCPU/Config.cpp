@@ -16,6 +16,9 @@ REGISTERED_TESTS Config::enumFromString(string str)
 	else if (str == "massTest") {
 		return REGISTERED_TESTS::massTest;
 	}
+	else if (str == "testConvergence") {
+		return REGISTERED_TESTS::convergenceTest;
+	}
 	return REGISTERED_TESTS::None;
 }
 
@@ -79,6 +82,12 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 					test.runMassTest(k, c);
 				}
 			}
+		};
+		break;
+	case REGISTERED_TESTS::convergenceTest:
+		f = [=] {
+			TestConvergence test;
+			test("testConvergence", num_vars, str_vars, list_vars);
 		};
 		break;
 	}

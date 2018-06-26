@@ -93,7 +93,9 @@ Phi1D::Phi1D(int size, double kappa, double lambda, double m, double beta) : dis
 		lattice[{i}] = deltaDist(generator);
 		auto sigma =  1.0 / 2.0* sqrt(lattice.dimensions[0])/ std::sqrt((1 - 2*kappa*std::cos(i * 2 * pi / size)));
 		//std::cout << sigma << std::endl;
-		dist_for_fft[i] = std::normal_distribution<double>(0, sigma);
+		if (sigma >= 0) {
+			dist_for_fft[i] = std::normal_distribution<double>(0, sigma);
+		}
  	}
 	this->tau = lattice.latticeSize / 10.0;
 }
