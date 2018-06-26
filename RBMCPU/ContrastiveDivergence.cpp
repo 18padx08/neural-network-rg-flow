@@ -28,9 +28,9 @@ namespace ct {
 		void ContrastiveDivergence::optimize(int k, double betaJ, bool useLR, bool updateNorms)
 		{
 			auto theGraph = this->theGraph.lock();
-			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"].lock()))->storage[1]);
+			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"].lock()))->storage[0]);
 			auto spec_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"].lock()))->storage[0]);
-			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"].lock()))->storage[1]);
+			auto hid_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"].lock()))->storage[0]);
 			auto vis_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_raw"].lock()))->storage[k]);
 			auto hid_n = *((dynamic_pointer_cast<Storage>(theGraph->storages["hiddens_raw"].lock()))->storage[k]);
 
@@ -72,7 +72,7 @@ namespace ct {
 					vishidn += v_n1 * vis_n[{2*i+2,s}];
 					vishid0 += spec_0[{2*i,s}] * spec_0[{2 * i + 2, s}];
 					if (isCont) {
-						exp_vis0 += pow(v_01, 2);
+						exp_vis0 += pow(spec_0[{2 * i, s}], 2);
 						exp_visn += pow(v_n1, 2);
 						exp_hid0 += pow(h_01, 2);
 						exp_hidn += pow(h_n1, 2);
@@ -91,20 +91,21 @@ namespace ct {
 			auto Ah = theGraph->getVarForName("Ah");
 			auto Av = theGraph->getVarForName("Av");
 			auto lambda = theGraph->getVarForName("lambda");
-			
+			delta = vishid0 - vishidn;
 			auto tmpDelta = abs(delta) > 0.2 ? (signbit(delta) ? -0.2 : 0.2) : delta;
 			auto tmpVisDelta = abs(exp_vis0 - exp_visn) > 0.2 ? (signbit(exp_vis0 - exp_visn) ? -0.2 : 0.2) : exp_vis0 - exp_visn;
 			auto tmpHidDelta = abs(exp_hid0 - exp_hidn) > 0.2 ? (signbit(exp_hid0 - exp_hidn) ? -0.2 : 0.2) : exp_hid0 - exp_hidn;
 			*kappa->value = *kappa->value + Tensor({1}, {learningRate *(tmpDelta)});
-			auto newValue = *Av->value + Tensor({ 1 }, { -learningRate * (tmpVisDelta), 0.2 });
-			auto newValue2 = *Ah->value + Tensor({ 1 }, { -learningRate * (tmpHidDelta) });
+			auto newValue = *Av->value + Tensor({ 1 }, { learningRate * (tmpVisDelta), 0.2 });
+			auto newValue2 = *Ah->value + Tensor({ 1 }, { learningRate * (tmpHidDelta) });
 			if (updateNorms) {
 				*Av->value = newValue;
 				*Ah->value = newValue2;
 			}
-
-			if (lambda != nullptr && abs(*lambda->value) > 1e-6) {
-				*lambda->value = *lambda->value + Tensor({ 1 }, { learningRate * ( (exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) });
+			
+			if (lambda != nullptr ) {
+				auto tmpLamDelta = abs((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) > 0.2 ? (signbit((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) ? -0.2 : 0.2) : (exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1);
+				*lambda->value = *lambda->value + Tensor({ 1 }, { -learningRate * (tmpLamDelta) });
 			}
 
 			lambda.reset();

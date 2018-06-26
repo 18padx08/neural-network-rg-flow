@@ -534,7 +534,7 @@ void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int 
 		bool updateNorms = false;
 		double lastEpsilon = 0;
 		double epsilon = 0;
-		int averageCount = 40 * pow(1, layer);
+		int averageCount = 20 * pow(1, layer);
 		bool startedLayer = true;
 		double lamAverage = 0;
 		do {
@@ -606,11 +606,11 @@ void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int 
 			else {
 				lamAverage += *lam->value /averageCount;
 			}
-			if (totalCounter > 900) {
+			if (totalCounter > 400) {
 				updateNorms = true;
 			}
 			totalCounter++;
-		} while (totalCounter < 1000);
+		} while (totalCounter < 500);
 		lastKappa = lastAverage;
 		lastLambda = lamAverage;
 	}
@@ -645,13 +645,13 @@ void RGFlowTest::plotRGFlowLamNeq0(double startingBeta, double startingLam, int 
 			for (int i = 0; i <= layer; i++) {
 				if (i > 0) {
 					//if not the first layer take the output from the last layer
-					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"].lock())->storage[3]);
+					auto vals = (dynamic_pointer_cast<Storage>(graphList[i - 1]->storages["hiddens_raw"].lock())->storage[5]);
 					//vals->rescale(sqrt((1 - 2 * *var->value**var->value)));
 					feedDic = { { "x", make_shared<Tensor>(*vals) } };
 				}
-				sessions[i]->run(feedDic, true, 3);
+				sessions[i]->run(feedDic, true, 5);
 				if (i == layer) {
-					newcds[layer]->optimize(3, 10, true);
+					newcds[layer]->optimize(5, 10, true);
 				}
 			}
 			//dynamic_pointer_cast<Variable>(graphList[layer]->variables[0]);
