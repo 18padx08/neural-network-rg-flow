@@ -105,7 +105,7 @@ namespace ct {
 			}
 			
 			if (lambda != nullptr ) {
-				auto tmpLamDelta = exp_vis0 - exp_visn;//abs(exp_vis0 - exp_visn) > 0.2? (signbit(exp_vis0 - exp_visn) ? -0.2 : 0.2) : exp_vis0-exp_visn; //abs((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) > 0.2 ? (signbit((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) ? -0.2 : 0.2) : (exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1);
+				auto tmpLamDelta = abs(exp_vis0 - exp_visn)>0.2? (signbit(exp_vis0 - exp_visn)? -0.2:0.2) : exp_vis0 - exp_visn;//abs(exp_vis0 - exp_visn) > 0.2? (signbit(exp_vis0 - exp_visn) ? -0.2 : 0.2) : exp_vis0-exp_visn; //abs((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) > 0.2 ? (signbit((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) ? -0.2 : 0.2) : (exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1);
 				//std::cout << tmpLamDelta << std::endl;
 				*lambda->value = *lambda->value + Tensor({ 1 }, { -learningRate * (tmpLamDelta) });
 			}

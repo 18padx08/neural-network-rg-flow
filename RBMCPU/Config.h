@@ -17,7 +17,8 @@ using namespace std;
 	 plotNonZeroLamTests,
 	 compareNormOverVariousKappa,
 	 massTest,
-	 convergenceTest
+	 convergenceTest,
+	 extractFromHidden
 };
 
 
