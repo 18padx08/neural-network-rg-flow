@@ -62,8 +62,8 @@ namespace ct {
 		return weak_ptr<Variable>();
 	}
 
-	double gauss(double x, double mean,double var) {
-		return exp(- (1.0/(2*var*var))* pow((x - mean), 2));
+	double gauss(double x, double mean,double var, double amplitude=1.0) {
+		return amplitude*exp(- (1.0/(2*var*var))* pow((x - mean), 2));
 	}
 	double nongauss(double x, double lambda, double mean, double var) {
 		return exp(-(1.0 / (2 * var*var))* pow((x - mean), 2) - lambda * pow((x*x -1.0),2)) ;
@@ -88,7 +88,10 @@ namespace ct {
 				lambda = 0;
 			}
 		}
-		
+		//in order to increase acceptance we need to calculate the zeros of the poly of deg 3
+		double p = (2.0 - 4 * lambda) / (4 * lambda);
+		double p3 = pow(p, 3);
+
 		//first only 1D
 		//this means we couple every second spin
 		vector<double> theGaus((isInverse? 2*xDim:xDim/2));
@@ -103,18 +106,31 @@ namespace ct {
 					auto val1 = inputTensor[{2 * i}];
 					auto val2 = inputTensor[{2 * i + 2}];
 					//auto tmp1 = NormalDist(2 * kappa / Ah * val1, sqrt(1.0/abs(Ah)));
-					
+
 					auto mean = kappa *(1.0/Av)*(val1 + val2);
 					auto variance = sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot;
-					auto tmp5 = NormalDist(mean, variance);
 					
-					double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/gauss(tmp5, mean, variance));
+					auto meanGauss = mean;
+					auto amplitude = 1.0;
+					if (abs(mean) > 0.5) {
+						double q = (-2 * mean) / (4 * lambda);
+						double D = p3 / 27.0 + pow(q / 2, 2);
+						if (D > 0) {
+							//we have only one solution
+							meanGauss = pow(-q / 2 + sqrt(D), 1.0 / 3) + pow(-q / 2 - sqrt(D), 1.0 / 3);
+							amplitude = nongauss(meanGauss, lambda, mean, variance) / gauss(meanGauss, meanGauss, variance);
+						}
+					}
+
+					auto tmp5 = NormalDist(meanGauss, variance);
+					
+					double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/gauss(tmp5, meanGauss, variance,amplitude));
 					if (acceptance < 1) {
 						double p = UniformDist(0, 1);
 						while (p > acceptance) {
-							tmp5 = NormalDist(mean, variance);
+							tmp5 = NormalDist(meanGauss, variance);
 							p = UniformDist(0, 1);
-							acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/ gauss(tmp5, mean, variance));
+							acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/ gauss(tmp5, meanGauss, variance,amplitude));
 						}
 					}
 					//theGaus[i] = tmp5;
@@ -147,19 +163,26 @@ namespace ct {
 						auto val2 = inputTensor[{i / 2}];
 						auto mean = kappa *(1.0/Ah)* (val1 + val2);
 						auto variance = sqrt(1.0 / abs(Ah)) *1.0 / thesquareroot;
-						//auto tmp1 = NormalDist(2* (kappa) / Av * val1, sqrt(1.0/abs(Av)));
-						//auto tmp2 = NormalDist(2 * (kappa) / Av * val2, sqrt(1.0/abs(Av)));
-						//auto tmp3 = NormalDist(2 * 1.05* kappa / Av * val1, sqrt(1.0/abs(Av)));
-						//auto tmp4 = NormalDist(2 * 1.05* kappa / Av * val2, sqrt(1.0/abs(Av)));
-						auto tmp5 = NormalDist(mean, variance);
-						theGaus[i] = tmp5;
-						double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/gauss(tmp5, mean, variance));
+						auto meanGauss = mean;
+						auto amplitude = 1.0;
+						if (abs(mean) > 0.5) {
+							double q = (-2 * mean) / (4 * lambda);
+							double D = p3 / 27.0 + pow(q / 2, 2);
+							if (D > 0) {
+								//we have only one solution
+								meanGauss = pow(-q / 2 + sqrt(D), 1.0 / 3) + pow(-q / 2 - sqrt(D), 1.0 / 3);
+								amplitude = nongauss(meanGauss, lambda, mean, variance) / gauss(meanGauss, meanGauss, variance);
+							}
+						}
+						auto tmp5 = NormalDist(meanGauss, variance);
+						//theGaus[i] = tmp5;
+						double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/gauss(tmp5, meanGauss, variance,amplitude));
 						if (acceptance < 1) {
 							double p = UniformDist(0, 1);
 							while (p > acceptance) {
-								tmp5 = NormalDist(mean, variance);
+								tmp5 = NormalDist(meanGauss, variance);
 								p = UniformDist(0, 1);
-								acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, mean, variance));
+								acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, variance,amplitude));
 							}
 						}
 
