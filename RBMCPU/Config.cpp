@@ -22,6 +22,9 @@ REGISTERED_TESTS Config::enumFromString(string str)
 	else if (str == "extractFromHidden") {
 		return REGISTERED_TESTS::extractFromHidden;
 	}
+	else if (str == "scanForVariable") {
+		return REGISTERED_TESTS::scanForVariable;
+	}
 	return REGISTERED_TESTS::None;
 }
 
@@ -97,6 +100,12 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 		f = [=] {
 			TestConvergence test;
 			test("extractFromHidden", num_vars, str_vars, list_vars);
+		};
+		break;
+	case REGISTERED_TESTS::scanForVariable:
+		f = [=] {
+			TestConvergence test;
+			test("scanForVariable", num_vars, str_vars, list_vars);
 		};
 		break;
 	}

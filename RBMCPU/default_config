@@ -1,7 +1,7 @@
-extractFromHidden:
-    kappa = {0.1,0.2,0.3,0.5}
-    lambda = {0}
-	batchsize = 20
+scanForVariable:
+    kappa = {0.3}
+    lambda = {12,20,25,30,35,40}
+	batchsize = 40
 	chainsize = 512
 	learningRate = 0.04
     ;;

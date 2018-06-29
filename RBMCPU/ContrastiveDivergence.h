@@ -27,7 +27,7 @@ namespace ct {
 			// Inherited via Operation
 			virtual shared_ptr<Tensor> compute(std::initializer_list<shared_ptr<Tensor>> input) ;
 			virtual shared_ptr<Tensor> compute(std::vector<shared_ptr<Tensor>> input) ;
-			void optimize(int k = 1, double betaJ = 1.0, bool useLR = false, bool updateNorms = false);
+			void optimize(int k = 1, double betaJ = 1.0, bool useLR = false, bool updateNorms = false, bool fixKappa=false, bool fixLambda=false);
 		};
 	}
 }

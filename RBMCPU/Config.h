@@ -18,7 +18,8 @@ using namespace std;
 	 compareNormOverVariousKappa,
 	 massTest,
 	 convergenceTest,
-	 extractFromHidden
+	 extractFromHidden,
+	 scanForVariable
 };
 
 
