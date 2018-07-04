@@ -29,33 +29,15 @@ T& LatticeObject<T>::operator[](const vector<int> index)
 {
 	//flatten dimensions
 	//periodic boundary conditions
-	assert(index.size() == this->dimensions.size());
-	int flatIndex = index[0];
-	int lastDimension = 1;
+	int dim = index[0] <0 ? abs(dimensions[0] - index[0]) % dimensions[0] : index[0] % dimensions[0];
+	int lastDimensions = dimensions[0];
 	for (int i = 1; i < index.size(); i++) {
-		int tmpIndex = index[i];
-		if (tmpIndex >= this->dimensions[i]) {
-			//index is out of bounds so start over at zero
-			tmpIndex = tmpIndex % this->dimensions[i];
+		if (i > dimensions.size() - 1)
+		{
+			break;
 		}
-		else if(tmpIndex < 0) {
-			//index is negative start at last element ensure to be inside bounds
-			tmpIndex = tmpIndex % this->dimensions[i];
-			tmpIndex = this->dimensions[i] + tmpIndex;
-		}
-		flatIndex += tmpIndex * this->dimensions[i-1] * lastDimension;
-		lastDimension *= this->dimensions[i];
+		dim += (index[i] < 0 ? abs(dimensions[i] - index[i]) % dimensions[i] : index[i] % dimensions[i]) * lastDimensions;
+		lastDimensions *= dimensions[i];
 	}
-	if (this->dimensions.size() == 1) {
-		if (flatIndex >= this->dimensions[0]) {
-			flatIndex = flatIndex % this->dimensions[0];
-		}
-		if (flatIndex < 0) {
-			//we have the one dimensional special case
-			flatIndex = flatIndex % this->dimensions[0];
-			flatIndex = this->dimensions[0] + flatIndex;
-		}
-	}
-	
-	return this->lattice[flatIndex];
+	return elements[dim];
 }

@@ -7,10 +7,10 @@ double Phi2D::energyDiff(int x, int y)
 	uniform_real_distribution<double> deltaDist(-1.0, 1.0);
 	delta = deltaDist(generator);
 	double deltaE = (pow(theValue, 2) - pow(theValue + delta, 2)) + lambda * (pow(pow(theValue, 2) - 1, 2) - pow(pow(theValue + delta, 2) - 1, 2));
-	deltaE -= 2 * kappa * (lattice[{x + 1, y}] + lattice[{x - 1, y}] + lattice[{x + 1, y}] + lattice[{x - 1, y}]) * delta;
+	deltaE += 2 * kappa * (lattice[{x + 1, y}] + lattice[{x - 1, y}] + lattice[{x , y+1}] + lattice[{x, y-1}]) * delta;
 	std::uniform_real_distribution<double> pro(0, 1);
 	double prob = pro(generator);
-	if (prob < min(1.0, exp(-deltaE))) {
+	if (prob < min(1.0, exp(deltaE))) {
 		lattice[{x,y}] = theValue + delta;
 	}
 	return deltaE;
@@ -40,7 +40,7 @@ void Phi2D::buildCluster()
 					if (pro < 1.0 - exp(-2 * kappa* lattice[{i,y}] * lattice[{i + 1,y}])) {
 						//add to cluster
 #pragma omp critical
-						cluster.push_back(i);
+						cluster.push_back({ i , y });
 					}
 					else {
 						break;
@@ -62,7 +62,7 @@ void Phi2D::buildCluster()
 					if (pro < 1.0 - exp(-2 * kappa* lattice[{i,y}] * lattice[{i - 1,y}])) {
 						//add to cluster
 #pragma omp critical
-						cluster.push_back(i);
+						cluster.push_back({i,y});
 					}
 					else {
 						break;
@@ -84,7 +84,7 @@ void Phi2D::buildCluster()
 					if (pro < 1.0 - exp(-2 * kappa* lattice[{x, j}] * lattice[{x, j+1}])) {
 						//add to cluster
 #pragma omp critical
-						cluster.push_back(j);
+						cluster.push_back({ x,j });
 					}
 					else {
 						break;
@@ -106,7 +106,7 @@ void Phi2D::buildCluster()
 					if (pro < 1.0 - exp(-2 * kappa* lattice[{x, j}] * lattice[{x, j-1}])) {
 						//add to cluster
 #pragma omp critical
-						cluster.push_back(j);
+						cluster.push_back({ x,j });
 					}
 					else {
 						break;
@@ -124,7 +124,7 @@ void Phi2D::flipCluster()
 {
 #pragma omp parallel for
 	for (int i = 0; i < cluster.size(); i++) {
-		this->lattice[{cluster[i]}] *= -1.0;
+		this->lattice[cluster[i]] *= -1.0;
 	}
 }
 
@@ -191,7 +191,7 @@ double Phi2D::volumeAverage()
 			average += lattice[{i,j}];
 		}
 	}
-	return average / lattice.latticeSize;
+	return average / (lattice.dimensions[0] * lattice.dimensions[1]);
 }
 
 double Phi2D::absoluteVolumeAverage()
@@ -217,7 +217,7 @@ double Phi2D::squaredVolumeAverage()
 void Phi2D::thermalize()
 {
 	std::cout << std::endl;
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 200; i++) {
 		this->monteCarloSweep();
 		std::cout << "\r" << "                                         ";
 		std::cout << "\r" << "[" << i << "]";

@@ -18,7 +18,7 @@ private:
 	void buildCluster();
 	void flipCluster();
 	int tau = -1;
-	vector<int> cluster;
+	vector<vector<int>> cluster;
 	int metropolisSweeps = 10;
 	double kappa;
 	double lambda;
