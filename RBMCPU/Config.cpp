@@ -25,6 +25,9 @@ REGISTERED_TESTS Config::enumFromString(string str)
 	else if (str == "scanForVariable") {
 		return REGISTERED_TESTS::scanForVariable;
 	}
+	else if (str == "compareNetworkWithMC") {
+		return REGISTERED_TESTS::compareNetworkWithMC;
+	}
 	return REGISTERED_TESTS::None;
 }
 
@@ -106,6 +109,12 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 		f = [=] {
 			TestConvergence test;
 			test("scanForVariable", num_vars, str_vars, list_vars);
+		};
+		break;
+	case REGISTERED_TESTS::compareNetworkWithMC:
+		f = [=] {
+			TestConvergence test;
+			test("compareNetworkWithMC", num_vars, str_vars, list_vars);
 		};
 		break;
 	}

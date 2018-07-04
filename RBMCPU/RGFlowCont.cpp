@@ -112,7 +112,7 @@ namespace ct {
 					
 					auto meanGauss = mean;
 					auto amplitude = 1.0;
-					if (abs(mean) > 0.5) {
+					if (abs(mean) > 0.5 && abs(lambda) >0) {
 						double q = (-2 * mean) / (4 * lambda);
 						double D = p3 / 27.0 + pow(q / 2, 2);
 						if (D > 0) {
@@ -165,7 +165,7 @@ namespace ct {
 						auto variance = sqrt(1.0 / abs(Ah)) *1.0 / thesquareroot;
 						auto meanGauss = mean;
 						auto amplitude = 1.0;
-						if (abs(mean) > 0.5) {
+						if (abs(mean) > 0.5 && abs(lambda) >0) {
 							double q = (-2 * mean) / (4 * lambda);
 							double D = p3 / 27.0 + pow(q / 2, 2);
 							if (D > 0) {

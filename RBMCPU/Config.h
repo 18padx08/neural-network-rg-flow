@@ -19,7 +19,8 @@ using namespace std;
 	 massTest,
 	 convergenceTest,
 	 extractFromHidden,
-	 scanForVariable
+	 scanForVariable,
+	 compareNetworkWithMC
 };
 
 

@@ -1,7 +1,7 @@
-plotRGFlowLamNeq0:
-    kappa = {3}
-    lambda = {3}
-	batchsize = 40
+compareNetworkWithMC:
+    kappa = {0.2,0.3,0.4}
+    lambda = {0,1,10}
+	batchsize = 30
 	chainsize = 512
-	learningRate = 0.04
+	learningRate = 0.1
     ;;
