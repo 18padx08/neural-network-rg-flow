@@ -14,7 +14,8 @@ namespace ct {
 	}
 	shared_ptr<Tensor> Storage::compute(std::initializer_list<weak_ptr<Tensor>> input)
 	{
-		return make_shared<Tensor>();
+		vector<weak_ptr<Tensor>> tmp(input.begin(), input.end());
+		return compute(tmp);
 	}
 	string Storage::type()
 	{

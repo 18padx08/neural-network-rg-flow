@@ -13,7 +13,8 @@ namespace ct {
 	}
 	shared_ptr<Tensor> Variable::compute(std::initializer_list<weak_ptr<Tensor>> input)
 	{
-		return make_shared<Tensor>();
+		vector<weak_ptr<Tensor>> tmp(input.begin(), input.end());
+		return compute(tmp);
 	}
 	string Variable::type()
 	{

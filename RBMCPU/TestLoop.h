@@ -8,7 +8,7 @@
 #include "RBM.h"
 #include "targetver.h"
 #include <stdio.h>
-#include <tchar.h>
+//#include <tchar.h>
 #include <iostream>
 #include <fstream>
 #include <ctime>

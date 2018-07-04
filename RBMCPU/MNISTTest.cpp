@@ -23,16 +23,16 @@ void MNISTTest::loadWeightsRBMCPU() {
 		rbm.loadWeights("weights_with_reg.csv");
 		std::cout << "No error thrown [FAILED]" << std::endl;
 	}
-	catch (std::exception ex) {
-		std::cout << "Catched exception [Passed]" << std::endl;
+	catch (std::runtime_error ex) {
+		std::cout << "Catched runtime_error [Passed]" << std::endl;
 	}
 	try {
 		RBM rbm(30 * 30, 30 * 30 / 2);
 		rbm.loadWeights("weights_with_reg.csv");
 		std::cout << "No error thrown [FAILED]" << std::endl;
 	}
-	catch (std::exception ex) {
-		std::cout << "Catched exception [Passed]" << std::endl;
+	catch (std::runtime_error ex) {
+		std::cout << "Catched runtime_error [Passed]" << std::endl;
 	}
 	std::cout << " Test finished" << std::endl;
 

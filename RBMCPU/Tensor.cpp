@@ -42,7 +42,7 @@ namespace ct {
 		size = alldims;
 	}
 
-	Tensor::Tensor(Tensor & tensor)
+	Tensor::Tensor(const Tensor & tensor)
 	{
 		this->dimensions = vector<int>(tensor.dimensions.begin(), tensor.dimensions.end());
 		this->elements = vector<double>(tensor.elements.begin(), tensor.elements.end());
@@ -86,7 +86,7 @@ namespace ct {
 			{
 				break;
 			}
-			if (tuple[i] > dimensions[i]) throw exception("Dimension do not match");
+			if (tuple[i] > dimensions[i]) throw runtime_error("Dimension do not match");
 			dim += tuple[i] * lastDimensions;
 			lastDimensions *= dimensions[i];
 		}
@@ -98,7 +98,7 @@ namespace ct {
 			return elements[0];
 		}
 		else {
-			throw exception("Cannot cast tensor to scalar");
+			throw runtime_error("Cannot cast tensor to scalar");
 		}
 	}
 

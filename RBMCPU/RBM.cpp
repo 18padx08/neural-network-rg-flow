@@ -507,7 +507,7 @@ bool RBM::loadWeights(std::string filename)
 					this->W[i][j] = wij;
 				}
 				else {
-					throw std::exception("Weight-Matrix does not match dimension of NN");
+					throw std::runtime_error("Weight-Matrix does not match dimension of NN");
 				}
 			}
 			else {
@@ -522,13 +522,13 @@ bool RBM::loadWeights(std::string filename)
 				this->W[i][j] = wij;
 			}
 			else {
-				throw std::exception("Weight-Matrix does not match dimension of NN");
+				throw std::runtime_error("Weight-Matrix does not match dimension of NN");
 			}
 		}
 		i++;
 	}
 	if (i < this->n_vis) {
-		throw std::exception("Weight-Matrix does not match dimension of NN");
+		throw std::runtime_error("Weight-Matrix does not match dimension of NN");
 	}
 	//load biases
 	std::ifstream visible_bias;
@@ -545,7 +545,7 @@ bool RBM::loadWeights(std::string filename)
 				this->vis_b[i] = wij;
 			}
 			else {
-				throw std::exception("Bias-Matrix does not match dimension of NN");
+				throw std::runtime_error("Bias-Matrix does not match dimension of NN");
 			}
 		}
 		else {
@@ -558,7 +558,7 @@ bool RBM::loadWeights(std::string filename)
 				this->vis_b[i] = wij;
 			}
 			else {
-				throw std::exception("Bias-Matrix does not match dimension of NN");
+				throw std::runtime_error("Bias-Matrix does not match dimension of NN");
 			}
 		}
 		i++;
@@ -575,7 +575,7 @@ bool RBM::loadWeights(std::string filename)
 				this->vis_b[i] = wij;
 			}
 			else {
-				throw std::exception("Bias-Matrix does not match dimension of NN");
+				throw std::runtime_error("Bias-Matrix does not match dimension of NN");
 			}
 		}
 		else {
@@ -588,7 +588,7 @@ bool RBM::loadWeights(std::string filename)
 				this->vis_b[i] = wij;
 			}
 			else {
-				throw std::exception("Bias-Matrix does not match dimension of NN");
+				throw std::runtime_error("Bias-Matrix does not match dimension of NN");
 			}
 		}
 		i++;
