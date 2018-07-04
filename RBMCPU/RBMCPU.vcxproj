@@ -180,6 +180,8 @@
     <ClInclude Include="Operation.h" />
     <ClInclude Include="OptPlaceholder.h" />
     <ClInclude Include="Phi1D.h" />
+    <ClInclude Include="Phi2D.h" />
+    <ClInclude Include="Phi2DMCTests.h" />
     <ClInclude Include="Phi4Test.h" />
     <ClInclude Include="Placeholder.h" />
     <ClInclude Include="ProbPooling.h" />
@@ -230,6 +232,8 @@
     <ClCompile Include="Operation.cpp" />
     <ClCompile Include="OptPlaceholder.cpp" />
     <ClCompile Include="Phi1D.cpp" />
+    <ClCompile Include="Phi2D.cpp" />
+    <ClCompile Include="Phi2DMCTests.cpp" />
     <ClCompile Include="Phi4Test.cpp" />
     <ClCompile Include="Placeholder.cpp" />
     <ClCompile Include="ProbPooling.cpp" />

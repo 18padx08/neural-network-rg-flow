@@ -198,6 +198,12 @@
     <ClInclude Include="TestConvergence.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Phi2D.h">
+      <Filter>Phi4</Filter>
+    </ClInclude>
+    <ClInclude Include="Phi2DMCTests.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -337,6 +343,12 @@
     </ClCompile>
     <ClCompile Include="TestConvergence.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Phi2D.cpp">
+      <Filter>Phi4</Filter>
+    </ClCompile>
+    <ClCompile Include="Phi2DMCTests.cpp">
+      <Filter>Tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

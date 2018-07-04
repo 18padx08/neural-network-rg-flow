@@ -28,6 +28,9 @@ REGISTERED_TESTS Config::enumFromString(string str)
 	else if (str == "compareNetworkWithMC") {
 		return REGISTERED_TESTS::compareNetworkWithMC;
 	}
+	else if (str == "criticalLineTest") {
+		return REGISTERED_TESTS::criticalLineTest;
+	}
 	return REGISTERED_TESTS::None;
 }
 
@@ -117,6 +120,12 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 			test("compareNetworkWithMC", num_vars, str_vars, list_vars);
 		};
 		break;
+	case REGISTERED_TESTS::criticalLineTest:
+		f = [=] {
+			Phi2DMCTests test;
+			test("criticalLineTest", num_vars, str_vars, list_vars);
+		};
+		break;
 	}
 	return f;
 }
@@ -138,6 +147,7 @@ Config::Config(string config_file)
 	varNameReg = "[A-z]+\\w*";
 	numberReg = "\\d+(?:\\.?\\d*)";
 	end = regex(".*;;.*");
+	comments = regex("(\\s+#.*|^#.*)");
 }
 
 
@@ -156,6 +166,8 @@ void Config::load()
 		REGISTERED_TESTS currentTest = REGISTERED_TESTS::None;
 		while (getline(this->config_file, line)) {
 			//parse line
+			//implement comments
+			if (regex_match(line, comments)) continue;
 			if (level == -1 && currentTest == REGISTERED_TESTS::None) {
 				//we expect a valid test name with a colon
 				smatch matches;

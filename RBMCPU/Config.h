@@ -8,6 +8,7 @@
 #include "NormalizationTests.h"
 #include "Phi4Test.h"
 #include "TestConvergence.h"
+#include "Phi2DMCTests.h"
 #include <regex>
 using namespace std;
 
@@ -20,7 +21,8 @@ using namespace std;
 	 convergenceTest,
 	 extractFromHidden,
 	 scanForVariable,
-	 compareNetworkWithMC
+	 compareNetworkWithMC,
+	 criticalLineTest
 };
 
 
@@ -40,7 +42,7 @@ private:
 	string numberReg;
 	string listReg;
 	regex end;
-
+	regex comments;
 	vector<function<void()>> functions;
 public:
 	ifstream config_file;
