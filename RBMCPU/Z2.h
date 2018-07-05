@@ -1,5 +1,6 @@
 #pragma once
 #include "Symmetry.h"
+#include "SymmetryCombination.h"
 template<class T>
 class Z2 :
 	public Symmetry<T>

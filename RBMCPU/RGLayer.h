@@ -1,6 +1,7 @@
 #pragma once
 #include "Operation.h"
 #include "Variable.h"
+#include <cmath>
 namespace ct {
 	class RGLayer : public Operation
 	{

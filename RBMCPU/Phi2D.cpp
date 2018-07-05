@@ -1,4 +1,5 @@
 #include "Phi2D.h"
+#include "../CudaTest/LatticeObject.cpp"
 
 double Phi2D::energyDiff(int x, int y)
 {

@@ -62,7 +62,7 @@ void Phi4Test::run()
 void Phi4Test::runCorrTest()
 {
 	std::ofstream output("scaling_test.csv");
-	for (int m = 0; m < 1000; m++) 
+	for (int batches = 0; batches < 1000; batches++) 
 	{
 		double kappa = 0.3;
 		Phi1D phi(512, kappa, 0, 0, 0);

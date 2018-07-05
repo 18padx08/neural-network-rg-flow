@@ -1,5 +1,6 @@
 #pragma once
 #include "Operation.h"
+#include <cmath>
 namespace ct {
 	class Sigmoid : public Operation
 	{

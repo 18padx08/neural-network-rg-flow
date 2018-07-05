@@ -353,7 +353,7 @@ double * RBM::sample_from_net(int gibbs_steps)
 {
 	double *visN = (double*)malloc(sizeof(double)*this->n_vis);
 	double *hidN = (double*)malloc(sizeof(double)*this->n_hid);
-	double *visN_sampled = new double[this->n_vis];
+	double *visN_sampled = new double[(int)this->n_vis];
 	double *hidN_sampled = (double*)malloc(sizeof(double)*this->n_hid);
 
 	for (int i = 0; i < n_hid; i++) {
@@ -385,7 +385,7 @@ double * RBM::reconstruct(double * input)
 	double *vis0_sampled = input;
 	double *hid0_sampled = (double*)malloc(sizeof(double)*this->n_hid);
 	double *hid0 = (double*)malloc(sizeof(double)*this->n_hid);
-	double *visN = new double[this->n_vis];
+	double *visN = new double[(int)this->n_vis];
 	double *visN_sampled = (double*)malloc(sizeof(double)*this->n_vis);
 	
 	//stop any regullizer occuring at the propagation level
