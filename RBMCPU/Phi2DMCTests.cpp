@@ -41,6 +41,6 @@ void Phi2DMCTests::operator()(string name, map<string, double> num_vars, map<str
 	vector<double> kappas = this->getDoubleVector("kappa", num_vars, list_vars);
 	vector<double> lambdas = this->getDoubleVector("lambda", num_vars, list_vars);
 	if (name == "criticalLineTest") {
-		criticalLineTest(chainsize);
+		criticalLineTest(chainsize, kappas, lambdas);
 	}
 }

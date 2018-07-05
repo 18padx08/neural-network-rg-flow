@@ -54,6 +54,8 @@ set(CPP_DIR_42 ./)
 set(CPP_DIR_43 ./)
 set(CPP_DIR_44 ./)
 set(CPP_DIR_45 ./)
+set(CPP_DIR_46 ./)
+set(CPP_DIR_47 ./)
 set(HEADER_DIR_1 ../CudaTest)
 set(HEADER_DIR_2 )
 
@@ -100,7 +102,7 @@ if(MSVC)
    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W3 /GL /Od /Oi /Gy /Zi /EHsc")
 endif(MSVC)
 if(NOT MSVC)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O2 -fopenmp -Wall -Wextra -pedantic-errors")
    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
    endif()
@@ -156,6 +158,8 @@ file(GLOB SRC_FILES
     ${CPP_DIR_43}/*.cpp
     ${CPP_DIR_44}/*.cpp
     ${CPP_DIR_45}/*.cpp
+    ${CPP_DIR_46}/*.cpp
+    ${CPP_DIR_47}/*.cpp
     ${HEADER_DIR_1}/*.h
     ${HEADER_DIR_2}/*.h
 )
