@@ -5,14 +5,25 @@ double Phi2D::energyDiff(int x, int y)
 {
 	double delta = 0;
 	auto theValue = lattice[{x, y}];
-	uniform_real_distribution<double> deltaDist(-1.0, 1.0);
+	
+	uniform_real_distribution<double> deltaDist(-1.5, 1.5);
+	uniform_real_distribution<double> probSignflip(0, 1);
+	
 	delta = deltaDist(generator);
-	double deltaE = (pow(theValue, 2) - pow(theValue + delta, 2)) + lambda * (pow(pow(theValue, 2) - 1, 2) - pow(pow(theValue + delta, 2) - 1, 2));
-	deltaE += 2 * kappa * (lattice[{x + 1, y}] + lattice[{x - 1, y}] + lattice[{x , y+1}] + lattice[{x, y-1}]) * delta;
+	auto newValue = theValue;
+	if (probSignflip(generator) < 0.5) {
+		newValue = -newValue;
+	}
+	else {
+		newValue += delta;
+	}
+	double deltaE = (pow(theValue, 2) - pow(newValue, 2)) + lambda * (pow(pow(theValue, 2) - 1, 2) - pow(pow(newValue, 2) - 1, 2));
+	deltaE += -2 * kappa * (lattice[{x + 1, y}] + lattice[{x - 1, y}] + lattice[{x , y+1}] + lattice[{x, y-1}]) * (theValue-newValue);
 	std::uniform_real_distribution<double> pro(0, 1);
 	double prob = pro(generator);
 	if (prob < min(1.0, exp(deltaE))) {
-		lattice[{x,y}] = theValue + delta;
+		lattice[{x,y}] = newValue;
+		return deltaE;
 	}
 	return deltaE;
 }
@@ -78,7 +89,7 @@ void Phi2D::buildCluster()
 		{
 			std::uniform_real_distribution<double> prob(0, 1);
 			//go up
-			for (int j = y -1; j < 0; j++) {
+			for (int j = y -1; j >= 0; j--) {
 				double pro = prob(generator);
 				if (signbit((double)lattice[{x, j}]) == signbit((double)lattice[{x, y}]))
 				{
@@ -218,10 +229,10 @@ double Phi2D::squaredVolumeAverage()
 void Phi2D::thermalize()
 {
 	std::cout << std::endl;
-	for (int i = 0; i < 200; i++) {
+	for (int i = 0; i < 400; i++) {
 		this->monteCarloSweep();
-		std::cout << "\r" << "                                         ";
-		std::cout << "\r" << "[" << i << "]";
+		std::cout << "\r" << "                                                         ";
+		std::cout << "\r" << "[" << i << "]" << " " << volumeAverage() << "  " <<  squaredVolumeAverage();
 	}
 	std::cout << std::endl;
 }

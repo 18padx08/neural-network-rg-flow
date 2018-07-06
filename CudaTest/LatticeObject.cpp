@@ -39,5 +39,5 @@ T& LatticeObject<T>::operator[](const vector<int> index)
 		dim += (index[i] < 0 ? abs(dimensions[i] - index[i]) % dimensions[i] : index[i] % dimensions[i]) * lastDimensions;
 		lastDimensions *= dimensions[i];
 	}
-	return elements[dim];
+	return this->lattice[dim];
 }

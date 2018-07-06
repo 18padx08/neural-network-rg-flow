@@ -13,23 +13,30 @@ Phi2DMCTests::~Phi2DMCTests()
 
 void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas, vector<double> lambdas)
 {
-	ofstream output("phi2dmctest.csv");
+	
 	for (double l : lambdas) {
-		for (double k : kappas) {
+		double k = kappas[0];
+		int counter = 0;
+		ofstream output("phi2dmctest_lambda=" + to_string(l) + ".csv");
+		while(true) {
 			Phi2D phi(chainsize, k, l);
 			phi.useWolff = true;
 			phi.thermalize();
 			
 			double absAvg = 0;
-			for (int i = 0; i < 50; i++) {
+			for (int i = 0; i < 100; i++) {
 				absAvg += abs(phi.volumeAverage());
 				phi.monteCarloSweep();
 			}
-			absAvg /= 50;
+			absAvg /= 100;
 			output << l << "," << k << "," << absAvg << std::endl;
 			std::cout << "At l=" << l << " k=" << k << " with vev=" << absAvg << std::endl;
 			
-			if (absAvg > 0.1) break;
+			if (absAvg > 0.1) {
+				counter++;
+				if (counter > 5) break;
+			}
+			k += 0.02;
 			
 		}
 	}
