@@ -204,11 +204,11 @@
     <ClInclude Include="Phi2DMCTests.h">
       <Filter>Tests</Filter>
     </ClInclude>
-    <ClInclude Include="RGFlowCont2D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ContrastiveDivergence2D.h">
       <Filter>ComputationTree\Nodes\Optimizers</Filter>
+    </ClInclude>
+    <ClInclude Include="RGFlowCont2D.h">
+      <Filter>ComputationTree\Nodes\Operations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -356,11 +356,11 @@
     <ClCompile Include="Phi2DMCTests.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
-    <ClCompile Include="RGFlowCont2D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ContrastiveDivergence2D.cpp">
       <Filter>ComputationTree\Nodes\Optimizers</Filter>
+    </ClCompile>
+    <ClCompile Include="RGFlowCont2D.cpp">
+      <Filter>ComputationTree\Nodes\Operations</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

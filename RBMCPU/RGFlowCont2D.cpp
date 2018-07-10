@@ -94,9 +94,7 @@ namespace ct {
 		double p = (2.0 - 4 * lambda) / (4 * lambda);
 		double p3 = pow(p, 3);
 
-		//first only 1D
-		//this means we couple every second spin
-		//vector<double> theGaus((isInverse ? 2 * xDim : xDim / 2));
+		//2d case means we couple 4 spins to one hidden unit
 		if (!isInverse) {
 			Tensor tens({ xDim / 2, yDim/2, samples,2 });
 #pragma omp parallel for
@@ -107,12 +105,12 @@ namespace ct {
 					for (int j = 0; j < yDim / 2; j++) {
 						//for our case of the crbm we have to draw the new values from a gaussian distribution
 						//with mean = 2k/Ah *v_i and sigma of 1/sqrt(Ah)
-						auto val1 = inputTensor[{2 * i,2*j}];
-						auto val2 = inputTensor[{2 * i + 2,2*j}];
-						auto val3 = inputTensor[{2 * i, 2 * j + 2}];
-						//auto tmp1 = NormalDist(2 * kappa / Ah * val1, sqrt(1.0/abs(Ah)));
+						auto val1 = inputTensor[{2 * i,2*j,s}];
+						auto val2 = inputTensor[{2 * i + 2,2*j,s}];
+						auto val3 = inputTensor[{2 * i, 2 * j + 2,s}];
+						auto val4 = inputTensor[{2 * i + 2, 2 * j + 2, s}];
 
-						auto mean = kappa * (1.0 / Av)*(val1 + val2);
+						auto mean = (1.0/2.0)*kappa * (1.0 / Av)*(val1 + val2+val3+val4);
 						auto variance = sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot;
 
 						auto meanGauss = mean;
@@ -156,9 +154,12 @@ namespace ct {
 #pragma omp parallel for
 					for (int j = 0; j < yDim * 2; j++) {
 						if (i % 2 == 0) {
-							auto val1 = inputTensor[{i / 2 - 1}];
-							auto val2 = inputTensor[{i / 2}];
-							auto mean = kappa * (1.0 / Ah)* (val1 + val2);
+							auto val1 = inputTensor[{i/2, j/2, s}];
+							auto val2 = inputTensor[{i/2 -1, j/2, s}];
+							auto val3 = inputTensor[{i/2, j/2-1, s}];
+							auto val4 = inputTensor[{i/2-1, j/2-1, s}];
+
+							auto mean = (1.0 / 2.0)*kappa * (1.0 / Av)*(val1 + val2 + val3 + val4);
 							auto variance = sqrt(1.0 / abs(Ah)) *1.0 / thesquareroot;
 							auto meanGauss = mean;
 							auto amplitude = 1.0;

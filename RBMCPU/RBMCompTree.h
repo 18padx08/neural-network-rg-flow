@@ -6,6 +6,7 @@
 #include "RGLayer.h"
 #include "Graph.h"
 #include "RGFlowCont.h"
+#include "RGFlowCont2D.h"
 namespace ct {
 	class RBMCompTree
 	{
@@ -13,6 +14,7 @@ namespace ct {
 		RBMCompTree();
 		~RBMCompTree();
 		static shared_ptr<Graph> getRBMGraph();
+		static shared_ptr<Graph> getRBM2DGraph();
 	};
 }
 
