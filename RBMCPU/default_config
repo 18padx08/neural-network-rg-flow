@@ -13,7 +13,7 @@
 plotRGFlowLamNeq0:
 	chainsize = 1024
 	batchsize = 30
-	kappa = 0.1
-	lambda = 0.1
+	kappa = 0.2
+	lambda = 0.5
 	layersize = 3
 	;;

@@ -117,7 +117,7 @@ namespace ct {
 						double D = p3 / 27.0 + pow(q / 2, 2);
 						if (D > 0) {
 							//we have only one solution
-							meanGauss = pow(-q / 2 + sqrt(D), 1.0 / 3) + pow(-q / 2 - sqrt(D), 1.0 / 3);
+							meanGauss = cbrt(-q / 2 + sqrt(D)) + cbrt(-q / 2 - sqrt(D));
 							amplitude = nongauss(meanGauss, lambda, mean, variance) / gauss(meanGauss, meanGauss, variance);
 						}
 					}
@@ -170,7 +170,7 @@ namespace ct {
 							double D = p3 / 27.0 + pow(q / 2, 2);
 							if (D > 0) {
 								//we have only one solution
-								meanGauss = pow(-q / 2 + sqrt(D), 1.0 / 3) + pow(-q / 2 - sqrt(D), 1.0 / 3);
+								meanGauss = cbrt(-q / 2 + sqrt(D)) + cbrt(-q / 2 - sqrt(D));
 								amplitude = nongauss(meanGauss, lambda, mean, variance) / gauss(meanGauss, meanGauss, variance);
 							}
 						}

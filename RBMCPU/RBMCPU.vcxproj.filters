@@ -204,6 +204,12 @@
     <ClInclude Include="Phi2DMCTests.h">
       <Filter>Tests</Filter>
     </ClInclude>
+    <ClInclude Include="RGFlowCont2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ContrastiveDivergence2D.h">
+      <Filter>ComputationTree\Nodes\Optimizers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -349,6 +355,12 @@
     </ClCompile>
     <ClCompile Include="Phi2DMCTests.cpp">
       <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="RGFlowCont2D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ContrastiveDivergence2D.cpp">
+      <Filter>ComputationTree\Nodes\Optimizers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

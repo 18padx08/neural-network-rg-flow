@@ -13,11 +13,15 @@ Phi2DMCTests::~Phi2DMCTests()
 
 void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas, vector<double> lambdas)
 {
-	
-	for (double l : lambdas) {
+#pragma omp parallel for
+	for (int i = 0; i < lambdas.size(); i++) {
+		double l = lambdas[i];
 		double k = kappas[0];
 		int counter = 0;
 		ofstream output("phi2dmctest_lambda=" + to_string(l) + ".csv");
+		//take first value as base
+		double baseValue = 0.1;
+		bool first = true;
 		while(true) {
 			Phi2D phi(chainsize, k, l);
 			phi.useWolff = true;
@@ -29,10 +33,16 @@ void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas
 				phi.monteCarloSweep();
 			}
 			absAvg /= 100;
+			if (first)
+			{
+				baseValue = absAvg*10;
+				first = false;
+
+			}
 			output << l << "," << k << "," << absAvg << std::endl;
 			std::cout << "At l=" << l << " k=" << k << " with vev=" << absAvg << std::endl;
 			
-			if (absAvg > 0.1) {
+			if (absAvg > baseValue) {
 				counter++;
 				if (counter > 5) break;
 			}
