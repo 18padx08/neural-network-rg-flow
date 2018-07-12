@@ -34,17 +34,17 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 	std::ofstream responseError("data/response_error" + std::to_string(beta)+ "_bs=" + to_string(batchsize) + "_cs=" + to_string(spinChainSize) + ".csv");
 	shared_ptr<Graph> graph = RBMCompTree::getRBMGraph();
 	Session session(graph);
-	optimizers::ContrastiveDivergence cd(graph, 0.053, 0);
-	optimizers::ContrastiveDivergence newCd(graph, 0.0003, 0);
+	optimizers::ContrastiveDivergence cd(graph, 0.1, 0);
+	optimizers::ContrastiveDivergence newCd(graph, 0.05, 0);
 	ising.fftUpdate();
-	ising.normalize();
+	//ising.normalize();
 	for (int trial = 0; trial < 200; trial++) {
 		//we need a batch
 		vector<double> samples(spinChainSize * batchsize);
 		//and a dimension
 		double corr = 0;
 		double secondCorr = 0;
-		vector<int> dims = { spinChainSize, batchsize };
+		vector<int> dims = { spinChainSize, 2*batchsize };
 		double slope = 0;
 		std::ofstream of("data/error_gauss_mc_bj=" + std::to_string(beta) + "_" + std::to_string(trial)+"_bs=" + std::to_string(batchsize) + "_cs="+ std::to_string(spinChainSize)  + ".csv");
 		for (int sam = 0; sam < batchsize; sam++) {
@@ -56,6 +56,7 @@ void ErrorAnalysis::plotErrorOnTraining(double beta, int bs)
 			auto chain = ising.getConfiguration();
 			for (int i = 0; i < spinChainSize; i++) {
 				samples[i + spinChainSize * sam] = chain[i];
+				samples[i + spinChainSize * batchsize] = -chain[i];
 			}
 			//rescaled ising correlations
 			of << ising.getCorrelationLength(1) << "," << ising.getCorrelationLength(2) <<std::endl;

@@ -46,7 +46,7 @@ namespace ct {
 			for (int s = 0; s < samples; s++) {
 #pragma omp parallel for reduction(+:delta,vishid0, vishidn,exp_vis0,exp_visn,exp_hid0,exp_hidn)
 				for (int i = 0; i < hidDimx; i++) {
-#pragma omp parallel for reduction(+:delta,vishid0, vishidn,exp_vis0,exp_visnexp_hid0,exp_hidn)
+#pragma omp parallel for reduction(+:delta,vishid0, vishidn,exp_vis0,exp_visn,exp_hid0,exp_hidn)
 					for (int j = 0; j < hidDimy; j++) {
 						//learning data
 						auto vc_0 = vis_0[{2*i,2*j,s}];

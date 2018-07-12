@@ -163,6 +163,7 @@
     <ClInclude Include="Add.h" />
     <ClInclude Include="AnalyticalTest.h" />
     <ClInclude Include="CheatCD.h" />
+    <ClInclude Include="CompareDistributions.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="ContrastiveDivergence.h" />
     <ClInclude Include="ContrastiveDivergence2D.h" />
@@ -217,6 +218,7 @@
     <ClCompile Include="Add.cpp" />
     <ClCompile Include="AnalyticalTest.cpp" />
     <ClCompile Include="CheatCD.cpp" />
+    <ClCompile Include="CompareDistributions.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="ContrastiveDivergence.cpp" />
     <ClCompile Include="ContrastiveDivergence2D.cpp" />

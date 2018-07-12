@@ -58,7 +58,7 @@ namespace ct {
 
 		auto storeHidden_raw = make_shared<Storage>(Storage(positive, "hiddens_raw"));
 
-		auto negative = make_shared<RGFlowCont>(RGFlowCont(storeHidden_raw, kappa, Av, Ah, lambda, true));
+		auto negative = make_shared<RGFlowCont2D>(RGFlowCont2D(storeHidden_raw, kappa, Av, Ah, lambda, true));
 
 		auto storeVisible_raw = make_shared<Storage>(Storage(negative, "visibles_raw"));
 		//auto visible = make_shared<ProbPooling>(ProbPooling(storeVisible_raw));

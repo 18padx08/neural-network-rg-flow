@@ -136,7 +136,7 @@ namespace ct {
 								acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, variance, amplitude));
 							}
 						}
-						tens[{i, s, 0}] = tmp5;
+						tens[{i,j, s, 0}] = tmp5;
 					}
 
 				}
@@ -153,7 +153,7 @@ namespace ct {
 				for (int i = 0; i < xDim * 2; i++) {
 #pragma omp parallel for
 					for (int j = 0; j < yDim * 2; j++) {
-						if (i % 2 == 0) {
+						if (i % 2 == 0 && j%2 ==0) {
 							auto val1 = inputTensor[{i/2, j/2, s}];
 							auto val2 = inputTensor[{i/2 -1, j/2, s}];
 							auto val3 = inputTensor[{i/2, j/2-1, s}];
@@ -184,13 +184,13 @@ namespace ct {
 								}
 							}
 
-							tens[{i, s, 0}] = tmp5;// ((2.0 * 3.14159) / (Av));
+							tens[{i,j, s, 0}] = tmp5;// ((2.0 * 3.14159) / (Av));
 												   //tens[{i, s, 1}] = tmp3 * tmp4 / ((2 * 3.14159) / Av);
 
 						}
 						else {
-							tens[{i, s, 0}] = 0;
-							tens[{i, s, 1}] = 0;
+							tens[{i,j, s, 0}] = 0;
+							tens[{i,j, s, 1}] = 0;
 						}
 					}
 				}

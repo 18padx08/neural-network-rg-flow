@@ -9,6 +9,7 @@
 #include "Phi4Test.h"
 #include "TestConvergence.h"
 #include "Phi2DMCTests.h"
+#include "CompareDistributions.h"
 #include <regex>
 using namespace std;
 
@@ -22,7 +23,9 @@ using namespace std;
 	 extractFromHidden,
 	 scanForVariable,
 	 compareNetworkWithMC,
-	 criticalLineTest
+	 criticalLineTest,
+	 criticalLineNNTest,
+	 compareDistribution
 };
 
 

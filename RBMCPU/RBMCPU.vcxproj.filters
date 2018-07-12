@@ -210,6 +210,9 @@
     <ClInclude Include="RGFlowCont2D.h">
       <Filter>ComputationTree\Nodes\Operations</Filter>
     </ClInclude>
+    <ClInclude Include="CompareDistributions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -361,6 +364,9 @@
     </ClCompile>
     <ClCompile Include="RGFlowCont2D.cpp">
       <Filter>ComputationTree\Nodes\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="CompareDistributions.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

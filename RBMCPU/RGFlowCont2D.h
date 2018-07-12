@@ -6,7 +6,7 @@
 #include "Variable.h"
 using namespace ct;
 namespace ct {
-	class RGFlowCont2D : public Variable
+	class RGFlowCont2D : public Operation
 	{
 	private:
 		bool isInverse = false;

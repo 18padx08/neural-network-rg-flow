@@ -31,6 +31,12 @@ REGISTERED_TESTS Config::enumFromString(string str)
 	else if (str == "criticalLineTest") {
 		return REGISTERED_TESTS::criticalLineTest;
 	}
+	else if (str == "criticalLineNNTest") {
+		return REGISTERED_TESTS::criticalLineNNTest;
+	}
+	else if (str == "compareDistribution") {
+		return REGISTERED_TESTS::compareDistribution;
+	}
 	return REGISTERED_TESTS::None;
 }
 
@@ -124,6 +130,18 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 		f = [=] {
 			Phi2DMCTests test;
 			test("criticalLineTest", num_vars, str_vars, list_vars);
+		};
+		break;
+	case REGISTERED_TESTS::criticalLineNNTest:
+		f = [=] {
+			Phi2DMCTests test;
+			test("criticalLineNNTest", num_vars, str_vars, list_vars);
+		};
+		break;
+	case REGISTERED_TESTS::compareDistribution:
+		f = [=] {
+			CompareDistributions test;
+			test("compareDistribution", num_vars, str_vars, list_vars);
 		};
 		break;
 	}
