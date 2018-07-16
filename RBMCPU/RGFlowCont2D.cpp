@@ -105,15 +105,18 @@ namespace ct {
 					for (int j = 0; j < yDim / 2; j++) {
 						//for our case of the crbm we have to draw the new values from a gaussian distribution
 						//with mean = 2k/Ah *v_i and sigma of 1/sqrt(Ah)
-						auto val1 = inputTensor[{2 * i,2*j,s}];
-						auto val2 = inputTensor[{2 * i + 2,2*j,s}];
-						auto val3 = inputTensor[{2 * i, 2 * j + 2,s}];
-						auto val4 = inputTensor[{2 * i + 2, 2 * j + 2, s}];
+						int newI = i+j;
+						int newJ = j-i + (xDim-2)/2;
+						auto val1 = inputTensor[{newI-1,newJ,s}];
+						auto val2 = inputTensor[{newI +1,newJ,s}];
+						auto val3 = inputTensor[{newI,newJ-1,s}];
+						auto val4 = inputTensor[{newI, newJ+1, s}];
 
-						auto mean = (1.0/2.0)*kappa * (1.0 / Av)*(val1 + val2+val3+val4);
+						auto mean = (1.0/1.0)*kappa * (1.0 / Av)*(val1 + val2+val3+val4);
 						auto variance = sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot;
 
 						auto meanGauss = mean;
+						auto varianceGauss = variance;
 						auto amplitude = 1.0;
 						if (abs(mean) > 0.5 && abs(lambda) > 0) {
 							double q = (-2 * mean) / (4 * lambda);
@@ -123,17 +126,52 @@ namespace ct {
 								meanGauss = pow(-q / 2 + sqrt(D), 1.0 / 3) + pow(-q / 2 - sqrt(D), 1.0 / 3);
 								amplitude = nongauss(meanGauss, lambda, mean, variance) / gauss(meanGauss, meanGauss, variance);
 							}
+							else if (D < 0) {
+								//we have three real solutions corresponding to the two peaks and the dip
+								auto rho = sqrt(-p3 / 27.0);
+								auto theta = acos(-q / (2 * rho));
+								auto preFactor = 2 * (cbrt(rho));
+								auto y1 = preFactor*cos(theta/3);
+								auto y2 = preFactor * cos(theta / 3 + 2 * 3.14159 / 3.0);
+								auto y3 = preFactor * cos(theta / 3 + 4 * 3.14159 / 3.0);
+
+								//now check for which solution the prob function is maximal
+								double argmax = y1;
+								double finalValue = nongauss(y1, lambda, mean, variance);
+								auto tmp = nongauss(y2, lambda, mean, variance);
+								if ( tmp > finalValue) {
+									finalValue = tmp;
+									argmax = y2;
+									tmp = nongauss(y3, lambda, mean, variance);
+									if ( tmp> finalValue) {
+										argmax = y3;
+										finalValue = tmp;
+									}
+								}
+								else {
+									tmp = nongauss(y3, lambda, mean, variance);
+									if (tmp> finalValue) {
+										argmax = y3;
+										finalValue = tmp;
+									}
+								}
+								//we need to double the variance to get the small peak 
+								///TODO find a better method to determine the new value of gaussVariance
+								varianceGauss *= 2;
+								meanGauss = argmax;
+								amplitude = nongauss(meanGauss, lambda, meanGauss, varianceGauss);
+							}
 						}
 
-						auto tmp5 = NormalDist(meanGauss, variance);
+						auto tmp5 = NormalDist(meanGauss, varianceGauss);
 
-						double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, variance, amplitude));
+						double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, varianceGauss, amplitude));
 						if (acceptance < 1) {
 							double p = UniformDist(0, 1);
 							while (p > acceptance) {
-								tmp5 = NormalDist(meanGauss, variance);
+								tmp5 = NormalDist(meanGauss, varianceGauss);
 								p = UniformDist(0, 1);
-								acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, variance, amplitude));
+								acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, varianceGauss, amplitude));
 							}
 						}
 						tens[{i,j, s, 0}] = tmp5;
@@ -153,15 +191,19 @@ namespace ct {
 				for (int i = 0; i < xDim * 2; i++) {
 #pragma omp parallel for
 					for (int j = 0; j < yDim * 2; j++) {
-						if (i % 2 == 0 && j%2 ==0) {
-							auto val1 = inputTensor[{i/2, j/2, s}];
-							auto val2 = inputTensor[{i/2 -1, j/2, s}];
-							auto val3 = inputTensor[{i/2, j/2-1, s}];
-							auto val4 = inputTensor[{i/2-1, j/2-1, s}];
+						if (i % 2 == 0 && j%2 ==0 || (i+j) %2 ==0) {
+							//we calculate (i, j+1)
+							int newI = (2 * (i - j) + (2 * xDim)) * 1.0 / 4.0;
+							int newJ = (2 * (i + 2 + j) - (2 * yDim)) *1.0 / 4.0;
+							auto val1 = inputTensor[{newI,newJ, s}];
+							auto val2 = inputTensor[{newI-1, newJ, s}];
+							auto val3 = inputTensor[{newI, newJ+1, s}];
+							auto val4 = inputTensor[{newI-1, newJ+1, s}];
 
-							auto mean = (1.0 / 2.0)*kappa * (1.0 / Av)*(val1 + val2 + val3 + val4);
+							auto mean = (1.0 / 1.0)*kappa * (1.0 / Av)*(val1 + val2 + val3 + val4);
 							auto variance = sqrt(1.0 / abs(Ah)) *1.0 / thesquareroot;
 							auto meanGauss = mean;
+							auto varianceGauss = variance;
 							auto amplitude = 1.0;
 							if (abs(mean) > 0.5 && abs(lambda) > 0) {
 								double q = (-2 * mean) / (4 * lambda);
@@ -171,16 +213,51 @@ namespace ct {
 									meanGauss = pow(-q / 2 + sqrt(D), 1.0 / 3) + pow(-q / 2 - sqrt(D), 1.0 / 3);
 									amplitude = nongauss(meanGauss, lambda, mean, variance) / gauss(meanGauss, meanGauss, variance);
 								}
+								else if (D < 0) {
+									//we have three real solutions corresponding to the two peaks and the dip
+									auto rho = sqrt(-p3 / 27.0);
+									auto theta = acos(-q / (2 * rho));
+									auto preFactor = 2 * (cbrt(rho));
+									auto y1 = preFactor * cos(theta / 3);
+									auto y2 = preFactor * cos(theta / 3 + 2 * 3.14159 / 3.0);
+									auto y3 = preFactor * cos(theta / 3 + 4 * 3.14159 / 3.0);
+
+									//now check for which solution the prob function is maximal
+									double argmax = y1;
+									double finalValue = nongauss(y1, lambda, mean, variance);
+									auto tmp = nongauss(y2, lambda, mean, variance);
+									if (tmp > finalValue) {
+										finalValue = tmp;
+										argmax = y2;
+										tmp = nongauss(y3, lambda, mean, variance);
+										if (tmp> finalValue) {
+											argmax = y3;
+											finalValue = tmp;
+										}
+									}
+									else {
+										tmp = nongauss(y3, lambda, mean, variance);
+										if (tmp> finalValue) {
+											argmax = y3;
+											finalValue = tmp;
+										}
+									}
+									//we need to double the variance to get the small peak 
+									///TODO find a better method to determine the new value of gaussVariance
+									varianceGauss *= 2;
+									meanGauss = argmax;
+									amplitude = nongauss(meanGauss, lambda, meanGauss, varianceGauss);
+								}
 							}
-							auto tmp5 = NormalDist(meanGauss, variance);
+							auto tmp5 = NormalDist(meanGauss, varianceGauss);
 							//theGaus[i] = tmp5;
-							double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, variance, amplitude));
+							double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, varianceGauss, amplitude));
 							if (acceptance < 1) {
 								double p = UniformDist(0, 1);
 								while (p > acceptance) {
-									tmp5 = NormalDist(meanGauss, variance);
+									tmp5 = NormalDist(meanGauss, varianceGauss);
 									p = UniformDist(0, 1);
-									acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, variance, amplitude));
+									acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, varianceGauss, amplitude));
 								}
 							}
 

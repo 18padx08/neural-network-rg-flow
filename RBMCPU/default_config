@@ -12,8 +12,32 @@
 #	;;
 #plotRGFlowLamNeq0:
 criticalLineNNTest:
-	chainsize = {128,128}
+	chainsize = {4,4}
 	#batchsize = 60
-	kappa = {0.2}
-	lambda = {0}
+	kappa = {0.1}
+	lambda = {10}
+	;;
+criticalLineNNTest:
+	chainsize = {8,8}
+	#batchsize = 60
+	kappa = {0.1}
+	lambda = {10}
+	;;
+criticalLineNNTest:
+	chainsize = {16,16}
+	#batchsize = 60
+	kappa = {0.1}
+	lambda = {10}
+	;;
+criticalLineNNTest:
+	chainsize = {32,32}
+	#batchsize = 60
+	kappa = {0.1}
+	lambda = {10}
+	;;
+criticalLineNNTest:
+	chainsize = {64,64}
+	#batchsize = 60
+	kappa = {0.1}
+	lambda = {10}
 	;;

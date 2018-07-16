@@ -34,6 +34,7 @@ public:
 	double volumeAverage();
 	double absoluteVolumeAverage();
 	double squaredVolumeAverage();
+	double quarticVolumeAverage();
 	void thermalize();
 	double getEnergy();
 	double getMagnetization();

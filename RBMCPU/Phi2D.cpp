@@ -226,6 +226,16 @@ double Phi2D::squaredVolumeAverage()
 	return average / lattice.latticeSize;
 }
 
+double Phi2D::quarticVolumeAverage()
+{
+	auto average = 0.0;
+#pragma omp parallel for reduction(+:average)
+	for (int i = 0; i < lattice.latticeSize; i++) {
+		average += pow(lattice[{i}], 4);
+	}
+	return average / lattice.latticeSize;
+}
+
 void Phi2D::thermalize()
 {
 	std::cout << std::endl;
