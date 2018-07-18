@@ -22,9 +22,9 @@ void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas
 		//take first value as base
 		double baseValue = 0.1;
 		bool first = true;
-		Phi2D phi(chainsize, k, l);
+		
 		while(true) {
-			
+			Phi2D phi(chainsize, k, l);
 			phi.useWolff = true;
 			phi.thermalize();
 			

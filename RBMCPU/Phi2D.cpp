@@ -249,7 +249,7 @@ double Phi2D::quarticVolumeAverage()
 void Phi2D::thermalize()
 {
 	std::cout << std::endl;
-	for (int i = 0; i < 200; i++) {
+	for (int i = 0; i < 400; i++) {
 		this->monteCarloSweep();
 		std::cout << "\r" << "                                                         ";
 		std::cout << "\r" << "[" << i << "]" << " " << volumeAverage() << "  " <<  squaredVolumeAverage();
