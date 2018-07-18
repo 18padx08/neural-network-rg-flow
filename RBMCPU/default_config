@@ -14,30 +14,30 @@
 criticalLineTest:
 	chainsize = {20,20}
 	#batchsize = 60
-	kappa = {0.23}
-	lambda = {0}
-	;;
-criticalLineTest:
-	chainsize = {25,25}
-	#batchsize = 60
-	kappa = {0.23}
+	kappa = {0.2}
 	lambda = {0}
 	;;
 criticalLineTest:
 	chainsize = {30,30}
 	#batchsize = 60
-	kappa = {0.23}
+	kappa = {0.2}
 	lambda = {0}
 	;;
-criticalLineTest:
+criticalLineNNTest:
 	chainsize = {40,40}
 	#batchsize = 60
-	kappa = {0.23}
+	kappa = {0.2}
 	lambda = {0}
 	;;
-criticalLineTest:
+criticalLineNNTest:
+	chainsize = {40,40}
+	#batchsize = 60
+	kappa = {0.0}
+	lambda = {0}
+	;;
+criticalLineNNTest:
 	chainsize = {50,50}
 	#batchsize = 60
-	kappa = {0.23}
-	lambda = {0}
+	kappa = {0.0}
+	lambda = {100}
 	;;

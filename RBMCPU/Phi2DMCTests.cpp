@@ -22,21 +22,24 @@ void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas
 		//take first value as base
 		double baseValue = 0.1;
 		bool first = true;
+		Phi2D phi(chainsize, k, l);
 		while(true) {
-			Phi2D phi(chainsize, k, l);
+			
 			phi.useWolff = true;
 			phi.thermalize();
 			
 			double absAvg = 0;
 			double phi4 = 0;
 			double phi2 = 0;
+			double vev = 0;
 			for (int i = 0; i < 100; i++) {
 				phi4 += phi.quarticVolumeAverage();
 				phi2 += phi.squaredVolumeAverage();
 				absAvg += phi.absoluteVolumeAverage();
-				
+				vev += abs(phi.volumeAverage());
 				phi.monteCarloSweep();
 			}
+			vev /= 100;
 			absAvg /= 100;
 			phi4 /= 100;
 			phi2 /= 100;
@@ -46,14 +49,14 @@ void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas
 				first = false;
 
 			}
-			output << l << "," << k << "," << phi4/(phi2*phi2) <<  "," <<  phi2 - (absAvg*absAvg) << std::endl;
-			std::cout << "At l=" << l << " k=" << k << " with B_3=" << phi4 / (phi2*phi2) << "   " << phi2 - (absAvg*absAvg) << std::endl;
+			output << l << "," << k << "," << phi4/(phi2*phi2) <<  "," <<  phi2 - (vev*vev) << std::endl;
+			std::cout << "At l=" << l << " k=" << k << " with B_3=" << phi4 / (phi2*phi2) << "   " << phi2 - (vev*vev) << std::endl;
 			
-			if (k>0.27) {
+			if (k>0.30) {
 				counter++;
 				if (counter > 10) break;
 			}
-			k += 0.001;
+			k += 0.1;
 			
 		}
 	}
@@ -161,7 +164,7 @@ void Phi2DMCTests::criticalLineTestNN(vector<int> chainsize, vector<double> kapp
 				first = false;
 
 			}
-			if (k>0.28) {
+			if (k>0.34) {
 				brokenCounter++;
 				if (brokenCounter > 10) break;
 			}
@@ -171,11 +174,11 @@ void Phi2DMCTests::criticalLineTestNN(vector<int> chainsize, vector<double> kapp
 			}
 			else {
 				if (absphi4 / (absphi2*absphi2) - oldB3 < 0.00001) {
-					k += 0.001;
+					k += 0.01;
 					oldB3 = 0;
-					output << l << "," << k << "," << absphi4 / (absphi2*absphi2) << "," << absphi2 - (absAvg*absAvg) << std::endl;
+					output << l << "," << k << "," << absphi4 / (absphi2*absphi2) << "," << absphi2 - (vev*vev) << std::endl;
 					std::cout << "<phi^4> " << absphi4 << "  <phi^2> " << absphi2 << "  <phi^2>^2 " << absphi2 * absphi2 << " vev: " << vev << std::endl;
-					std::cout << counter2 << "  At l=" << l << " k=" << k << " with B_3=" << absphi4 / (absphi2*absphi2) << "  susceptibility" << absphi2 - (absAvg*absAvg) << std::endl;
+					std::cout << counter2 << "  At l=" << l << " k=" << k << " with B_3=" << absphi4 / (absphi2 * absphi2) << "  susceptibility" << absphi2 - (vev*vev) << std::endl;
 				}
 				oldB3 = absphi4 / (absphi2*absphi2);
 			}

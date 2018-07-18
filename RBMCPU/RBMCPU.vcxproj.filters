@@ -213,6 +213,9 @@
     <ClInclude Include="CompareDistributions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RG2DTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RBMCPU.cpp">
@@ -366,6 +369,9 @@
       <Filter>ComputationTree\Nodes\Operations</Filter>
     </ClCompile>
     <ClCompile Include="CompareDistributions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RG2DTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

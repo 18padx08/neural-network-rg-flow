@@ -190,6 +190,7 @@
     <ClInclude Include="RBM.h" />
     <ClInclude Include="RBMCompTree.h" />
     <ClInclude Include="RG.h" />
+    <ClInclude Include="RG2DTest.h" />
     <ClInclude Include="RGFlowCont.h" />
     <ClInclude Include="RGFlowCont2D.h" />
     <ClInclude Include="RGFlowTest.h" />
@@ -246,6 +247,7 @@
     <ClCompile Include="RBMCompTree.cpp" />
     <ClCompile Include="RBMCPU.cpp" />
     <ClCompile Include="RG.cpp" />
+    <ClCompile Include="RG2DTest.cpp" />
     <ClCompile Include="RGFlowCont.cpp" />
     <ClCompile Include="RGFlowCont2D.cpp" />
     <ClCompile Include="RGFlowTest.cpp" />
