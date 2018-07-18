@@ -17,6 +17,7 @@ double Phi2D::energyDiff(int x, int y)
 	else {
 		newValue += delta;
 	}
+	//newValue += delta;
 	double deltaE = (pow(theValue, 2) - pow(newValue, 2)) + lambda * (pow(pow(theValue, 2) - 1, 2) - pow(pow(newValue, 2) - 1, 2));
 	deltaE += -2 * kappa * (lattice[{x + 1, y}] + lattice[{x - 1, y}] + lattice[{x , y+1}] + lattice[{x, y-1}]) * (theValue-newValue);
 	std::uniform_real_distribution<double> pro(0, 1);
@@ -210,36 +211,45 @@ double Phi2D::absoluteVolumeAverage()
 {
 	auto average = 0.0;
 #pragma omp parallel for reduction(+:average)
-	for (int i = 0; i < lattice.latticeSize; i++) {
-		average += abs(lattice[{i}]);
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+#pragma omp parallel for reduction(+:average)
+		for (int j = 0; j < lattice.dimensions[1]; j++) {
+			average += abs(lattice[{i, j}]);
+		}
 	}
-	return average / lattice.latticeSize;
+	return average / (lattice.dimensions[0] * lattice.dimensions[1]);
 }
 
 double Phi2D::squaredVolumeAverage()
 {
 	auto average = 0.0;
 #pragma omp parallel for reduction(+:average)
-	for (int i = 0; i < lattice.latticeSize; i++) {
-		average += pow(lattice[{i}], 2);
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+#pragma omp parallel for reduction(+:average)
+		for (int j = 0; j < lattice.dimensions[1]; j++) {
+			average += pow(lattice[{i,j}], 2);
+		}
 	}
-	return average / lattice.latticeSize;
+	return average / (lattice.dimensions[0] * lattice.dimensions[1]);
 }
 
 double Phi2D::quarticVolumeAverage()
 {
 	auto average = 0.0;
 #pragma omp parallel for reduction(+:average)
-	for (int i = 0; i < lattice.latticeSize; i++) {
-		average += pow(lattice[{i}], 4);
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+#pragma omp parallel for reduction(+:average)
+		for (int j = 0; j < lattice.dimensions[1]; j++) {
+			average += pow(lattice[{i, j}], 4);
+		}
 	}
-	return average / lattice.latticeSize;
+	return average / (lattice.dimensions[0] * lattice.dimensions[1]);
 }
 
 void Phi2D::thermalize()
 {
 	std::cout << std::endl;
-	for (int i = 0; i < 400; i++) {
+	for (int i = 0; i < 1000; i++) {
 		this->monteCarloSweep();
 		std::cout << "\r" << "                                                         ";
 		std::cout << "\r" << "[" << i << "]" << " " << volumeAverage() << "  " <<  squaredVolumeAverage();
@@ -264,4 +274,14 @@ void Phi2D::rescaleFields(double scaling)
 double Phi2D::getCorrelationLength(int distance)
 {
 	return 0.0;
+}
+
+void Phi2D::changeLambda(double lambda)
+{
+	this->lambda = lambda;
+}
+
+void Phi2D::changeKappa(double kappa)
+{
+	this->kappa = kappa;
 }

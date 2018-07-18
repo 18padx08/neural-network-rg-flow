@@ -11,33 +11,33 @@
 #	lambda = {0,0.1,0.3,0.5,0.7,0.9,1.1,1.5,1.7,1.9}
 #	;;
 #plotRGFlowLamNeq0:
-criticalLineNNTest:
-	chainsize = {4,4}
+criticalLineTest:
+	chainsize = {20,20}
 	#batchsize = 60
-	kappa = {0.1}
-	lambda = {10}
+	kappa = {0.23}
+	lambda = {0}
 	;;
-criticalLineNNTest:
-	chainsize = {8,8}
+criticalLineTest:
+	chainsize = {25,25}
 	#batchsize = 60
-	kappa = {0.1}
-	lambda = {10}
+	kappa = {0.23}
+	lambda = {0}
 	;;
-criticalLineNNTest:
-	chainsize = {16,16}
+criticalLineTest:
+	chainsize = {30,30}
 	#batchsize = 60
-	kappa = {0.1}
-	lambda = {10}
+	kappa = {0.23}
+	lambda = {0}
 	;;
-criticalLineNNTest:
-	chainsize = {32,32}
+criticalLineTest:
+	chainsize = {40,40}
 	#batchsize = 60
-	kappa = {0.1}
-	lambda = {10}
+	kappa = {0.23}
+	lambda = {0}
 	;;
-criticalLineNNTest:
-	chainsize = {64,64}
+criticalLineTest:
+	chainsize = {50,50}
 	#batchsize = 60
-	kappa = {0.1}
-	lambda = {10}
+	kappa = {0.23}
+	lambda = {0}
 	;;
