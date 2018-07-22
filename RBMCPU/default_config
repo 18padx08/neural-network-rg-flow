@@ -14,8 +14,9 @@
 criticalLineTest:
 	chainsize = {32,32}
 	#batchsize = 60
-	kappa = {0.1}
+	kappa = {0.2}
 	lambda = {0}
+	stepsize = 0.005
 	;;
 criticalLineTest:
 	chainsize = {64,64}
