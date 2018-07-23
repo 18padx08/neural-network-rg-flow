@@ -37,6 +37,9 @@ REGISTERED_TESTS Config::enumFromString(string str)
 	else if (str == "compareDistribution") {
 		return REGISTERED_TESTS::compareDistribution;
 	}
+	else if (str == "test2dConvergence") {
+		return REGISTERED_TESTS::test2dConvergence;
+	}
 	return REGISTERED_TESTS::None;
 }
 
@@ -144,7 +147,14 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 			test("compareDistribution", num_vars, str_vars, list_vars);
 		};
 		break;
+	case REGISTERED_TESTS::test2dConvergence:
+		f = [=] {
+			RG2DTest test;
+			test("test2dConvergence", num_vars, str_vars, list_vars);
+		};
+		break;
 	}
+	
 	return f;
 }
 

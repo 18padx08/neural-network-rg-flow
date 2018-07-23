@@ -10,6 +10,7 @@
 #include "TestConvergence.h"
 #include "Phi2DMCTests.h"
 #include "CompareDistributions.h"
+#include "RG2DTest.h"
 #include <regex>
 using namespace std;
 
@@ -25,7 +26,8 @@ using namespace std;
 	 compareNetworkWithMC,
 	 criticalLineTest,
 	 criticalLineNNTest,
-	 compareDistribution
+	 compareDistribution,
+	 test2dConvergence
 };
 
 
