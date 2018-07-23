@@ -1,8 +1,16 @@
-plot2DRGFlow:
-	kappa = {0.2}
-	lambda = {1.0}
-	batchsize = 50
-	learningrate = 0.1
-	chainsize = {16,16}
-	layersize = 3
+#plot2DRGFlow:
+#	kappa = {0.2}
+#	lambda = {1.0}
+#	batchsize = 50
+#	learningrate = 0.1
+#	chainsize = {16,16}
+#	layersize = 3
+#	;;
+
+criticalLineTest:
+	chainsize = {32,32}
+	kappa = {0.245}
+	lambda = {0}
+	stepsize = 0.001
+	finalKappa = 0.26
 	;;

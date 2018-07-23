@@ -11,7 +11,7 @@ Phi2DMCTests::~Phi2DMCTests()
 {
 }
 
-void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas, vector<double> lambdas, double stepsize)
+void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas, vector<double> lambdas, double stepsize, double finalBeta)
 {
 	
 	for (int i = 0; i < lambdas.size(); i++) {
@@ -52,7 +52,7 @@ void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas
 			output << l << "," << k << "," << phi4/(phi2*phi2) <<  "," <<  phi2 - (vev*vev) << std::endl;
 			std::cout << "At l=" << l << " k=" << k << " with B_3=" << phi4 / (phi2*phi2) << "   " << phi2 - (vev*vev) << std::endl;
 			
-			if (k>0.8) {
+			if (k>finalBeta) {
 				break;
 			}
 			k += stepsize;
@@ -66,6 +66,7 @@ void Phi2DMCTests::criticalLineTestNN(vector<int> chainsize, vector<double> kapp
 	auto graph = RBMCompTree::getRBM2DGraph();
 	auto kappa = graph->getVarForName("kappa");
 	auto lambda = graph->getVarForName("lambda");
+	
 	vector<double> samples(100 * chainsize[0] * chainsize[1]);
 	vector<int> dims = { chainsize[0],chainsize[1],100 };
 
@@ -192,9 +193,10 @@ void Phi2DMCTests::operator()(string name, map<string, double> num_vars, map<str
 	vector<int> chainsize = this->getIntVector("chainsize", num_vars, list_vars);
 	vector<double> kappas = this->getDoubleVector("kappa", num_vars, list_vars);
 	vector<double> lambdas = this->getDoubleVector("lambda", num_vars, list_vars);
+	double finalK = num_vars.find("finalKappa") == num_vars.end() ? kappas[0] * 20 : num_vars["finalKappa"];
 	double ss = num_vars.find("stepsize") == num_vars.end() ? 0.01 : num_vars["stepsize"];
 	if (name == "criticalLineTest") {
-		criticalLineTest(chainsize, kappas, lambdas,ss);
+		criticalLineTest(chainsize, kappas, lambdas,ss, finalK);
 	}
 	if (name == "criticalLineNNTest") {
 		criticalLineTestNN(chainsize, kappas, lambdas,ss);
