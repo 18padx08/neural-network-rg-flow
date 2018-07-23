@@ -27,7 +27,8 @@ using namespace std;
 	 criticalLineTest,
 	 criticalLineNNTest,
 	 compareDistribution,
-	 test2dConvergence
+	 test2dConvergence,
+	 plot2DRGFlow
 };
 
 

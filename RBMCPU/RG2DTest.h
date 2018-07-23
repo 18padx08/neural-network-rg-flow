@@ -15,7 +15,7 @@ public:
 	RG2DTest();
 	~RG2DTest();
 
-	void run(vector<int> size, int batchsize, double kappa, double lambda, double lr);
+	void plot2DRGFlow(vector<int> size, int batchsize, int layersize, double kappa, double lambda, double lr);
 	void test2dConvergence(vector<int> size, int batchsize, double kappa, double lambda, double lr);
 	// Inherited via TestBase
 	virtual void operator()(string name, map<string, double> num_vars, map<string, string> str_vars, map<string, vector<double>> list_vars) override;
