@@ -111,6 +111,7 @@ namespace ct {
 					auto variance = sqrt(1.0 / abs(Av)) * 1.0 / thesquareroot;
 					
 					auto meanGauss = mean;
+					auto varianceGauss = variance;
 					auto amplitude = 1.0;
 					if (abs(mean) > 0.5 && abs(lambda) >0) {
 						double q = (-2 * mean) / (4 * lambda);
@@ -120,17 +121,55 @@ namespace ct {
 							meanGauss = cbrt(-q / 2 + sqrt(D)) + cbrt(-q / 2 - sqrt(D));
 							amplitude = nongauss(meanGauss, lambda, mean, variance) / gauss(meanGauss, meanGauss, variance);
 						}
+						else if (D < 0) {
+							//we have three real solutions corresponding to the two peaks and the dip
+							auto rho = sqrt(-p3 / 27.0);
+							auto theta = acos(-q / (2 * rho));
+							auto preFactor = 2 * (cbrt(rho));
+							auto y1 = preFactor * cos(theta / 3);
+							auto y2 = preFactor * cos(theta / 3 + 2 * 3.14159 / 3.0);
+							auto y3 = preFactor * cos(theta / 3 + 4 * 3.14159 / 3.0);
+
+							//now check for which solution the prob function is maximal
+							double argmax = y1;
+							double finalValue = nongauss(y1, lambda, mean, variance);
+							auto tmp = nongauss(y2, lambda, mean, variance);
+							if (tmp > finalValue) {
+								finalValue = tmp;
+								argmax = y2;
+								tmp = nongauss(y3, lambda, mean, variance);
+								if (tmp> finalValue) {
+									argmax = y3;
+									finalValue = tmp;
+								}
+							}
+							else {
+								tmp = nongauss(y3, lambda, mean, variance);
+								if (tmp> finalValue) {
+									argmax = y3;
+									finalValue = tmp;
+								}
+							}
+							//we need to double the variance to get the small peak 
+							///TODO find a better method to determine the new value of gaussVariance
+							varianceGauss *= 2;
+							if (isnan(argmax)) {
+								std::cout << "prblem" << std::endl;
+							}
+							meanGauss = argmax;
+							amplitude = nongauss(meanGauss, lambda, meanGauss, varianceGauss);
+						}
 					}
 
-					auto tmp5 = NormalDist(meanGauss, variance);
+					auto tmp5 = NormalDist(meanGauss, varianceGauss);
 					
-					double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/gauss(tmp5, meanGauss, variance,amplitude));
+					double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/gauss(tmp5, meanGauss, varianceGauss,amplitude));
 					if (acceptance < 1) {
 						double p = UniformDist(0, 1);
 						while (p > acceptance) {
-							tmp5 = NormalDist(meanGauss, variance);
+							tmp5 = NormalDist(meanGauss, varianceGauss);
 							p = UniformDist(0, 1);
-							acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/ gauss(tmp5, meanGauss, variance,amplitude));
+							acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/ gauss(tmp5, meanGauss, varianceGauss,amplitude));
 						}
 					}
 					//theGaus[i] = tmp5;
@@ -164,6 +203,7 @@ namespace ct {
 						auto mean = kappa *(1.0/Ah)* (val1 + val2);
 						auto variance = sqrt(1.0 / abs(Ah)) *1.0 / thesquareroot;
 						auto meanGauss = mean;
+						auto varianceGauss = variance;
 						auto amplitude = 1.0;
 						if (abs(mean) > 0.5 && abs(lambda) >0) {
 							double q = (-2 * mean) / (4 * lambda);
@@ -173,16 +213,54 @@ namespace ct {
 								meanGauss = cbrt(-q / 2 + sqrt(D)) + cbrt(-q / 2 - sqrt(D));
 								amplitude = nongauss(meanGauss, lambda, mean, variance) / gauss(meanGauss, meanGauss, variance);
 							}
+							else if (D < 0) {
+								//we have three real solutions corresponding to the two peaks and the dip
+								auto rho = sqrt(-p3 / 27.0);
+								auto theta = acos(-q / (2 * rho));
+								auto preFactor = 2 * (cbrt(rho));
+								auto y1 = preFactor * cos(theta / 3);
+								auto y2 = preFactor * cos(theta / 3 + 2 * 3.14159 / 3.0);
+								auto y3 = preFactor * cos(theta / 3 + 4 * 3.14159 / 3.0);
+
+								//now check for which solution the prob function is maximal
+								double argmax = y1;
+								double finalValue = nongauss(y1, lambda, mean, variance);
+								auto tmp = nongauss(y2, lambda, mean, variance);
+								if (tmp > finalValue) {
+									finalValue = tmp;
+									argmax = y2;
+									tmp = nongauss(y3, lambda, mean, variance);
+									if (tmp> finalValue) {
+										argmax = y3;
+										finalValue = tmp;
+									}
+								}
+								else {
+									tmp = nongauss(y3, lambda, mean, variance);
+									if (tmp> finalValue) {
+										argmax = y3;
+										finalValue = tmp;
+									}
+								}
+								//we need to double the variance to get the small peak 
+								///TODO find a better method to determine the new value of gaussVariance
+								varianceGauss *= 2;
+								if (isnan(argmax)) {
+									std::cout << "prblem" << std::endl;
+								}
+								meanGauss = argmax;
+								amplitude = nongauss(meanGauss, lambda, meanGauss, varianceGauss);
+							}
 						}
-						auto tmp5 = NormalDist(meanGauss, variance);
+						auto tmp5 = NormalDist(meanGauss, varianceGauss);
 						//theGaus[i] = tmp5;
-						double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/gauss(tmp5, meanGauss, variance,amplitude));
+						double acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance)/gauss(tmp5, meanGauss, varianceGauss,amplitude));
 						if (acceptance < 1) {
 							double p = UniformDist(0, 1);
 							while (p > acceptance) {
-								tmp5 = NormalDist(meanGauss, variance);
+								tmp5 = NormalDist(meanGauss, varianceGauss);
 								p = UniformDist(0, 1);
-								acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, variance,amplitude));
+								acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, varianceGauss,amplitude));
 							}
 						}
 

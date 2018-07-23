@@ -53,16 +53,19 @@ void RG2DTest::test2dConvergence(vector<int> size, int batchsize, double kappa, 
 
 	auto kap = graph->getVarForName("kappa");
 	auto lamb = graph->getVarForName("lambda");
+	kap->value = make_shared<Tensor>(Tensor({ 1 }, {2*kappa}));
+	lamb->value = make_shared<Tensor>(Tensor({ 1 }, {0.5* lambda }));
 
 	double avgK = 0;
 	double avgL = 0;
 	double lastAvgK = 0;
 	double lastAvgL = 0;
 
-	double thresholdK = 0.01;
-	double thresholdL = 0.01;
+	double thresholdK = 0.001;
+	double thresholdL = 0.001;
 	int runningCounter = 1;
 	int overall = 0;
+	ofstream fileToSave("2d_convergence_kappa=" + to_string(kappa) + "_lamb=" + to_string(lambda) + "_cs=" + to_string(size[0]) + "bs=" + to_string(batchsize) + "_lr="+to_string(lr) + ".csv");
 	//thermalize
 	while (true) {
 		session->run(feedDic, true, 10);
@@ -72,11 +75,13 @@ void RG2DTest::test2dConvergence(vector<int> size, int batchsize, double kappa, 
 		else {
 			cd->optimize(10, 1, true);
 		}
-		if (runningCounter % 100 == 0) {
+		if (runningCounter % 20 == 0) {
+			avgK /= 20;
+			avgL /= 20;
 			std::cout << "\r" << "                                                                           ";
-			std::cout << "\r" << "Average over last 100 samples: avK=" << avgK << " and avgL=" << avgL;
+			std::cout << "\r" << "Average over last 20 samples: avK=" << avgK << " and avgL=" << avgL;
 			runningCounter = 1;
-			
+
 			if (abs(lastAvgK - avgK) < thresholdK && abs(lastAvgL - avgL) < thresholdL) {
 				std::cout << std::endl << "difference smaller than " << thresholdK << "  " << thresholdL << std::endl;
 				lastAvgK = avgK;
@@ -97,7 +102,11 @@ void RG2DTest::test2dConvergence(vector<int> size, int batchsize, double kappa, 
 
 		avgK += *kap->value;
 		avgL += *lamb->value;
+		fileToSave << *kap->value << "," << *lamb->value << std::endl;
+		runningCounter++;
+
 	}
+	fileToSave.close();
 	std::cout << "Thermalized: kappa=" << lastAvgK << "  lambda=" << lastAvgL << std::endl;
 
 }

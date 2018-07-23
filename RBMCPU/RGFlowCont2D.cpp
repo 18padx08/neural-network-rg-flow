@@ -123,7 +123,10 @@ namespace ct {
 							double D = p3 / 27.0 + pow(q / 2, 2);
 							if (D > 0) {
 								//we have only one solution
-								meanGauss = pow(-q / 2 + sqrt(D), 1.0 / 3) + pow(-q / 2 - sqrt(D), 1.0 / 3);
+								meanGauss = cbrt(-q / 2 + sqrt(D)) + cbrt(-q / 2 - sqrt(D));
+								if (isnan(meanGauss)) {
+									std::cout << "prblem" << std::endl;
+								}
 								amplitude = nongauss(meanGauss, lambda, mean, variance) / gauss(meanGauss, meanGauss, variance);
 							}
 							else if (D < 0) {
@@ -158,6 +161,9 @@ namespace ct {
 								//we need to double the variance to get the small peak 
 								///TODO find a better method to determine the new value of gaussVariance
 								varianceGauss *= 2;
+								if (isnan(argmax)) {
+									std::cout << "prblem" << std::endl;
+								}
 								meanGauss = argmax;
 								amplitude = nongauss(meanGauss, lambda, meanGauss, varianceGauss);
 							}
@@ -174,7 +180,12 @@ namespace ct {
 								acceptance = min(1.0, nongauss(tmp5, lambda, mean, variance) / gauss(tmp5, meanGauss, varianceGauss, amplitude));
 							}
 						}
-						tens[{i,j, s, 0}] = tmp5;
+						if (isnan(tmp5)) {
+							std::cout << "mean: " << meanGauss << " var: " << varianceGauss << std::endl;
+						}
+						else {
+							tens[{i, j, s, 0}] = tmp5;
+						}
 					}
 
 				}
@@ -210,7 +221,7 @@ namespace ct {
 								double D = p3 / 27.0 + pow(q / 2, 2);
 								if (D > 0) {
 									//we have only one solution
-									meanGauss = pow(-q / 2 + sqrt(D), 1.0 / 3) + pow(-q / 2 - sqrt(D), 1.0 / 3);
+									meanGauss = cbrt(-q / 2 + sqrt(D)) + cbrt(-q / 2 - sqrt(D));
 									amplitude = nongauss(meanGauss, lambda, mean, variance) / gauss(meanGauss, meanGauss, variance);
 								}
 								else if (D < 0) {
