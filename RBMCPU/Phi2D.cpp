@@ -246,10 +246,23 @@ double Phi2D::quarticVolumeAverage()
 	return average / (lattice.dimensions[0] * lattice.dimensions[1]);
 }
 
-void Phi2D::thermalize()
+double Phi2D::getKappaWeight()
+{
+	auto average = 0.0;
+#pragma omp parallel for reduction(+:average)
+	for (int i = 0; i < lattice.dimensions[0]; i++) {
+#pragma omp parallel for reduction(+:average)
+		for (int j = 0; j < lattice.dimensions[1]; j++) {
+			average += lattice[{i, j}] * (lattice[{i, j + 1}] + lattice[{i, j - 1}] + lattice[{i - 1, j}] + lattice[{i+1,j}]);
+		}
+	}
+	return average;
+}
+
+void Phi2D::thermalize(int runs)
 {
 	std::cout << std::endl;
-	for (int i = 0; i < 600; i++) {
+	for (int i = 0; i < runs; i++) {
 		this->monteCarloSweep();
 		std::cout << "\r" << "                                                         ";
 		std::cout << "\r" << "[" << i << "]" << " " << volumeAverage() << "  " <<  squaredVolumeAverage();

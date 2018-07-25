@@ -8,9 +8,9 @@
 #	;;
 
 criticalLineTest:
-	chainsize = {32,32}
-	kappa = {0.245}
-	lambda = {0}
+	chainsize = {16,16}
+	kappa = {0.1,0.24,0.26,0.3,0.4}
+	lambda = {1}
 	stepsize = 0.001
 	finalKappa = 0.26
 	;;

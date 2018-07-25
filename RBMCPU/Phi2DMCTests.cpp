@@ -16,47 +16,42 @@ void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas
 	
 	for (int i = 0; i < lambdas.size(); i++) {
 		double l = lambdas[i];
-		double k = kappas[0];
+		//double k = kappas[0];
 		int counter = 0;
-		ofstream output("phi2dmctest_lambda=" + to_string(l) + "_" + to_string(chainsize[0])+".csv");
-		//take first value as base
-		double baseValue = 0.1;
-		bool first = true;
 		
-		while(true) {
+		
+		for(double k : kappas) {
+			ofstream output("phi2dmctest_lambda=" + to_string(l) + "_kappa=" + to_string(k) + "_cs=" + to_string(chainsize[0]) + ".csv");
 			Phi2D phi(chainsize, k, l);
 			phi.useWolff = true;
-			phi.thermalize();
+			phi.thermalize(3000);
 			
 			double absAvg = 0;
 			double phi4 = 0;
 			double phi2 = 0;
 			double vev = 0;
 			for (int i = 0; i < 100; i++) {
+				auto quartPhi = phi.quarticVolumeAverage();
+				auto squPhi = phi.squaredVolumeAverage();
+				auto absAvg = phi.volumeAverage();
+				auto action = phi.getKappaWeight();
 				phi4 += phi.quarticVolumeAverage();
 				phi2 += phi.squaredVolumeAverage();
 				absAvg += phi.absoluteVolumeAverage();
 				vev += abs(phi.volumeAverage());
+
+				output << absAvg << "," << squPhi << "," << quartPhi << "," << action  << std::endl;
 				phi.monteCarloSweep();
 			}
 			vev /= 100;
 			absAvg /= 100;
 			phi4 /= 100;
 			phi2 /= 100;
-			if (first)
-			{
-				baseValue = absAvg*10;
-				first = false;
-
-			}
-			output << l << "," << k << "," << phi4/(phi2*phi2) <<  "," <<  phi2 - (vev*vev) << std::endl;
+			
+			
 			std::cout << "At l=" << l << " k=" << k << " with B_3=" << phi4 / (phi2*phi2) << "   " << phi2 - (vev*vev) << std::endl;
 			
-			if (k>finalBeta) {
-				break;
-			}
-			k += stepsize;
-			
+			output.close();
 		}
 	}
 }

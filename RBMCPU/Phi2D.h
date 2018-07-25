@@ -35,7 +35,8 @@ public:
 	double absoluteVolumeAverage();
 	double squaredVolumeAverage();
 	double quarticVolumeAverage();
-	void thermalize();
+	double getKappaWeight();
+	void thermalize(int runs=600);
 	double getEnergy();
 	double getMagnetization();
 	void rescaleFields(double scaling);
