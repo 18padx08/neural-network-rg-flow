@@ -11,12 +11,13 @@ double Phi2D::energyDiff(int x, int y)
 	
 	delta = deltaDist(generator);
 	auto newValue = theValue;
-	if (probSignflip(generator) < 0.5) {
+	/*if (probSignflip(generator) < 0.5) {
 		newValue = -newValue;
 	}
 	else {
 		newValue += delta;
-	}
+	}*/
+	newValue += delta;
 	//newValue += delta;
 	double deltaE = (pow(theValue, 2) - pow(newValue, 2)) + lambda * (pow(pow(theValue, 2) - 1, 2) - pow(pow(newValue, 2) - 1, 2));
 	deltaE += -2 * kappa * (lattice[{x + 1, y}] + lattice[{x - 1, y}] + lattice[{x , y+1}] + lattice[{x, y-1}]) * (theValue-newValue);

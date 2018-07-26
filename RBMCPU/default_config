@@ -8,8 +8,23 @@
 #	;;
 
 criticalLineTest:
+	chainsize = {8,8}
+	kappa = {0.25,0.27,0.32,0.36}
+	lambda = {1}
+	stepsize = 0.001
+	finalKappa = 0.26
+	;;
+
+	criticalLineTest:
+	chainsize = {12,12}
+	kappa = {0.25,0.27,0.32,0.36}
+	lambda = {1}
+	stepsize = 0.001
+	finalKappa = 0.26
+	;;
+	criticalLineTest:
 	chainsize = {16,16}
-	kappa = {0.1,0.24,0.26,0.3,0.4}
+	kappa = {0.25,0.27,0.32,0.36}
 	lambda = {1}
 	stepsize = 0.001
 	finalKappa = 0.26
