@@ -192,7 +192,7 @@ void RG2DTest::test2dConvergence(vector<int> size, int batchsize, double kappa, 
 {
 	Phi2D phi4(size, kappa, lambda);
 	phi4.useWolff = true;
-	phi4.thermalize();
+	phi4.thermalize(1000);
 
 	vector<double> samples(size[0] * size[1] * batchsize);
 	vector<int> dims = { size[0],size[1],batchsize };
@@ -231,23 +231,41 @@ void RG2DTest::test2dConvergence(vector<int> size, int batchsize, double kappa, 
 	int overall = 0;
 	ofstream fileToSave("2d_convergence_kappa=" + to_string(kappa) + "_lamb=" + to_string(lambda) + "_cs=" + to_string(size[0]) + "bs=" + to_string(batchsize) + "_lr="+to_string(lr) + ".csv");
 	//thermalize
+	double overallOptimK = 0;
+	double overallOptimL = 0;
 	while (true) {
 		session->run(feedDic, true, 10);
-		if (overall > 500) {
-			cd->optimize(10, 1, true,true);
-		}
-		else {
-			cd->optimize(10, 1, true);
-		}
+		
+			auto vals = cd->optimize(10, 1, true);
+			overallOptimK += vals[0];
+			overallOptimL += vals[1];
+			std::cout << vals[0] << "  " << vals[1] << std::endl;
 		if (runningCounter % 20 == 0) {
+			overallOptimK /= 20;
+			overallOptimL /= 20;
+			if (abs(overallOptimL) > 0.1*cd->learningRateL) {
+				cd->learningRateL += 0.1 * cd->learningRateL;
+			}
+			else if(abs(overallOptimL) < 0.1*cd->learningRateL){
+				//std::cout << abs(overallOptimL) << "  " << cd->learningRateL << std::endl;
+				cd->learningRateL -= 0.1 *cd->learningRateL;
+			}
+			if (abs(overallOptimK) > 0.1*cd->learningRateK) {
+				cd->learningRateK += 0.1 * cd->learningRateK;
+			}
+			else if(abs(overallOptimK) < 0.1*cd->learningRateK)  {
+				//std::cout << abs(overallOptimK) << "  " << cd->learningRateK << std::endl;
+				cd->learningRateK -= 0.1 *cd->learningRateK;
+			}
 			avgK /= 20;
 			avgL /= 20;
 			std::cout << "\r" << "                                                                           ";
-			std::cout << "\r" << "Average over last 20 samples: avK=" << avgK << " and avgL=" << avgL;
+			std::cout << "\r" << "Average over last 20 samples: avK=" << avgK << "(" << cd->learningRateK << ") and avgL=" << avgL << "(" << cd->learningRateL << ")";
 			runningCounter = 1;
 
 			if (abs(lastAvgK - avgK) < thresholdK && abs(lastAvgL - avgL) < thresholdL) {
 				std::cout << std::endl << "difference smaller than " << thresholdK << "  " << thresholdL << std::endl;
+				std::cout << "lrL: " << cd->learningRateL << "  lrK: " << cd->learningRateK << std::endl;
 				lastAvgK = avgK;
 				lastAvgL = avgL;
 				break;
@@ -256,6 +274,8 @@ void RG2DTest::test2dConvergence(vector<int> size, int batchsize, double kappa, 
 			lastAvgL = avgL;
 			avgK = 0;
 			avgL = 0;
+			overallOptimK = 0;
+			overallOptimL = 0;
 		}
 		if (*kap->value < 0) {
 			kap->value = make_shared<Tensor>(Tensor({ 1 }, { 0 }));

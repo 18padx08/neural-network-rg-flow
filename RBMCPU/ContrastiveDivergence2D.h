@@ -15,16 +15,18 @@ namespace ct {
 		{
 		private:
 			weak_ptr<Graph> theGraph;
-			double learningRate;
+			
 			double momentum;
 			double lastUpdate;
 			uniform_int_distribution<int> dist;
 			default_random_engine engine;
 		public:
+			double learningRateL;
+			double learningRateK;
 			ContrastiveDivergence2D(weak_ptr<Graph> graph, double learningRate = 0.1, double momentum = 0);
 			~ContrastiveDivergence2D();
 
-			void optimize(int k = 1, double betaJ = 1.0, bool useLR = false, bool updateNorms = false, bool fixKappa = false, bool fixLambda = false);
+			vector<double> optimize(int k = 1, double betaJ = 1.0, bool useLR = false, bool updateNorms = false, bool fixKappa = false, bool fixLambda = false);
 
 		};
 	}

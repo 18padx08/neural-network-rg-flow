@@ -4,7 +4,7 @@ namespace ct {
 	namespace optimizers {
 
 		ContrastiveDivergence2D::ContrastiveDivergence2D(weak_ptr<Graph> graph, double learningRate, double momentum) :
-			learningRate(learningRate), momentum(momentum), engine(time(NULL)), dist(), theGraph(graph)
+			learningRateL(learningRate), learningRateK(learningRate), momentum(momentum), engine(time(NULL)), dist(), theGraph(graph)
 		{
 		}
 
@@ -12,7 +12,7 @@ namespace ct {
 		{
 		}
 		
-		void ContrastiveDivergence2D::optimize(int k, double betaJ, bool useLR, bool updateNorms, bool fixKappa, bool fixLambda)
+		vector<double> ContrastiveDivergence2D::optimize(int k, double betaJ, bool useLR, bool updateNorms, bool fixKappa, bool fixLambda)
 		{
 			auto theGraph = this->theGraph.lock();
 			auto vis_0 = *((dynamic_pointer_cast<Storage>(theGraph->storages["visibles_pooled"].lock()))->storage[0]);
@@ -89,29 +89,33 @@ namespace ct {
 			auto Av = theGraph->getVarForName("Av");
 			auto lambda = theGraph->getVarForName("lambda");
 			delta = vishid0 - vishidn;
-			auto tmpDelta = abs(delta) > 0.2 ? (signbit(delta) ? -0.2 : 0.2) : delta;
+			auto maxChange = 0.1*(*kappa->value) > 0.2 ? 0.1*(*kappa->value) : 0.2;
+			auto tmpDelta = abs(delta) > maxChange ? (signbit(delta) ? -maxChange : maxChange) : delta;
 			auto tmpVisDelta = abs(exp_vis0 - exp_visn) > 0.2 ? (signbit(exp_vis0 - exp_visn) ? -0.2 : 0.2) : exp_vis0 - exp_visn;
 			auto tmpHidDelta = abs(exp_hid0 - exp_hidn) > 0.2 ? (signbit(exp_hid0 - exp_hidn) ? -0.2 : 0.2) : exp_hid0 - exp_hidn;
 			if (!fixKappa && !isnan(tmpDelta))
-				*kappa->value = *kappa->value + Tensor({ 1 }, { learningRate *(tmpDelta) });
-			auto newValue = *Av->value + Tensor({ 1 }, { learningRate * (tmpVisDelta), 0.2 });
-			auto newValue2 = *Ah->value + Tensor({ 1 }, { learningRate * (tmpHidDelta) });
+				*kappa->value = *kappa->value + Tensor({ 1 }, { learningRateK *(tmpDelta) });
+			auto newValue = *Av->value + Tensor({ 1 }, { learningRateK * (tmpVisDelta), 0.2 });
+			auto newValue2 = *Ah->value + Tensor({ 1 }, { learningRateK * (tmpHidDelta) });
 			if (updateNorms && !(isnan(newValue) || isnan(newValue2))) {
 				*Av->value = newValue;
 				*Ah->value = newValue2;
 			}
-
+			double tmpLamDelta = 0;
 			if (lambda != nullptr) {
-				auto tmpLamDelta = abs(exp_vis0 - exp_visn)>0.2 ? (signbit(exp_vis0 - exp_visn) ? -0.2 : 0.2) : exp_vis0 - exp_visn;//abs(exp_vis0 - exp_visn) > 0.2? (signbit(exp_vis0 - exp_visn) ? -0.2 : 0.2) : exp_vis0-exp_visn; //abs((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) > 0.2 ? (signbit((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) ? -0.2 : 0.2) : (exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1);
+				maxChange = 0.1 * (*lambda->value) > 0.2 ? 0.1 * (*lambda->value) : 0.2;
+				tmpLamDelta = abs(exp_vis0 - exp_visn)>maxChange ? (signbit(exp_vis0 - exp_visn) ? -maxChange : maxChange) : exp_vis0 - exp_visn;//abs(exp_vis0 - exp_visn) > 0.2? (signbit(exp_vis0 - exp_visn) ? -0.2 : 0.2) : exp_vis0-exp_visn; //abs((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) > 0.2 ? (signbit((exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1)) ? -0.2 : 0.2) : (exp_vis0 - 1)*(exp_vis0 - 1) - (exp_visn - 1)*(exp_visn - 1);
 																																	//std::cout << tmpLamDelta << std::endl;
 				if (!fixLambda && !isnan(tmpLamDelta))
-					*lambda->value = *lambda->value + Tensor({ 1 }, { -learningRate * (tmpLamDelta) });
+					*lambda->value = *lambda->value + Tensor({ 1 }, { -learningRateL * (tmpLamDelta) });
 			}
 
 			lambda.reset();
 			kappa.reset();
 			Av.reset();
 			Ah.reset();
+			vector<double> val = { tmpDelta, tmpLamDelta };
+			return val;
 		}
 	}
 }
