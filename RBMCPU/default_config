@@ -1,15 +1,15 @@
-test2dConvergence:
-	kappa = {0.3}
-	lambda = {10.0}
+plot2DRGFlow:
+	kappa = {0.1}
+	lambda = {100.0}
 	batchsize = 50
 	learningrate = 0.5
 	chainsize = {16,16}
-#	layersize = 3
+	layersize = 3
 	;;
 
 #criticalLineTest:
 #	chainsize = {8,8}
-#	kappa = {0.25,0.27,0.32,0.36}
+#	kappa = {0.42}
 #	lambda = {1}
 #	stepsize = 0.001
 #	finalKappa = 0.26
@@ -17,14 +17,14 @@ test2dConvergence:
 
 #	criticalLineTest:
 #	chainsize = {12,12}
-#	kappa = {0.25,0.27,0.32,0.36}
+#	kappa = {0.42}
 #	lambda = {1}
 #	stepsize = 0.001
 #	finalKappa = 0.26
 #	;;
 #	criticalLineTest:
 #	chainsize = {16,16}
-#	kappa = {0.25,0.27,0.32,0.36}
+#	kappa = {0.42}
 #	lambda = {1}
 #	stepsize = 0.001
 #	finalKappa = 0.26

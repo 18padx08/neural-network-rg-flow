@@ -48,6 +48,7 @@ void RG2DTest::plot2DRGFlow(vector<int> size, int batchsize, int layersize,  dou
 		auto newc = make_shared<ContrastiveDivergence2D>(tmp, 0.3*lr);
 		auto k = tmp->getVarForName("kappa");
 		auto lam = tmp->getVarForName("lambda");
+
 		k->value = make_shared<Tensor>(Tensor({ 1 }, { kappa }));
 		lam->value = make_shared<Tensor>(Tensor({ 1 }, { lambda }));
 		graphs.push_back(tmp);
@@ -61,18 +62,22 @@ void RG2DTest::plot2DRGFlow(vector<int> size, int batchsize, int layersize,  dou
 
 	double thresholdK = 0.001;
 	double thresholdL = 0.001;
-
+	double lastAvgK = 0;
+	double lastAvgL = 0;
 	for (int l = 0; l < layersize; l++) {
 		//each layer has to be trained
 		auto kap = graphs[l]->getVarForName("kappa");
 		auto lamb = graphs[l]->getVarForName("lambda");
-
+		if (l > 0) {
+			kap->value = make_shared<Tensor>(Tensor({ 1 }, { lastAvgK }));
+			lamb->value = make_shared<Tensor>(Tensor({ 1 }, { lastAvgL }));
+		}
 		int runningCounter = 1;
 		int overall = 0;
 		double avgK = 0;
 		double avgL = 0;
-		double lastAvgK = 0;
-		double lastAvgL = 0;
+		lastAvgK = 0;
+		lastAvgL = 0;
 		bool isThermalizing = true;
 		std::cout << "Layer[" << l << "] of " << layersize << std::endl;
 		while (isThermalizing) {
@@ -217,6 +222,7 @@ void RG2DTest::test2dConvergence(vector<int> size, int batchsize, double kappa, 
 
 	auto kap = graph->getVarForName("kappa");
 	auto lamb = graph->getVarForName("lambda");
+
 	kap->value = make_shared<Tensor>(Tensor({ 1 }, {2*kappa}));
 	lamb->value = make_shared<Tensor>(Tensor({ 1 }, {0.5* lambda }));
 
