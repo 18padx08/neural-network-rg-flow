@@ -34,7 +34,7 @@ namespace ct {
 		auto negative = make_shared<RGFlowCont>(RGFlowCont(storeHidden_raw, kappa, Av, Ah, lambda, true));
 
 		auto storeVisible_raw= make_shared<Storage>(Storage(negative, "visibles_raw"));
-		//auto visible = make_shared<ProbPooling>(ProbPooling(storeVisible_raw));
+		
 		auto graph = make_shared<Graph>(Graph(storeVisible_raw));
 		return graph;
 	}

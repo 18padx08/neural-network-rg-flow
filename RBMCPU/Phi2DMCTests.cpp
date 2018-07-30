@@ -24,13 +24,13 @@ void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas
 			ofstream output("phi2dmctest_lambda=" + to_string(l) + "_kappa=" + to_string(k) + "_cs=" + to_string(chainsize[0]) + ".csv");
 			Phi2D phi(chainsize, k, l);
 			phi.useWolff = true;
-			phi.thermalize(5000);
+			phi.thermalize(60000);
 			
 			double absAvg = 0;
 			double phi4 = 0;
 			double phi2 = 0;
 			double vev = 0;
-			for (int i = 0; i < 100; i++) {
+			for (int i = 0; i < 10000; i++) {
 				auto quartPhi = phi.quarticVolumeAverage();
 				auto squPhi = phi.squaredVolumeAverage();
 				auto absAvg = phi.volumeAverage();

@@ -245,7 +245,7 @@ void RG2DTest::test2dConvergence(vector<int> size, int batchsize, double kappa, 
 			auto vals = cd->optimize(10, 1, true);
 			overallOptimK += vals[0];
 			overallOptimL += vals[1];
-			std::cout << vals[0] << "  " << vals[1] << std::endl;
+			//std::cout << vals[0] << "  " << vals[1] << std::endl;
 		if (runningCounter % 20 == 0) {
 			overallOptimK /= 20;
 			overallOptimL /= 20;
