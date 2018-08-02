@@ -6,7 +6,7 @@ double Phi2D::energyDiff(int x, int y)
 	double delta = 0;
 	auto theValue = lattice[{x, y}];
 	
-	uniform_real_distribution<double> deltaDist(-0.25, 0.25);
+	uniform_real_distribution<double> deltaDist(-1.5, 1.5);
 	uniform_real_distribution<double> probSignflip(0, 1);
 	
 	delta = deltaDist(generator);

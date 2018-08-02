@@ -43,6 +43,9 @@ REGISTERED_TESTS Config::enumFromString(string str)
 	else if (str == "plot2DRGFlow") {
 		return REGISTERED_TESTS::plot2DRGFlow;
 	}
+	else if (str == "criticalSlowingDown") {
+		return REGISTERED_TESTS::criticalSlowingDown;
+	}
 	return REGISTERED_TESTS::None;
 }
 
@@ -51,7 +54,7 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 	function<void()> f;
 	switch (currentTest) {
 	case REGISTERED_TESTS::plotRGFlowLamNeq0:
-		f = [=] 
+		f = [=]
 		{
 			RGFlowTest test;
 			test("plotRGFlowLamNeq0", num_vars, str_vars, list_vars);
@@ -76,7 +79,7 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 				for (auto k : kappas) {
 					for (auto l : lambdas) {
 						ErrorAnalysis test;
-						test.plotNonZeroLamTests(k,l);
+						test.plotNonZeroLamTests(k, l);
 					}
 				}
 			}
@@ -160,6 +163,12 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 		f = [=] {
 			RG2DTest test;
 			test("plot2DRGFlow", num_vars, str_vars, list_vars);
+		};
+		break;
+	case REGISTERED_TESTS::criticalSlowingDown:
+		f = [=] {
+			Phi2DMCTests test;
+			test("criticalSlowingDown",num_vars,str_vars,list_vars);
 		};
 		break;
 	}
