@@ -6,14 +6,17 @@
 #	chainsize = {128,128}
 #	layersize = 3
 #	;;
-compareNormOverVariousKappa:
-	kappa = {0.1,0.14,0.15,0.16,0.17,0.18,0.19,0.2,0.25,0.3,0.35,0.4,0.41,0.42,0.43,0.44,0.45,0.46,0.47, 0.48, 0.4}
-	chainsize = 1024
-	;;
-#criticalLineTest:
-#	chainsize = {32,32}
-#	kappa = {0.27,0.29,0.3,0.32,0.34,0.36}
-#	lambda = {1}
-#	stepsize = 0.001
-#	finalKappa = 0.26
+#compareNormOverVariousKappa:
+#	kappa = {0.1,0.14,0.15,0.16,0.17,0.18,0.19,0.2,0.25,0.3,0.35,0.4,0.41,0.42,0.43,0.44,0.45,0.46,0.47, 0.48, 0.4}
+#	chainsize = 1024
 #	;;
+	criticalLineTest:
+	chainsize = {128,128}
+	kappa = {0.27,0.29,0.3,0.32,0.34,0.36}
+	lambda = {1}
+	stepsize = 0.001
+	finalKappa = 0.26
+	;;
+
+	
+

@@ -37,10 +37,13 @@ void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas
 				auto action = phi.getKappaWeight();
 				phi4 += phi.quarticVolumeAverage();
 				phi2 += phi.squaredVolumeAverage();
-				absAvg += phi.absoluteVolumeAverage();
+				//absAvg += phi.absoluteVolumeAverage();
 				vev += abs(phi.volumeAverage());
 
 				output << absAvg << "," << squPhi << "," << quartPhi << "," << action  << std::endl;
+				phi.monteCarloSweep();
+				phi.monteCarloSweep();
+				phi.monteCarloSweep();
 				phi.monteCarloSweep();
 			}
 			vev /= 100;
