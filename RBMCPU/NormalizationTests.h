@@ -24,7 +24,8 @@
 #include "ModCD.h"
 #include "CheatCD.h"
 #include "Phi1D.h"
-class NormalizationTests
+#include "TestBase.h"
+class NormalizationTests : public TestBase
 {
 public:
 	NormalizationTests();
@@ -33,5 +34,8 @@ public:
 	void runConvTest();
 	void compareLatticeAndNN();
 	void compareNormOverVariousKappa(vector<double> kappas, int chainsize);
+
+	// Inherited via TestBase
+	virtual void operator()(string name, map<string, double> num_vars, map<string, string> str_vars, map<string, vector<double>> list_vars) override;
 };
 

@@ -43,6 +43,9 @@ REGISTERED_TESTS Config::enumFromString(string str)
 	else if (str == "plot2DRGFlow") {
 		return REGISTERED_TESTS::plot2DRGFlow;
 	}
+	else if (str == "compareNormOverVariousKappa") {
+		return REGISTERED_TESTS::compareNormOverVariousKappa;
+	}
 	else if (str == "criticalSlowingDown") {
 		return REGISTERED_TESTS::criticalSlowingDown;
 	}
@@ -171,7 +174,9 @@ function<void()> Config::getFunction(REGISTERED_TESTS currentTest, map<string, d
 			test("criticalSlowingDown",num_vars,str_vars,list_vars);
 		};
 		break;
+
 	}
+
 	
 	return f;
 }

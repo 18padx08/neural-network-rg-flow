@@ -184,29 +184,43 @@ void NormalizationTests::compareNormOverVariousKappa(vector<double> kappas, int 
 		double averageNN = 0;
 		double averageNNN = 0;
 		auto storageNode = dynamic_pointer_cast<Storage>(graph->storages["visibles_raw"].lock());
-		
+		double theoreticalCorr = exp(-2 * sqrt(1.0 / kappa - 2));
+		double scorr = exp(-4 * sqrt(1.0 / kappa - 2));
 		map<string, shared_ptr<Tensor>> feedDic = { { "x", make_shared<Tensor>(Tensor({ 1024 },phi.getConfiguration())) } };
 		for (int trials = 0; trials < 500; trials++) {
 			phi.fftUpdate();
+			
 			averageMC += phi.getCorrelationLength(2);
 			averageNNNMC += phi.getCorrelationLength(4);
 			session.run(feedDic, true, 5);
 			auto chain = (*storageNode->storage[5]);
+			double tmpNN = 0;
+			double tmpNNN = 0;
 			for (int i = 0; i < chain.dimensions[0]/2.0; i++) {
-				averageNN += (chain[{2 * i}] * chain[{2 * i + 2}] ) / (chain.dimensions[0]/2.0);
-				averageNNN += (chain[{2 * i}] * chain[{2 * i + 4}]) / (chain.dimensions[0] / 2.0);
+				tmpNN += (chain[{2 * i}] * chain[{2 * i + 2}] ) / (chain.dimensions[0]/2.0);
+				tmpNNN += (chain[{2 * i}] * chain[{2 * i + 4}]) / (chain.dimensions[0] / 2.0);
 			}
+			tmpNN /= chain.dimensions[0] / 2.0;
+			tmpNNN /= chain.dimensions[0] / 2.0;
+			averageNN += tmpNN;
+			averageNNN += tmpNNN;
 			printProgress(trials, 500);
+			scalings << (phi.getCorrelationLength(2) / theoreticalCorr ) /  (phi.getCorrelationLength(4)/scorr)<< ",";
+
 		}
+		scalings << std::endl;
 		averageMC /= 500;
 		averageNNNMC /= 500;
 		averageNN /= 500;
 		averageNNN /= 500;
-		double theoreticalCorr = exp(-2 * sqrt(1.0 / kappa - 2));
-		double scorr = exp(-4 * sqrt(1.0 / kappa - 2));
-		scalings << averageMC / averageNN << "," << averageMC / theoreticalCorr << "," << averageNN / theoreticalCorr << "," << averageNNNMC / scorr << "," << averageNNN / scorr  << std::endl;
-		std::cout << std::endl << "kappa[" << kappa << "]: " << "(MC/NN,NNNMC/NNN)" << ",\t" << "(MC/Th,NNNMC/NNN)" << ",\t" << "(NN/Th,NNNMC/NNN)" <<std::endl;
+		
+		
+				std::cout << std::endl << "kappa[" << kappa << "]: " << "(MC/NN,NNNMC/NNN)" << ",\t" << "(MC/Th,NNNMC/NNN)" << ",\t" << "(NN/Th,NNNMC/NNN)" <<std::endl;
 		std::cout << "kappa[" <<kappa << "]: "<< fixed << setprecision(2)  << "("<< abs(averageMC / averageNN) << "," << abs(averageNNNMC/averageNNN)<<"),\t(" << abs(averageMC / theoreticalCorr) <<"," << abs(averageNNNMC/scorr) << "),\t(" << abs(averageNN / theoreticalCorr) <<"," << abs(averageNNN/scorr) << ")" << std::endl;
 	}	std::cout << std::endl << std::endl;
 	scalings.close();
+}
+
+void NormalizationTests::operator()(string name, map<string, double> num_vars, map<string, string> str_vars, map<string, vector<double>> list_vars)
+{
 }
