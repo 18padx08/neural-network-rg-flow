@@ -11,7 +11,7 @@ public:
 	Phi2DMCTests();
 	~Phi2DMCTests();
 
-	void criticalLineTest(vector<int> chainsize, vector<double> kappas, vector<double> lambdas, double stepsize, double finalBeta);
+	void criticalLineTest(vector<int> chainsize, vector<double> kappas, vector<double> lambdas, double stepsize, double finalBeta, int thermalizationruns = 400);
 	void criticalLineTestNN(vector<int> chainsize, vector<double> kappas, vector<double> lambdas, double stepsize);
 	void criticalSlowingDown(vector<int> chainsize, vector<double> kappas, vector<double> lambda, int batchsize);
 	// Inherited via TestBase

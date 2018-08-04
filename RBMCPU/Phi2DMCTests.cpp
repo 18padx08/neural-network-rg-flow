@@ -11,7 +11,7 @@ Phi2DMCTests::~Phi2DMCTests()
 {
 }
 
-void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas, vector<double> lambdas, double stepsize, double finalBeta)
+void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas, vector<double> lambdas, double stepsize, double finalBeta, int thermalizationruns)
 {
 	
 	for (int i = 0; i < lambdas.size(); i++) {
@@ -24,7 +24,7 @@ void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas
 			ofstream output("phi2dmctest_lambda=" + to_string(l) + "_kappa=" + to_string(k) + "_cs=" + to_string(chainsize[0]) + ".csv");
 			Phi2D phi(chainsize, k, l);
 			phi.useWolff = true;
-			phi.thermalize(800);
+			phi.thermalize(thermalizationruns);
 			
 			double absAvg = 0;
 			double phi4 = 0;
@@ -295,8 +295,9 @@ void Phi2DMCTests::operator()(string name, map<string, double> num_vars, map<str
 	double finalK = num_vars.find("finalKappa") == num_vars.end() ? kappas[0] * 20 : num_vars["finalKappa"];
 	double ss = num_vars.find("stepsize") == num_vars.end() ? 0.01 : num_vars["stepsize"];
 	int bs = num_vars.find("batchsize") == num_vars.end() ? 0.01 : num_vars["batchsize"];
+	int thermalization = num_vars.find("thermalizationruns") == num_vars.end() ? 400 : num_vars["thermalizationruns"];
 	if (name == "criticalLineTest") {
-		criticalLineTest(chainsize, kappas, lambdas,ss, finalK);
+		criticalLineTest(chainsize, kappas, lambdas,ss, finalK, thermalization);
 	}
 	if (name == "criticalLineNNTest") {
 		criticalLineTestNN(chainsize, kappas, lambdas,ss);

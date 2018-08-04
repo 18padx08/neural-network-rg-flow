@@ -11,40 +11,12 @@
 #	chainsize = 1024
 #	;;
 
+#lambda = 0.1
 criticalLineTest:
-	chainsize = {16,16}
-	kappa = {0.19,0.2,0.21,0.22,0.24,0.25,0.26,0.27}
-	lambda = {6}
+	chainsize = {10,10}
+	kappa = {0.27,0.28,0.29,0.3,0.31,0.32,0.33,0.34}
+	lambda = {0.3}
 	stepsize = 0.001
 	finalKappa = 0.26
+	thermalizationruns = 1000
 	;;
-	chainsize = {20,20}
-	kappa = {0.19,0.2,0.21,0.22,0.24,0.25,0.26,0.27}
-	lambda = {6}
-	stepsize = 0.001
-	finalKappa = 0.26
-	;;
-	chainsize = {25,25}
-	kappa = {0.19,0.2,0.21,0.22,0.24,0.25,0.26,0.27}
-	lambda = {6}
-	stepsize = 0.001
-	finalKappa = 0.26
-	;;
-	chainsize = {30,30}
-	kappa = {0.19,0.2,0.21,0.22,0.24,0.25,0.26,0.27}
-	lambda = {6}
-	stepsize = 0.001
-	finalKappa = 0.26
-	;;
-	criticalLineTest:
-	chainsize = {32,32}
-	kappa = {0.19,0.2,0.21,0.22,0.24,0.25,0.26,0.27}
-		lambda = {6}
-	stepsize = 0.001
-	finalKappa = 0.26
-	;;
-
-	
-
-	
-
