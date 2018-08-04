@@ -24,7 +24,7 @@ void Phi2DMCTests::criticalLineTest(vector<int> chainsize, vector<double> kappas
 			ofstream output("phi2dmctest_lambda=" + to_string(l) + "_kappa=" + to_string(k) + "_cs=" + to_string(chainsize[0]) + ".csv");
 			Phi2D phi(chainsize, k, l);
 			phi.useWolff = true;
-			phi.thermalize(400);
+			phi.thermalize(800);
 			
 			double absAvg = 0;
 			double phi4 = 0;

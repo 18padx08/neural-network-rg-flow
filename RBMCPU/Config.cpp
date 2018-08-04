@@ -280,8 +280,9 @@ void Config::run()
 {
 	std::cout << "Start running with config" << std::endl;
 	std::cout << "We've got " << functions.size() << " functions to run" << std::endl <<std::endl;
-	for (auto el  : functions) {
-		el();
+#pragma omp parallel for
+	for (int i = 0; i < functions.size(); i++) {
+		functions[i]();
 		std::cout << std::endl << std::endl;
 	}
 	std::cout << "We're finished running!" << std::endl;
